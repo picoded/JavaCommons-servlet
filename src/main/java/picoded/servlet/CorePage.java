@@ -1,304 +1,354 @@
-// package picoded.servlet;
+package picoded.servlet;
 
-// import javax.servlet.http.HttpServletRequest;
-// import javax.servlet.http.HttpServletResponse;
-// import javax.servlet.http.Cookie;
-// import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Cookie;
+import javax.servlet.*;
 
-// // Exceptions used
-// import java.io.IOException;
+// Exceptions used
+import java.io.IOException;
 
-// // Objects used
-// import java.util.HashMap;
-// import java.util.Map;
-// import java.util.Enumeration;
-// import java.io.PrintWriter;
-// import java.io.OutputStream;
-// import java.net.URLDecoder;
-// import java.io.UnsupportedEncodingException;
-// import java.io.ByteArrayOutputStream;
-// import java.io.OutputStream;
-// import java.io.OutputStreamWriter;
-// import java.net.URLDecoder;
+// Objects used
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Enumeration;
+import java.io.PrintWriter;
+import java.io.OutputStream;
+import java.net.URLDecoder;
+import java.io.UnsupportedEncodingException;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.URLDecoder;
 
-// // Apache library used
-// import org.apache.commons.io.FilenameUtils;
+// Apache library used
+import org.apache.commons.io.FilenameUtils;
 
-// // JavaCommons library used
-// import picoded.core.conv.ConvertJSON;
-// import picoded.util.file.FileUtil;
-// import picoded.core.common.HttpRequestType;
-// import picoded.core.common.EmptyArray;
-// import picoded.core.struct.HashMapList;
-// import picoded.servlet.util.FileServlet;
+// JavaCommons library used
+import picoded.core.conv.ConvertJSON;
+import picoded.core.common.EmptyArray;
+import picoded.core.struct.ArrayListMap;
+import picoded.servlet.util.FileServlet;
 
-// // Sub modules used
+import picoded.core.common.HttpRequestType;
 
-// /**
-//  * JavaCommons.servlet page core system, in which all additional page are extended from.
-//  * In addition, this is intentionally structured to be "usable" even without the understanding / importing of
-//  * the various HttpServlet functionalities. Though doing so is still highly recommended.
-//  * 
-//  * JavaCommons.servlet are all designed to be re initiated for each thread request, ensuring class instance
-//  * isolation between various request by default.
-//  *
-//  * Note that internally, doPost, doGet creates a new class instance for each call/request it recieves.
-//  * As such, all subclass built can consider all servlet instances are fresh instances on process request.
-//  *
-//  * ---------------------------------------------------------------------------------------------------------
-//  *
-//  * ## Process flow
-//  * <pre>
-//  * {@code
-//  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//  * [CorePage request process flow]
-//  *
-//  * spawnInstance ----+--> processChain
-//  *                   |         |
-//  * doOption ---------+    doSharedSetup
-//  *                   |     && doRequestSetup
-//  * doPost -----------+         |                       (excludes Head/Option)
-//  *                   |       doAuth -------+-> doRequest --> do_X_Request --> outputRequest--+
-//  * doGet ------------+                     |                                                 |
-//  *                   |                 isJsonRequest == true                                 +-> doSharedTeardown
-//  * doDelete ---------+                     |                                                 |   && doRequestTearDown
-//  *                   |                     \-> doJson -----> do_X_Json -----> outputJSON-----+
-//  * doPut ------------+                         (excludes Head/Option)
-//  *                   |
-//  * doHead -----------/
-//  *
-//  * [CorePage lifecycle process flow]
-//  *
-//  * contextInitialized --> doSharedSetup -----> initializeContext
-//  * contextDestroyed ----> doSharedTeardown --> destroyContext
-//  *
-//  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//  * }
-//  * </pre>
-//  * ---------------------------------------------------------------------------------------------------------
-//  *
-//  * ## [TODO]
-//  * + Websocket support?
-//  **/
-// public class CorePage extends javax.servlet.http.HttpServlet implements ServletContextListener {
+/**
+ * JavaCommons.servlet page core system, in which all additional page are extended from.
+ * In addition, this is intentionally structured to be "usable" even without the understanding / importing of
+ * the various HttpServlet functionalities. Though doing so is still highly recommended.
+ * 
+ * JavaCommons.servlet are all designed to be re initiated for each thread request, ensuring class instance
+ * isolation between various request by default.
+ *
+ * Note that internally, doPost, doGet creates a new class instance for each call/request it recieves.
+ * As such, all subclass built can consider all servlet instances are fresh instances on process request.
+ *
+ * ---------------------------------------------------------------------------------------------------------
+ *
+ * ## Process flow
+ * <pre>
+ * {@code
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * [CorePage request process flow]
+ *
+ * doOption ---------+--> spawnInstance().setupInstance(...).processChain(...)
+ *                   |         |
+ * doPost -----------+     doSharedSetup
+ *                   |     && doRequestSetup
+ * doGet ------------+         |
+ *                   |     doRequest --> do_X_Request --> outputRequest
+ * doDelete ---------+                                          |
+ *                   |                                    doRequestTearDown
+ * doPut ------------+                                 && doSharedTeardown
+ *                   |
+ * doHead -----------/
+ *
+ * [CorePage lifecycle process flow]
+ *
+ * contextInitialized --> doSharedSetup -----> initializeContext
+ * contextDestroyed ----> doSharedTeardown --> destroyContext
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * }
+ * </pre>
+ * ---------------------------------------------------------------------------------------------------------
+ *
+ * ## [TODO]
+ * + Websocket support?
+ **/
+public class CorePage extends javax.servlet.http.HttpServlet implements ServletContextListener {
 	
-// 	///////////////////////////////////////////////////////
-// 	//
-// 	// Static variables
-// 	//
-// 	///////////////////////////////////////////////////////
+	// Java object serilization number
+	private static final long serialVersionUID = 1L;
 	
-// 	// Static type variables declaration
-// 	//-------------------------------------------
+	///////////////////////////////////////////////////////
+	//
+	// Constructor and spawnInstance
+	//
+	///////////////////////////////////////////////////////
 	
-// 	private static final long serialVersionUID = 1L;
+	/**
+	 * Blank constructor, used for template building, unit testing, etc
+	 **/
+	public CorePage() {
+		super();
+	}
 	
-// 	///////////////////////////////////////////////////////
-// 	//
-// 	// Instance variables
-// 	//
-// 	///////////////////////////////////////////////////////
+	/**
+	 * Spawn an instance of the current class
+	 **/
+	public CorePage spawnInstance() throws ServletException { //, OutputStream outStream
+		try {
+			Class<? extends CorePage> pageClass = this.getClass();
+			CorePage ret = pageClass.newInstance();
+			ret = pageClass.cast(ret);
+			ret.applyServletConfig(this.getServletConfig());
+			return ret;
+		} catch (Exception e) {
+			throw new ServletException(e);
+		}
+	}
+
+	/**
+	 * Copy servlet config from the orginal instance, to a new instance
+	 * 
+	 * @param  servletConfig  servlet config to apply from the original page
+	 **/
+	protected void applyServletConfig(ServletConfig servletConfig) {
+		try {
+			if (servletConfig != null) {
+				init(servletConfig);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 	
-// 	// Instance variables
-// 	//-------------------------------------------
+	///////////////////////////////////////////////////////
+	//
+	// setupInstance with its respective variables
+	//
+	///////////////////////////////////////////////////////
 	
-// 	/**
-// 	 * Request type indicator
-// 	 **/
-// 	//protected byte requestType = 0;
-// 	protected HttpRequestType requestType = null;
+	/**
+	 * Request type indicator
+	 **/
+	//protected byte requestType = 0;
+	protected HttpRequestType requestType = null;
 	
-// 	/**
-// 	 * The actual output stream used
-// 	 **/
-// 	protected OutputStream responseOutputStream = null;
+	/**
+	 * The actual output stream used
+	 **/
+	protected OutputStream responseOutputStream = null;
 	
-// 	/**
-// 	 * parameter map, either initialized from httpRequest, or directly
-// 	 **/
-// 	protected RequestMap requestParameters = null;
+	/**
+	 * httpRequest used [modification of this value, is highly discouraged]
+	 **/
+	protected HttpServletRequest httpRequest = null;
 	
-// 	//-------------------------------------------
-// 	// Servlet specific variables
-// 	//-------------------------------------------
+	/**
+	 * httpResponse used [modification of this value, is highly discouraged]
+	 **/
+	protected HttpServletResponse httpResponse = null;
 	
-// 	/**
-// 	 * httpRequest used [modification of this value, is highly discouraged]
-// 	 **/
-// 	protected HttpServletRequest httpRequest = null;
-	
-// 	/**
-// 	 * httpResponse used [modification of this value, is highly discouraged]
-// 	 **/
-// 	protected HttpServletResponse httpResponse = null;
-	
-// 	/**
-// 	 * Get the native http servlet request
-// 	 **/
-// 	public HttpServletRequest getHttpServletRequest() {
-// 		return httpRequest;
-// 	}
-	
-// 	/**
-// 	 * Get the native http servlet response
-// 	 **/
-// 	public HttpServletResponse getHttpServletResponse() {
-// 		return httpResponse;
-// 	}
-	
-// 	// Independent instance variables
-// 	//-------------------------------------------
-	
-// 	/**
-// 	 * The requested headers map, either set at startup or extracted from httpRequest
-// 	 **/
-// 	protected Map<String, String[]> _requestHeaderMap = null;
-	
-// 	/**
-// 	 * Gets and returns the requestHeaderMap
-// 	 **/
-// 	public Map<String, String[]> requestHeaderMap() {
-// 		// gets the constructor set cookies / cached cookies
-// 		if (_requestHeaderMap != null) {
-// 			return _requestHeaderMap;
-// 		}
-		
-// 		// if the cached copy not previously set, and request is null, nothing can be done
-// 		if (httpRequest == null) {
-// 			return null;
-// 		}
-		
-// 		// Creates the _requestHeaderMap from httpRequest
-// 		HashMapList<String, String> mapList = new HashMapList<String, String>();
-		
-// 		// Get an Enumeration of all of the header names sent by the client
-// 		Enumeration<String> headerNames = httpRequest.getHeaderNames();
-// 		while (headerNames.hasMoreElements()) {
-// 			String name = headerNames.nextElement();
+	/**
+	 * Setup the instance, with http request and response
+	 **/
+	protected CorePage setupInstance( //
+		HttpRequestType inRequestType, HttpServletRequest req, //
+		HttpServletResponse res //
+	) throws ServletException {
+
+		// Setup the local instance properties
+		requestType = inRequestType;
+		httpRequest = req;
+		httpResponse = res;
+
+		try {
+			// UTF-8 enforcement
+			httpRequest.setCharacterEncoding("UTF-8");
 			
-// 			// As per the Java Servlet API 2.5 documentation:
-// 			//        Some headers, such as Accept-Language can be sent by clients
-// 			//        as several headers each with a different value rather than
-// 			//        sending the header as a comma separated list.
-// 			// Thus, we get an Enumeration of the header values sent by the client
-// 			mapList.append(name, httpRequest.getHeaders(name));
-// 		}
+			// @TODO: To use IOUtils.buffer for inputstream of httpRequest / parameterMap
+			// THIS IS CRITICAL, for the POST request in proxyServlet to work
+			// requestParameters = RequestMap.fromStringArrayValueMap( httpRequest.getParameterMap() );
+			
+			responseOutputStream = httpResponse.getOutputStream();
+		} catch (Exception e) {
+			throw new ServletException(e);
+		}
+
+		// Return instance 
+		return this;
+	}
+	
+	/**
+	 * Get the native http servlet request
+	 **/
+	public HttpServletRequest getHttpServletRequest() {
+		return httpRequest;
+	}
+	
+	/**
+	 * Get the native http servlet response
+	 **/
+	public HttpServletResponse getHttpServletResponse() {
+		return httpResponse;
+	}
+	
+	///////////////////////////////////////////////////////
+	//
+	// Header and cookie map
+	//
+	///////////////////////////////////////////////////////
+	
+	/**
+	 * The requested headers map, either set at startup or extracted from httpRequest
+	 **/
+	protected Map<String, String[]> _requestHeaderMap = null;
+	
+	/**
+	 * Gets and returns the requestHeaderMap
+	 **/
+	public Map<String, String[]> requestHeaderMap() {
+		// gets the constructor set cookies / cached cookies
+		if (_requestHeaderMap != null) {
+			return _requestHeaderMap;
+		}
 		
-// 		return _requestHeaderMap = mapList.toMapArray(new String[0]);
-// 	}
-	
-// 	/**
-// 	 * The requested cookie map, either set at startup or extracted from httpRequest
-// 	 **/
-// 	protected Map<String, String[]> _requestCookieMap = null;
-	
-// 	/**
-// 	 * Gets and returns the requestCookieMap
-// 	 **/
-// 	public Map<String, String[]> requestCookieMap() {
-// 		// gets the constructor set cookies / cached cookies
-// 		if (_requestCookieMap != null) {
-// 			return _requestCookieMap;
-// 		}
+		// if the cached copy not previously set, and request is null, nothing can be done
+		if (httpRequest == null) {
+			return null;
+		}
 		
-// 		// if the cached copy not previously set, and request is null, nothing can be done
-// 		if (httpRequest == null || httpRequest.getCookies() == null) {
-// 			return null;
-// 		}
+		// Creates the _requestHeaderMap from httpRequest
+		ArrayListMap<String, String> mapList = new ArrayListMap<String, String>();
 		
-// 		// Creates the _requestCookieMap from httpRequest
-// 		HashMapList<String, String> mapList = new HashMapList<String, String>();
-// 		for (Cookie oneCookie : httpRequest.getCookies()) {
-// 			mapList.append(oneCookie.getName(), oneCookie.getValue());
-// 		}
+		// Get an Enumeration of all of the header names sent by the client
+		Enumeration<String> headerNames = httpRequest.getHeaderNames();
+		while (headerNames.hasMoreElements()) {
+			String name = headerNames.nextElement();
+			
+			// As per the Java Servlet API 2.5 documentation:
+			//        Some headers, such as Accept-Language can be sent by clients
+			//        as several headers each with a different value rather than
+			//        sending the header as a comma separated list.
+			// Thus, we get an Enumeration of the header values sent by the client
+			mapList.append(name, httpRequest.getHeaders(name));
+		}
 		
-// 		// Cache and return
-// 		return _requestCookieMap = mapList.toMapArray(new String[0]);
-// 	}
+		return _requestHeaderMap = mapList.toMapArray(new String[0]);
+	}
 	
-// 	///////////////////////////////////////////////////////
-// 	//
-// 	// Instance config
-// 	//
-// 	///////////////////////////////////////////////////////
+	/**
+	 * The requested cookie map, either set at startup or extracted from httpRequest
+	 **/
+	protected Map<String, String[]> _requestCookieMap = null;
 	
-// 	// JSON request config handling
-// 	//-------------------------------------------
-	
-// 	/**
-// 	 * Returns true / false if current request qualifies as JSON
-// 	 * Note this is used internally by the process chain
-// 	 **/
-// 	public boolean isJsonRequest() {
-// 		// Returns false, unless overwritten
-// 		return false;
-// 	}
-	
-// 	// CORS config handling
-// 	// @TODO CORS OPTION implementation
-// 	//-------------------------------------------
-	
-// 	// HTTP Servlet convinence functions
-// 	//-------------------------------------------
-	
-// 	/**
-// 	 * Gets the server name
-// 	 */
-// 	public String getServerName() {
-// 		return httpRequest.getServerName();
-// 	}
-	
-// 	public int getServerPort() {
-// 		return httpRequest.getServerPort();
-// 	}
-	
-// 	/**
-// 	 * Gets the server requestURI
-// 	 **/
-// 	public String requestURI() {
-// 		return httpRequest.getRequestURI();
-// 	}
-	
-// 	/**
-// 	 * Gets the request servlet path
-// 	 **/
-// 	public String requestServletPath() {
-// 		return httpRequest.getServletPath();
-// 	}
-	
-// 	/**
-// 	 * Gets the serer wildcard segment of the URI
-// 	 * Note this does any URL decoding if needed, use httpRequest.getPathInfo() for the raw wild card path
-// 	 **/
-// 	public String requestWildcardUri() {
-// 		try {
-// 			String path = httpRequest.getPathInfo(); //no query values
-// 			if (path == null || path.isEmpty()) {
-// 				return null;
-// 			}
-// 			return FileUtil.normalize(URLDecoder.decode(path, "UTF-8").trim());
-// 		} catch (Exception e) {
-// 			return null;
-// 		}
-// 	}
-	
-// 	public String[] requestWildcardUriArray() {
-// 		String raw = requestWildcardUri();
+	/**
+	 * Gets and returns the requestCookieMap
+	 **/
+	public Map<String, String[]> requestCookieMap() {
+		// gets the constructor set cookies / cached cookies
+		if (_requestCookieMap != null) {
+			return _requestCookieMap;
+		}
 		
-// 		if (raw == null || raw.isEmpty()) {
-// 			return EmptyArray.STRING;
-// 		}
+		// if the cached copy not previously set, and request is null, nothing can be done
+		if (httpRequest == null || httpRequest.getCookies() == null) {
+			return null;
+		}
 		
-// 		if (raw.startsWith("/") || raw.startsWith("\\")) {
-// 			raw = raw.substring(1);
-// 		}
+		// Creates the _requestCookieMap from httpRequest
+		ArrayListMap<String, String> mapList = new ArrayListMap<String, String>();
+		for (Cookie oneCookie : httpRequest.getCookies()) {
+			mapList.append(oneCookie.getName(), oneCookie.getValue());
+		}
 		
-// 		if (raw.endsWith("/") || raw.endsWith("\\")) {
-// 			raw = raw.substring(0, raw.length() - 1);
-// 		}
+		// Cache and return
+		return _requestCookieMap = mapList.toMapArray(new String[0]);
+	}
+	
+	// ///////////////////////////////////////////////////////
+	// //
+	// // Static variables
+	// //
+	// ///////////////////////////////////////////////////////
+	
+	// /**
+	//  * parameter map, either initialized from httpRequest, or directly
+	//  **/
+	// protected RequestMap requestParameters = null;
+	
+	// // Various request variables
+	// //-------------------------------------------
+	
+	// ///////////////////////////////////////////////////////
+	// //
+	// // Instance config
+	// //
+	// ///////////////////////////////////////////////////////
+	
+	// // HTTP Servlet convinence functions
+	// //-------------------------------------------
+	
+	// /**
+	//  * Gets the server name
+	//  */
+	// public String getServerName() {
+	// 	return httpRequest.getServerName();
+	// }
+	
+	// public int getServerPort() {
+	// 	return httpRequest.getServerPort();
+	// }
+	
+	// /**
+	//  * Gets the server requestURI
+	//  **/
+	// public String requestURI() {
+	// 	return httpRequest.getRequestURI();
+	// }
+	
+	// /**
+	//  * Gets the request servlet path
+	//  **/
+	// public String requestServletPath() {
+	// 	return httpRequest.getServletPath();
+	// }
+	
+	// /**
+	//  * Gets the serer wildcard segment of the URI
+	//  * Note this does any URL decoding if needed, use httpRequest.getPathInfo() for the raw wild card path
+	//  **/
+	// public String requestWildcardUri() {
+	// 	try {
+	// 		String path = httpRequest.getPathInfo(); //no query values
+	// 		if (path == null || path.isEmpty()) {
+	// 			return null;
+	// 		}
+	// 		return FileUtil.normalize(URLDecoder.decode(path, "UTF-8").trim());
+	// 	} catch (Exception e) {
+	// 		return null;
+	// 	}
+	// }
+	
+	// public String[] requestWildcardUriArray() {
+	// 	String raw = requestWildcardUri();
 		
-// 		return raw.split("[\\\\/]");
-// 	}
+	// 	if (raw == null || raw.isEmpty()) {
+	// 		return EmptyArray.STRING;
+	// 	}
+		
+	// 	if (raw.startsWith("/") || raw.startsWith("\\")) {
+	// 		raw = raw.substring(1);
+	// 	}
+		
+	// 	if (raw.endsWith("/") || raw.endsWith("\\")) {
+	// 		raw = raw.substring(0, raw.length() - 1);
+	// 	}
+		
+	// 	return raw.split("[\\\\/]");
+	// }
 	
 // 	//-------------------------------------------
 // 	// Request type config getters
@@ -359,19 +409,6 @@
 // 		return requestType == HttpRequestType.OPTION;
 // 	}
 	
-// 	///////////////////////////////////////////////////////
-// 	//
-// 	// Constructor, setup and instance spawn
-// 	//
-// 	///////////////////////////////////////////////////////
-	
-// 	/**
-// 	 * Blank constructor, used for template building, unit testing, etc
-// 	 **/
-// 	public CorePage() {
-// 		super();
-// 	}
-	
 // 	/**
 // 	 * Setup the instance, with the request parameter, and
 // 	 **/
@@ -391,58 +428,6 @@
 // 		//requestParameters = new RequestMap( reqParam );
 // 		//requestCookieMap = reqCookieMap;
 // 		return this;
-// 	}
-	
-// 	/**
-// 	 * Setup the instance, with http request and response
-// 	 **/
-// 	protected CorePage setupInstance(HttpRequestType inRequestType, HttpServletRequest req,
-// 		HttpServletResponse res) throws ServletException {
-// 		requestType = inRequestType;
-// 		httpRequest = req;
-// 		httpResponse = res;
-		
-// 		try {
-// 			// UTF-8 enforcement
-// 			httpRequest.setCharacterEncoding("UTF-8");
-			
-// 			// @TODO: To use IOUtils.buffer for inputstream of httpRequest / parameterMap
-// 			// THIS IS CRITICAL, for the POST request in proxyServlet to work
-// 			// requestParameters = RequestMap.fromStringArrayValueMap( httpRequest.getParameterMap() );
-			
-// 			responseOutputStream = httpResponse.getOutputStream();
-// 		} catch (Exception e) {
-// 			throw new ServletException(e);
-// 		}
-		
-// 		return this;
-// 	}
-	
-// 	/**
-// 	 * Spawn and instance of the current class
-// 	 **/
-// 	public CorePage spawnInstance() throws ServletException { //, OutputStream outStream
-// 		try {
-// 			Class<? extends CorePage> pageClass = this.getClass();
-// 			CorePage ret = pageClass.newInstance();
-// 			pageClass.cast(ret).initSetup(this, this.getServletConfig());
-// 			return ret;
-// 		} catch (Exception e) {
-// 			throw new ServletException(e);
-// 		}
-// 	}
-	
-// 	/**
-// 	 * To be over-ridden
-// 	 **/
-// 	public void initSetup(CorePage original, ServletConfig servletConfig) {
-// 		try {
-// 			if (servletConfig != null) {
-// 				init(servletConfig);
-// 			}
-// 		} catch (Exception e) {
-// 			throw new RuntimeException(e);
-// 		}
 // 	}
 	
 // 	///////////////////////////////////////////////////////
@@ -1173,4 +1158,4 @@
 // 	 * @TODO : HEAD SUPPORT, for integration with FileServlet
 // 	 **/
 	
-// }
+}
