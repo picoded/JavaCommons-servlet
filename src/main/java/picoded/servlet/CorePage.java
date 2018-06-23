@@ -97,12 +97,22 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	/**
 	 * Spawn an instance of the current class
 	 **/
-	public CorePage spawnInstance() throws ServletException { //, OutputStream outStream
+	protected CorePage spawnInstance() throws ServletException { //, OutputStream outStream
 		try {
+			// Get new instance of page (via its extended class)
 			Class<? extends CorePage> pageClass = this.getClass();
 			CorePage ret = pageClass.newInstance();
+
+			// Cast and apply servlet config
 			ret = pageClass.cast(ret);
 			ret.applyServletConfig(this.getServletConfig());
+
+			// Store a ThreadLocal copy
+			if(localCopy.get() == null) {
+				localCopy.set(ret);
+			}
+
+			// Return result
 			return ret;
 		} catch (Exception e) {
 			throw new ServletException(e);
@@ -124,6 +134,22 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		}
 	}
 	
+	///////////////////////////////////////////////////////
+	//
+	// TheadLocal convinence copy
+	//
+	///////////////////////////////////////////////////////
+	
+	// Actual threadLocal storage
+	private static ThreadLocal<CorePage> localCopy = new ThreadLocal<>();
+
+	/**
+	 * Gets and return the thread local CorePage used in current servlet request
+	 */
+	public static CorePage getCorePage() {
+		return localCopy.get();
+	}
+
 	///////////////////////////////////////////////////////
 	//
 	// setupInstance with its respective variables
@@ -195,6 +221,17 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		return httpResponse;
 	}
 	
+	///////////////////////////////////////////////////////
+	//
+	// Request Parameter Map
+	//
+	///////////////////////////////////////////////////////
+	
+	/**
+	 * 
+	 **/
+	
+
 	///////////////////////////////////////////////////////
 	//
 	// Header and cookie map
