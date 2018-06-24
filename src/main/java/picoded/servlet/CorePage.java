@@ -176,6 +176,11 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * httpResponse used [modification of this value, is highly discouraged]
 	 **/
 	protected HttpServletResponse httpResponse = null;
+
+	/**
+	 * ServletRequestMap used for the current request
+	 */
+	protected ServletRequestMap requestMap = null;
 	
 	/**
 	 * Setup the instance, with http request and response
@@ -196,8 +201,9 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 			
 			// @TODO: To use IOUtils.buffer for inputstream of httpRequest / parameterMap
 			// THIS IS CRITICAL, for the POST request in proxyServlet to work
-			// requestParameters = RequestMap.fromStringArrayValueMap( httpRequest.getParameterMap() );
+			requestParameters = new ServletRequestMap( httpRequest );
 			
+			// Response output stream 
 			responseOutputStream = httpResponse.getOutputStream();
 		} catch (Exception e) {
 			throw new ServletException(e);
@@ -207,34 +213,36 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		return this;
 	}
 	
+	///////////////////////////////////////////////////////
+	//
+	// setupInstance direct variables access
+	//
+	///////////////////////////////////////////////////////
+	
 	/**
-	 * Get the native http servlet request
+	 * @return the native http servlet request
 	 **/
 	public HttpServletRequest getHttpServletRequest() {
 		return httpRequest;
 	}
 	
 	/**
-	 * Get the native http servlet response
+	 * @return the native http servlet response
 	 **/
 	public HttpServletResponse getHttpServletResponse() {
 		return httpResponse;
 	}
 	
-	///////////////////////////////////////////////////////
-	//
-	// Request Parameter Map
-	//
-	///////////////////////////////////////////////////////
-	
 	/**
-	 * 
+	 * @return the request parameters as a map
 	 **/
-	
+	public ServletRequestMap requestMap() {
+		return requestParameters;
+	}
 
 	///////////////////////////////////////////////////////
 	//
-	// Header and cookie map
+	// Header and cookie map handling
 	//
 	///////////////////////////////////////////////////////
 	
@@ -305,87 +313,73 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		return _requestCookieMap = mapList.toMapArray(new String[0]);
 	}
 	
-	// ///////////////////////////////////////////////////////
-	// //
-	// // Static variables
-	// //
-	// ///////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////
+	//
+	// Server / request information (convinence function)
+	//
+	///////////////////////////////////////////////////////
 	
-	// /**
-	//  * parameter map, either initialized from httpRequest, or directly
-	//  **/
-	// protected RequestMap requestParameters = null;
+	/**
+	 * Gets the server name
+	 */
+	public String getServerName() {
+		return httpRequest.getServerName();
+	}
 	
-	// // Various request variables
-	// //-------------------------------------------
+	public int getServerPort() {
+		return httpRequest.getServerPort();
+	}
 	
-	// ///////////////////////////////////////////////////////
-	// //
-	// // Instance config
-	// //
-	// ///////////////////////////////////////////////////////
+	/**
+	 * Gets the server requestURI
+	 **/
+	public String requestURI() {
+		return httpRequest.getRequestURI();
+	}
 	
-	// // HTTP Servlet convinence functions
-	// //-------------------------------------------
+	/**
+	 * Gets the request servlet path
+	 **/
+	public String requestServletPath() {
+		return httpRequest.getServletPath();
+	}
 	
-	// /**
-	//  * Gets the server name
-	//  */
-	// public String getServerName() {
-	// 	return httpRequest.getServerName();
-	// }
+	/**
+	 * Gets the server wildcard segment of the URI
+	 * Note this does any URL decoding if needed, use httpRequest.getPathInfo() for the raw wild card path
+	 **/
+	public String requestWildcardUri() {
+		try {
+			String path = httpRequest.getPathInfo(); //no query values
+			if (path == null || path.isEmpty()) {
+				return null;
+			}
+			return FileUtil.normalize(URLDecoder.decode(path, "UTF-8").trim());
+		} catch (Exception e) {
+			return null;
+		}
+	}
 	
-	// public int getServerPort() {
-	// 	return httpRequest.getServerPort();
-	// }
-	
-	// /**
-	//  * Gets the server requestURI
-	//  **/
-	// public String requestURI() {
-	// 	return httpRequest.getRequestURI();
-	// }
-	
-	// /**
-	//  * Gets the request servlet path
-	//  **/
-	// public String requestServletPath() {
-	// 	return httpRequest.getServletPath();
-	// }
-	
-	// /**
-	//  * Gets the serer wildcard segment of the URI
-	//  * Note this does any URL decoding if needed, use httpRequest.getPathInfo() for the raw wild card path
-	//  **/
-	// public String requestWildcardUri() {
-	// 	try {
-	// 		String path = httpRequest.getPathInfo(); //no query values
-	// 		if (path == null || path.isEmpty()) {
-	// 			return null;
-	// 		}
-	// 		return FileUtil.normalize(URLDecoder.decode(path, "UTF-8").trim());
-	// 	} catch (Exception e) {
-	// 		return null;
-	// 	}
-	// }
-	
-	// public String[] requestWildcardUriArray() {
-	// 	String raw = requestWildcardUri();
+	/**
+	 * Gets the server wildcard segment of the URI as a split array
+	 */
+	public String[] requestWildcardUriArray() {
+		String raw = requestWildcardUri();
 		
-	// 	if (raw == null || raw.isEmpty()) {
-	// 		return EmptyArray.STRING;
-	// 	}
+		if (raw == null || raw.isEmpty()) {
+			return EmptyArray.STRING;
+		}
 		
-	// 	if (raw.startsWith("/") || raw.startsWith("\\")) {
-	// 		raw = raw.substring(1);
-	// 	}
+		if (raw.startsWith("/") || raw.startsWith("\\")) {
+			raw = raw.substring(1);
+		}
 		
-	// 	if (raw.endsWith("/") || raw.endsWith("\\")) {
-	// 		raw = raw.substring(0, raw.length() - 1);
-	// 	}
+		if (raw.endsWith("/") || raw.endsWith("\\")) {
+			raw = raw.substring(0, raw.length() - 1);
+		}
 		
-	// 	return raw.split("[\\\\/]");
-	// }
+		return raw.split("[\\\\/]");
+	}
 	
 // 	//-------------------------------------------
 // 	// Request type config getters
@@ -396,19 +390,6 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 // 	 **/
 // 	public HttpRequestType requestType() {
 // 		return requestType;
-// 	}
-	
-// 	/**
-// 	 * Returns the request parameters
-// 	 **/
-// 	public RequestMap requestParameters() {
-// 		if (requestParameters != null) {
-// 			return requestParameters;
-// 		}
-		
-// 		requestParameters = new RequestMap(httpRequest);
-		
-// 		return requestParameters;
 // 	}
 	
 // 	/**
