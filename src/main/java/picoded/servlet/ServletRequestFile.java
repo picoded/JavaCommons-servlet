@@ -7,7 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.tomcat.util.http.fileupload.disk.DiskFileItem;
+import org.apache.commons.fileupload.disk.DiskFileItem;
 
 import picoded.core.struct.GenericConvertList;
 import picoded.core.struct.GenericConvertArrayList;
