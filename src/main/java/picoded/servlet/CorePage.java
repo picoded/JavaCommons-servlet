@@ -364,89 +364,83 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * Gets the server wildcard segment of the URI as a split array
 	 */
 	public String[] requestWildcardUriArray() {
+		// Get the wildcardURI, return a quick empty array if applicable
 		String raw = requestWildcardUri();
-		
 		if (raw == null || raw.isEmpty()) {
 			return EmptyArray.STRING;
 		}
 		
+		// Remove "/" prefix and suffix
 		if (raw.startsWith("/") || raw.startsWith("\\")) {
 			raw = raw.substring(1);
 		}
-		
 		if (raw.endsWith("/") || raw.endsWith("\\")) {
 			raw = raw.substring(0, raw.length() - 1);
 		}
+
+		// Does duplicative "//" remove
+		while( raw.indexOf("//") >= 0 ) {
+			raw = raw.replaceAll("[\\\\/\\\\/]", "/");
+		}
 		
+		// Does the actual splitting
 		return raw.split("[\\\\/]");
 	}
 	
-// 	//-------------------------------------------
-// 	// Request type config getters
-// 	//-------------------------------------------
+	///////////////////////////////////////////////////////
+	//
+	// Request type config getters (convinence function)
+	//
+	///////////////////////////////////////////////////////
 	
-// 	/**
-// 	 * Returns the request type
-// 	 **/
-// 	public HttpRequestType requestType() {
-// 		return requestType;
-// 	}
+	/**
+	 * Returns the request type
+	 **/
+	public HttpRequestType requestType() {
+		return requestType;
+	}
 	
-// 	/**
-// 	 * Returns if the request is GET
-// 	 **/
-// 	public boolean isGET() {
-// 		return requestType == HttpRequestType.GET;
-// 	}
+	/**
+	 * Returns the request type as a string
+	 **/
+	public String requestTypeString() {
+		return requestType.toString();
+	}
 	
-// 	/**
-// 	 * Returns if the request is POST
-// 	 **/
-// 	public boolean isPOST() {
-// 		return requestType == HttpRequestType.POST;
-// 	}
+	/**
+	 * Returns if the request is GET
+	 **/
+	public boolean isGET() {
+		return requestType == HttpRequestType.GET;
+	}
 	
-// 	/**
-// 	 * Returns if the request is PUT
-// 	 **/
-// 	public boolean isPUT() {
-// 		return requestType == HttpRequestType.PUT;
-// 	}
+	/**
+	 * Returns if the request is POST
+	 **/
+	public boolean isPOST() {
+		return requestType == HttpRequestType.POST;
+	}
 	
-// 	/**
-// 	 * Returns if the request is DELETE
-// 	 **/
-// 	public boolean isDELETE() {
-// 		return requestType == HttpRequestType.DELETE;
-// 	}
+	/**
+	 * Returns if the request is PUT
+	 **/
+	public boolean isPUT() {
+		return requestType == HttpRequestType.PUT;
+	}
 	
-// 	/**
-// 	 * Returns if the request is OPTION
-// 	 **/
-// 	public boolean isOPTION() {
-// 		return requestType == HttpRequestType.OPTION;
-// 	}
+	/**
+	 * Returns if the request is DELETE
+	 **/
+	public boolean isDELETE() {
+		return requestType == HttpRequestType.DELETE;
+	}
 	
-// 	/**
-// 	 * Setup the instance, with the request parameter, and
-// 	 **/
-// 	protected CorePage setupInstance(HttpRequestType inRequestType, Map<String, String[]> reqParam)
-// 		throws ServletException {
-// 		requestType = inRequestType;
-// 		//requestParameters = new RequestMap( reqParam );
-// 		return this;
-// 	}
-	
-// 	/**
-// 	 * Setup the instance, with the request parameter, and cookie map
-// 	 **/
-// 	protected CorePage setupInstance(HttpRequestType inRequestType, Map<String, String[]> reqParam,
-// 		Map<String, Cookie[]> reqCookieMap) throws ServletException {
-// 		requestType = inRequestType;
-// 		//requestParameters = new RequestMap( reqParam );
-// 		//requestCookieMap = reqCookieMap;
-// 		return this;
-// 	}
+	/**
+	 * Returns if the request is OPTION
+	 **/
+	public boolean isOPTION() {
+		return requestType == HttpRequestType.OPTION;
+	}
 	
 // 	///////////////////////////////////////////////////////
 // 	//
