@@ -387,6 +387,96 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		return raw.split("[\\\\/]");
 	}
 	
+	/**
+	 * Cached context path
+	 **/
+	protected String _contextPath = null;
+	
+	/**
+	 * Gets and returns the context path / application folder path in absolute terms if possible
+	 *
+	 * This represents the FILE path in the native file system
+	 **/
+	public String getContextPath() {
+		if (_contextPath != null) {
+			return _contextPath;
+		}
+		
+		if (httpRequest != null && httpRequest.getServletContext() != null) {
+			return _contextPath = (httpRequest.getServletContext()).getRealPath("/") + "/";
+		}
+		
+		if (_servletContextEvent != null) {
+			ServletContext sc = _servletContextEvent.getServletContext();
+			return _contextPath = sc.getRealPath("/") + "/";
+		}
+		
+		try {
+			// Note this may fail for contextInitialized
+			return _contextPath = getServletContext().getRealPath("/") + "/";
+		} catch (Exception e) {
+			return _contextPath = "./";
+		}
+	}
+	
+	/**
+	 * Cached context path
+	 **/
+	protected String _contextURI = null;
+	
+	/**
+	 * Returns the whole server application contextual path : needed for base URI for page redirects / etc
+	 *
+	 * For root this is "" blank, however for example
+	 * if deployed under "edge", it would be "/edge"
+	 *
+	 * This represents part of the URL path used in HTTP
+	 **/
+	public String getContextURI() {
+		if (_contextURI != null) {
+			return _contextURI;
+		}
+		
+		if (httpRequest != null) {
+			return _contextURI = httpRequest.getContextPath();
+		}
+		
+		if (_servletContextEvent != null) {
+			ServletContext sc = _servletContextEvent.getServletContext();
+			return _contextURI = sc.getContextPath() + "/";
+		}
+		
+		try {
+			return (URLDecoder.decode(this.getClass().getClassLoader().getResource("/").getPath(),
+				"UTF-8")).split("/WEB-INF/classes/")[0];
+		} catch (UnsupportedEncodingException | NullPointerException e) {
+			return "../";
+		}
+	}
+	
+	/**
+	 * Returns the servlet contextual path : needed for base URI for page redirects / etc
+	 * Note that this refers specifically to the current servlet request
+	 **/
+	public String getServletContextURI() {
+		if (httpRequest != null) {
+			return httpRequest.getServletPath();
+		}
+		//return getServletPath();
+		throw new RuntimeException(
+			"Unable to process getServletContextURI, outside of servlet request");
+	}
+	
+	/**
+	 * gets a parameter value, from the httpRequest.getParameter
+	 **/
+	public String getParameter(String paramName) {
+		if (requestParameters() != null) {
+			return requestParameters().getString(paramName);
+		}
+		return null;
+	}
+	
 	///////////////////////////////////////////////////////
 	//
 	// Request type config getters (convinence function)
@@ -470,96 +560,6 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 // 	 **/
 // 	public OutputStream getOutputStream() {
 // 		return responseOutputStream;
-// 	}
-	
-// 	/**
-// 	 * Cached context path
-// 	 **/
-// 	protected String _contextPath = null;
-	
-// 	/**
-// 	 * Gets and returns the context path / application folder path in absolute terms if possible
-// 	 *
-// 	 * This represents the FILE path in the native file system
-// 	 **/
-// 	public String getContextPath() {
-// 		if (_contextPath != null) {
-// 			return _contextPath;
-// 		}
-		
-// 		if (httpRequest != null && httpRequest.getServletContext() != null) {
-// 			return _contextPath = (httpRequest.getServletContext()).getRealPath("/") + "/";
-// 		}
-		
-// 		if (_servletContextEvent != null) {
-// 			ServletContext sc = _servletContextEvent.getServletContext();
-// 			return _contextPath = sc.getRealPath("/") + "/";
-// 		}
-		
-// 		try {
-// 			// Note this may fail for contextInitialized
-// 			return _contextPath = getServletContext().getRealPath("/") + "/";
-// 		} catch (Exception e) {
-// 			return _contextPath = "./";
-// 		}
-// 	}
-	
-// 	/**
-// 	 * Cached context path
-// 	 **/
-// 	protected String _contextURI = null;
-	
-// 	/**
-// 	 * Returns the whole server application contextual path : needed for base URI for page redirects / etc
-// 	 *
-// 	 * For root this is "" blank, however for example
-// 	 * if deployed under "edge", it would be "/edge"
-// 	 *
-// 	 * This represents part of the URL path used in HTTP
-// 	 **/
-// 	public String getContextURI() {
-// 		if (_contextURI != null) {
-// 			return _contextURI;
-// 		}
-		
-// 		if (httpRequest != null) {
-// 			return _contextURI = httpRequest.getContextPath();
-// 		}
-		
-// 		if (_servletContextEvent != null) {
-// 			ServletContext sc = _servletContextEvent.getServletContext();
-// 			return _contextURI = sc.getContextPath() + "/";
-// 		}
-		
-// 		try {
-// 			return (URLDecoder.decode(this.getClass().getClassLoader().getResource("/").getPath(),
-// 				"UTF-8")).split("/WEB-INF/classes/")[0];
-// 		} catch (UnsupportedEncodingException | NullPointerException e) {
-// 			return "../";
-// 		}
-// 	}
-	
-// 	/**
-// 	 * Returns the servlet contextual path : needed for base URI for page redirects / etc
-// 	 * Note that this refers specifically to the current servlet request
-// 	 **/
-// 	public String getServletContextURI() {
-// 		if (httpRequest != null) {
-// 			return httpRequest.getServletPath();
-// 		}
-// 		//return getServletPath();
-// 		throw new RuntimeException(
-// 			"Unable to process getServletContextURI, outside of servlet request");
-// 	}
-	
-// 	/**
-// 	 * gets a parameter value, from the httpRequest.getParameter
-// 	 **/
-// 	public String getParameter(String paramName) {
-// 		if (requestParameters() != null) {
-// 			return requestParameters().getString(paramName);
-// 		}
-// 		return null;
 // 	}
 	
 // 	/**
