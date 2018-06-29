@@ -240,120 +240,111 @@ public class CoreUtilPage extends CorePage {
 
 	///////////////////////////////////////////////////////
 	//
-	// Process request handling
+	// Some legacy stuff
 	//
 	///////////////////////////////////////////////////////
 	
-	// public boolean outputRequest(PrintWriter output) throws Exception {
-		
-		
-	// 	/**
-	// 	 * Completes and return
-	// 	 **/
-	// 	return true;
+	// /**
+	//  * The process chain part specific to a normal request
+	//  **/
+	// @SuppressWarnings("incomplete-switch")
+	// private boolean processRequest() throws Exception {
+	// 	try {
+	// 		// PathEnding enforcement
+	// 		// https://stackoverflow.com/questions/4836858/is-response-redirect-always-an-http-get-response
+	// 		// To explain why its only used for GET requests
+	// 		if (requestType == HttpRequestType.GET && !enforceProperRequestPathEnding()) {
+	// 			return false;
+	// 		}
+			
+	// 		// Does authentication check
+	// 		if (!doAuth(templateDataObj)) {
+	// 			return false;
+	// 		}
+			
+	// 		// Does for all requests
+	// 		if (!doRequest(templateDataObj)) {
+	// 			return false;
+	// 		}
+	// 		boolean ret = true;
+			
+	// 		// Switch is used over if,else for slight compiler optimization
+	// 		// http://stackoverflow.com/questions/6705955/why-switch-is-faster-than-if
+	// 		//
+	// 		// HttpRequestType reqTypeAsEnum = HttpRequestType(requestType);
+	// 		switch (requestType) {
+	// 		case GET:
+	// 			ret = doGetRequest(templateDataObj);
+	// 			break;
+	// 		case POST:
+	// 			ret = doPostRequest(templateDataObj);
+	// 			break;
+	// 		case PUT:
+	// 			ret = doPutRequest(templateDataObj);
+	// 			break;
+	// 		case DELETE:
+	// 			ret = doDeleteRequest(templateDataObj);
+	// 			break;
+	// 		}
+			
+	// 		if (ret) {
+	// 			outputRequest(templateDataObj, getWriter());
+	// 		}
+			
+	// 		// // Flush the output stream
+	// 		// getWriter().flush();
+	// 		// getOutputStream().flush();
+			
+	// 		return ret;
+	// 	} catch (Exception e) {
+	// 		return outputRequestException(templateDataObj, getWriter(), e);
+	// 	}
 	// }
 	
-// 	/**
-// 	 * The process chain part specific to a normal request
-// 	 **/
-// 	@SuppressWarnings("incomplete-switch")
-// 	private boolean processRequest() throws Exception {
-// 		try {
-// 			// PathEnding enforcement
-// 			// https://stackoverflow.com/questions/4836858/is-response-redirect-always-an-http-get-response
-// 			// To explain why its only used for GET requests
-// 			if (requestType == HttpRequestType.GET && !enforceProperRequestPathEnding()) {
-// 				return false;
-// 			}
+	// /**
+	//  * The process chain part specific to JSON request
+	//  **/
+	// @SuppressWarnings("incomplete-switch")
+	// private boolean processChainJSON() throws Exception {
+	// 	try {
+	// 		// Does authentication check
+	// 		if (!doAuth(templateDataObj)) {
+	// 			return false;
+	// 		}
 			
-// 			// Does authentication check
-// 			if (!doAuth(templateDataObj)) {
-// 				return false;
-// 			}
+	// 		// Does for all JSON
+	// 		if (!doJSON(jsonDataObj, templateDataObj)) {
+	// 			return false;
+	// 		}
 			
-// 			// Does for all requests
-// 			if (!doRequest(templateDataObj)) {
-// 				return false;
-// 			}
-// 			boolean ret = true;
+	// 		boolean ret = true;
 			
-// 			// Switch is used over if,else for slight compiler optimization
-// 			// http://stackoverflow.com/questions/6705955/why-switch-is-faster-than-if
-// 			//
-// 			// HttpRequestType reqTypeAsEnum = HttpRequestType(requestType);
-// 			switch (requestType) {
-// 			case GET:
-// 				ret = doGetRequest(templateDataObj);
-// 				break;
-// 			case POST:
-// 				ret = doPostRequest(templateDataObj);
-// 				break;
-// 			case PUT:
-// 				ret = doPutRequest(templateDataObj);
-// 				break;
-// 			case DELETE:
-// 				ret = doDeleteRequest(templateDataObj);
-// 				break;
-// 			}
+	// 		// Switch is used over if,else for slight compiler optimization
+	// 		// http://stackoverflow.com/questions/6705955/why-switch-is-faster-than-if
+	// 		//
+	// 		switch (requestType) {
+	// 		case GET:
+	// 			ret = doGetJSON(jsonDataObj, templateDataObj);
+	// 			break;
+	// 		case POST:
+	// 			ret = doPostJSON(jsonDataObj, templateDataObj);
+	// 			break;
+	// 		case PUT:
+	// 			ret = doPutJSON(jsonDataObj, templateDataObj);
+	// 			break;
+	// 		case DELETE:
+	// 			ret = doDeleteJSON(jsonDataObj, templateDataObj);
+	// 			break;
+	// 		}
 			
-// 			if (ret) {
-// 				outputRequest(templateDataObj, getWriter());
-// 			}
+	// 		if (ret) {
+	// 			outputJSON(jsonDataObj, templateDataObj, getWriter());
+	// 		}
 			
-// 			// // Flush the output stream
-// 			// getWriter().flush();
-// 			// getOutputStream().flush();
-			
-// 			return ret;
-// 		} catch (Exception e) {
-// 			return outputRequestException(templateDataObj, getWriter(), e);
-// 		}
-// 	}
-	
-// 	/**
-// 	 * The process chain part specific to JSON request
-// 	 **/
-// 	@SuppressWarnings("incomplete-switch")
-// 	private boolean processChainJSON() throws Exception {
-// 		try {
-// 			// Does authentication check
-// 			if (!doAuth(templateDataObj)) {
-// 				return false;
-// 			}
-			
-// 			// Does for all JSON
-// 			if (!doJSON(jsonDataObj, templateDataObj)) {
-// 				return false;
-// 			}
-			
-// 			boolean ret = true;
-			
-// 			// Switch is used over if,else for slight compiler optimization
-// 			// http://stackoverflow.com/questions/6705955/why-switch-is-faster-than-if
-// 			//
-// 			switch (requestType) {
-// 			case GET:
-// 				ret = doGetJSON(jsonDataObj, templateDataObj);
-// 				break;
-// 			case POST:
-// 				ret = doPostJSON(jsonDataObj, templateDataObj);
-// 				break;
-// 			case PUT:
-// 				ret = doPutJSON(jsonDataObj, templateDataObj);
-// 				break;
-// 			case DELETE:
-// 				ret = doDeleteJSON(jsonDataObj, templateDataObj);
-// 				break;
-// 			}
-			
-// 			if (ret) {
-// 				outputJSON(jsonDataObj, templateDataObj, getWriter());
-// 			}
-			
-// 			return ret;
-// 		} catch (Exception e) {
-// 			return outputJSONException(jsonDataObj, templateDataObj, getWriter(), e);
-// 		}
-// 	}
+	// 		return ret;
+	// 	} catch (Exception e) {
+	// 		return outputJSONException(jsonDataObj, templateDataObj, getWriter(), e);
+	// 	}
+	// }
 	
 }
