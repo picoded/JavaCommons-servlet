@@ -235,9 +235,6 @@ public class CoreUtilPage extends CorePage {
 		}
 	}
 	
-
-
-
 	///////////////////////////////////////////////////////
 	//
 	// Some legacy stuff
