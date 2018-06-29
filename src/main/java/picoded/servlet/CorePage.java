@@ -51,18 +51,20 @@ import picoded.core.common.HttpRequestType;
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * [CorePage request process flow]
  *
- * doOption ---------+--> spawnInstance().setupInstance(...).processChain(...)
- *                   |         |
- * doPost -----------+     doSharedSetup
+ * doGet ------------+--> spawnInstance().setupInstance(...).processChain(...)
+ *                   |            |
+ * doPost -----------+       doSharedSetup
  *                   |     && doRequestSetup
- * doGet ------------+         |
- *                   |     doRequest --> do_X_Request --> outputRequest
- * doDelete ---------+                                          |
- *                   |                                    doRequestTearDown
- * doPut ------------+                                 && doSharedTeardown
+ * doPut ------------+            |
+ *                   |        doRequest
+ * doDelete ---------+            |
+ *                   |     doRequestTearDown
+ * #doOption --------+    && doSharedTeardown
  *                   |
- * doHead -----------/
+ * #doHead ----------/
  *
+ * #doOption and #doHead is not yet supported
+ * 
  * [CorePage lifecycle process flow]
  *
  * contextInitialized --> doSharedSetup -----> initializeContext
@@ -92,6 +94,22 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 **/
 	public CorePage() {
 		super();
+	}
+
+	/**
+	 * Clone constructor, this is used to copy over all values from original instance
+	 */
+	public CorePage(CorePage ori) {
+		this._contextPath = ori._contextPath;
+		this._contextURI = ori._contextURI;
+		this._requestCookieMap = ori._requestCookieMap;
+		this._requestHeaderMap = ori._requestHeaderMap;
+		this._servletContextEvent = ori._servletContextEvent;
+		this.httpRequest = ori.httpRequest;
+		this.httpResponse = ori.httpResponse;
+		this.requestMap = ori.requestMap;
+		this.requestType = ori.requestType;
+		this.responseOutputStream = ori.responseOutputStream;
 	}
 	
 	/**
@@ -532,642 +550,343 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		return requestType == HttpRequestType.OPTION;
 	}
 	
-// 	///////////////////////////////////////////////////////
-// 	//
-// 	// Convinence functions
-// 	//
-// 	///////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////
+	//
+	// Output stream / output writer / send redirect
+	//
+	///////////////////////////////////////////////////////
 	
-// 	/**
-// 	 * gets the PrintWriter, from the getOutputStream() object and returns it
-// 	 **/
-// 	public PrintWriter getWriter() {
-// 		try {
-// 			return new PrintWriter(new OutputStreamWriter(getOutputStream(), getHttpServletRequest()
-// 				.getCharacterEncoding()), true);
-// 		} catch (UnsupportedEncodingException e) {
-// 			throw new RuntimeException(e);
-// 		}
+	/**
+	 * gets the PrintWriter, from the getOutputStream() object and returns it
+	 **/
+	public PrintWriter getPrintWriter() {
+		try {
+			// Important note: You will need to use "true" for auto flush.
+			// "PrintWriter(Writer out, boolean autoFlush)", or it will NOT work.
+			return new PrintWriter(new OutputStreamWriter(getOutputStream(), getHttpServletRequest()
+				.getCharacterEncoding()), true);
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	/**
+	 * gets the OutputStream, from the httpResponse.getOutputStream() object and returns it
+	 * also surpresses IOException, as RuntimeException
+	 **/
+	public OutputStream getOutputStream() {
+		return responseOutputStream;
+	}
+	
+	/**
+	 * Proxies to httpResponse.sendRedirect,
+	 **/
+	public void sendRedirect(String uri) {
+		if (httpResponse != null) {
+			try {
+				httpResponse.sendRedirect(uri);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			return;
+		}
 		
-// 		// Important note: You will need to use "true" for auto flush.
-// 		// "PrintWriter(Writer out, boolean autoFlush)", or it will NOT work.
-// 		// return new PrintWriter(getOutputStream(), true);
-// 	}
+		// Fallsback to responseHeaderMap.location, if httpResponse is null
+		// if( responseHeaderMap == null ) {
+		//	responseHeaderMap = new HashMap<String, String>();
+		// }
+		// responseHeaderMap.put("location", uri);
+	}
 	
-// 	/**
-// 	 * gets the OutputStream, from the httpResponse.getOutputStream() object and returns it
-// 	 * also surpresses IOException, as RuntimeException
-// 	 **/
-// 	public OutputStream getOutputStream() {
-// 		return responseOutputStream;
-// 	}
+	///////////////////////////////////////////////////////
+	//
+	// Process chains overwrites
+	//
+	///////////////////////////////////////////////////////
 	
-// 	/**
-// 	 * Proxies to httpResponse.sendRedirect,
-// 	 **/
-// 	public void sendRedirect(String uri) {
-// 		if (httpResponse != null) {
-// 			try {
-// 				httpResponse.sendRedirect(uri);
-// 			} catch (IOException e) {
-// 				throw new RuntimeException(e);
-// 			}
-// 			return;
-// 		}
-		
-// 		// Fallsback to responseHeaderMap.location, if httpResponse is null
-// 		//
-// 		// if( responseHeaderMap == null ) {
-// 		//	responseHeaderMap = new HashMap<String, String>();
-// 		// }
-// 		// responseHeaderMap.put("location", uri);
-// 	}
+	/**
+	 * [To be extended by sub class, if needed]
+	 * Called once when initialized per request, and by the initializeContext thread.
+	 *
+	 * The distinction is important, as certain parameters (such as requesrt details),
+	 * cannot be assumed to be avaliable in initializeContext, but is present for most requests
+	 **/
+	public void doSharedSetup() throws Exception {
+		// Does nothing (to override)
+	}
 	
-// 	///////////////////////////////////////////////////////
-// 	//
-// 	// Native FileServlet and path handling
-// 	//
-// 	///////////////////////////////////////////////////////
+	/**
+	 * [To be extended by sub class, if needed]
+	 * Called once when completed per request, regardless of request status, and by the destroyContext thread
+	 *
+	 * PS: This is rarely needed, just rely on java GC =)
+	 *
+	 * The distinction is important, as certain parameters (such as requesrt details),
+	 * cannot be assumed to be avaliable in initializeContext, but is present for most requests
+	 **/
+	public void doSharedTeardown() throws Exception {
+		// Does nothing (to override)
+	}
 	
-// 	/**
-// 	 * Cached FileServlet
-// 	 **/
-// 	protected FileServlet _outputFileServlet = null;
+	/**
+	 * [To be extended by sub class, if needed]
+	 * Called once when initialized per request
+	 **/
+	public void doRequestSetup() throws Exception {
+		// Does nothing (to override)
+	}
 	
-// 	/**
-// 	 * Returns the File servlet
-// 	 **/
-// 	public FileServlet outputFileServlet() {
-// 		if (_outputFileServlet != null) {
-// 			return _outputFileServlet;
-// 		}
-// 		return (_outputFileServlet = new FileServlet(getContextPath()));
-// 	}
+	/**
+	 * [To be extended by sub class, if needed]
+	 * Called once when completed per request, regardless of request status
+	 * PS: This is rarely needed, just rely on java GC =)
+	 **/
+	public void doRequestTearDown() throws Exception {
+		// Does nothing (to override)
+	}
 	
-// 	/**
-// 	 * Checks and forces a redirection for closing slash on index page requests.
-// 	 * If needed (returns false, on validation failure)
-// 	 *
-// 	 * For example : https://picoded.com/JavaCommons , will redirect to https://picoded.com/JavaCommons/
-// 	 *
-// 	 * This is a rather complicated topic. Regarding the ambiguity of the HTML
-// 	 * redirection handling (T605 on phabricator)
-// 	 *
-// 	 * But basically take the following as example. On how a redirect is handled
-// 	 * for a relative "./index.html" within a webpage.
-// 	 *
-// 	 * | Current URL              | Redirects to             |
-// 	 * |--------------------------|--------------------------|
-// 	 * | host/subpath             | host/index.html          |
-// 	 * | host/subpath/            | host/subpath/index.html  |
-// 	 * | host/subpath/index.html  | host/subpath/index.html  |
-// 	 *
-// 	 * As a result of the ambiguity in redirect for html index pages loaded
-// 	 * in "host/subpath". This function was created, so that when called.
-// 	 * will do any redirect if needed if the request was found to be.
-// 	 *
-// 	 * The reason for standardising to "host/subpath/" is that this will be consistent
-// 	 * offline page loads (such as through cordova). Where the index.html will be loaded
-// 	 * in full file path instead.
-// 	 *
-// 	 * 1) A request path withoug the "/" ending
-// 	 *
-// 	 * 2) Not a file request, a file request is assumed if there was a "." in the last name
-// 	 *    Example: host/subpath/file.js
-// 	 *
-// 	 * 3) Not an API request with the "api" keyword. Example: host/subpath/api
-// 	 *
-// 	 * This will also safely handle the forwarding of all GET request parameters.
-// 	 * For example: "host/subpath?abc=xyz" will be redirected to "host/subpath/?abc=xyz"
-// 	 *
-// 	 * Note: THIS will silently pass as true, if a httpRequest is not found. This is to facilitate
-// 	 *       possible function calls done on servlet setup. Without breaking them
-// 	 *
-// 	 * Now that was ALOT of explaination for one simple function wasnt it >_>
-// 	 * Well its one of the lesser understood "gotchas" in the HTTP specifications.
-// 	 * Made more unknown by the JavaCommons user due to the common usage of ${PageRootURI}
-// 	 * which basically resolves this issue. Unless its in relative path mode. Required for app exports.
-// 	 **/
-// 	protected boolean enforceProperRequestPathEnding() throws IOException {
-// 		if (httpRequest != null) {
-// 			String fullURI = httpRequest.getRequestURI();
-			
-// 			// This does not validate blank / root requests
-// 			//
-// 			// Should we? : To fix if this is required (as of now no)
-// 			if (fullURI == null || fullURI.equalsIgnoreCase("/")) {
-// 				return true;
-// 			}
-			
-// 			//
-// 			// Already ends with a "/" ? : If so its considered valid
-// 			//
-// 			if (fullURI.endsWith("/")) {
-// 				return true;
-// 			}
-			
-// 			//
-// 			// Checks if its a file request. Ends check if it is
-// 			//
-// 			String name = FilenameUtils.getName(fullURI);
-// 			if (FilenameUtils.getExtension(name).length() > 0) {
-// 				// There is a file extension. so we shall assume it is a file
-// 				return true; // And end it
-// 			}
-			
-// 			//
-// 			// Get the query string to append (if needed)
-// 			//
-// 			String queryString = httpRequest.getQueryString();
-// 			if (queryString == null) {
-// 				queryString = "";
-// 			} else if (!queryString.startsWith("?")) {
-// 				queryString = "?" + queryString;
-// 			}
-			
-// 			//
-// 			// Enforce proper URL handling
-// 			//
-// 			httpResponse.sendRedirect(fullURI + "/" + queryString);
-// 			return false;
-// 		}
-		
-// 		// Validation is valid.
-// 		return true;
-// 	}
+	/**
+	 * [To be extended by sub class, if needed]
+	 * Handles setup and teardown exception
+	 **/
+	public void handleRequestSetupTeardownException(Exception e) throws Exception {
+		throw e;
+	}
 	
-// 	///////////////////////////////////////////////////////
-// 	//
-// 	// CORS Handling
-// 	//
-// 	///////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////
+	//
+	// Servlet Context handling
+	//
+	///////////////////////////////////////////////////////
 	
-// 	/**
-// 	 * Does a check if CORS should be provided, by default this uses `isJsonRequest`
-// 	 *
-// 	 * @return True / False if CORS should be enabled
-// 	 */
-// 	public boolean isCorsRequest() {
-// 		return isJsonRequest();
-// 	}
+	/**
+	 * Cached servlet context event
+	 **/
+	protected ServletContextEvent _servletContextEvent = null;
 	
-// 	/**
-// 	 * Does the CORS validation headers.
-// 	 * This is automatically done when `isCorsRequest()` is true
-// 	 */
-// 	public void processCors() {
-// 		// If httpResponse isnt set, there is nothing to CORS
-// 		if (httpResponse == null) {
-// 			return;
-// 		}
-		
-// 		// Get origin server
-// 		String originServer = httpRequest.getHeader("Referer");
-// 		if (originServer == null || originServer.isEmpty()) {
-// 			// Unable to process CORS as no referer was sent
-// 			httpResponse.addHeader("Access-Control-Warning",
-// 				"Missing Referer header, Unable to process CORS");
-// 			return;
-// 		}
-// 		// @TODO : Validate originServer against accepted list?
-		
-// 		// Sanatize origin server to be strictly
-// 		// http(s)://originServer.com, without additional "/" nor URI path
-// 		boolean refererHttps = false;
-// 		if (originServer.startsWith("https://")) {
-// 			refererHttps = true;
-// 			originServer = "https://" + originServer.substring("https://".length()).split("/")[0];
-// 		} else {
-// 			originServer = "http://" + originServer.substring("http://".length()).split("/")[0];
-// 		}
-		
-// 		// @TODO : Validate originServer against accepted list?
-		
-// 		// By default CORS is enabled for all API requests
-// 		httpResponse.addHeader("Access-Control-Allow-Origin", originServer);
-// 		httpResponse.addHeader("Access-Control-Allow-Credentials", "true");
-// 		httpResponse.addHeader("Access-Control-Allow-Methods",
-// 			"POST, GET, OPTIONS, PUT, DELETE, HEAD");
-// 	}
+	/**
+	 * [To be extended by sub class, if needed]
+	 * Initialize context setup process
+	 **/
+	public void initializeContext() throws Exception {
+		// Does nothing (to override)
+	}
 	
-// 	///////////////////////////////////////////////////////
-// 	//
-// 	// Process Chain execution
-// 	//
-// 	///////////////////////////////////////////////////////
+	/**
+	 * [To be extended by sub class, if needed]
+	 * Initialize context destroy process
+	 **/
+	public void destroyContext() throws Exception {
+		// Does nothing (to override)
+	}
 	
-// 	/**
-// 	 * Triggers the process chain with the current setup, and indicates failure / success
-// 	 **/
-// 	public boolean processChain() throws ServletException {
-// 		try {
-// 			try {
-// 				boolean ret = true;
-				
-// 				// Does setup
-// 				doSharedSetup();
-// 				doRequestSetup();
-				
-// 				// Does CORS processing
-// 				if (isCorsRequest()) {
-// 					processCors();
-// 				}
-				
-// 				// is JSON request?
-// 				if (isJsonRequest()) {
-// 					ret = processChainJSON();
-// 				} else { // or as per normal
-// 					ret = processChainRequest();
-// 				}
-				
-// 				// Flush any data if exists
-// 				getWriter().flush();
-				
-// 				// Does teardwon
-// 				doSharedTeardown();
-// 				doRequestTearDown();
-				
-// 				// Returns success or failure
-// 				return ret;
-// 			} catch (Exception e) {
-// 				doException(e);
-// 				return false;
-// 			}
-// 		} catch (Exception e) {
-// 			throw new ServletException(e);
-// 		}
-// 	}
+	///////////////////////////////////////////////////////
+	//
+	// HTTP request handling
+	//
+	///////////////////////////////////////////////////////
 	
-// 	/**
-// 	 * The process chain part specific to a normal request
-// 	 **/
-// 	@SuppressWarnings("incomplete-switch")
-// 	private boolean processChainRequest() throws Exception {
-// 		try {
-// 			// PathEnding enforcement
-// 			// https://stackoverflow.com/questions/4836858/is-response-redirect-always-an-http-get-response
-// 			// To explain why its only used for GET requests
-// 			if (requestType == HttpRequestType.GET && !enforceProperRequestPathEnding()) {
-// 				return false;
-// 			}
-			
-// 			// Does authentication check
-// 			if (!doAuth(templateDataObj)) {
-// 				return false;
-// 			}
-			
-// 			// Does for all requests
-// 			if (!doRequest(templateDataObj)) {
-// 				return false;
-// 			}
-// 			boolean ret = true;
-			
-// 			// Switch is used over if,else for slight compiler optimization
-// 			// http://stackoverflow.com/questions/6705955/why-switch-is-faster-than-if
-// 			//
-// 			// HttpRequestType reqTypeAsEnum = HttpRequestType(requestType);
-// 			switch (requestType) {
-// 			case GET:
-// 				ret = doGetRequest(templateDataObj);
-// 				break;
-// 			case POST:
-// 				ret = doPostRequest(templateDataObj);
-// 				break;
-// 			case PUT:
-// 				ret = doPutRequest(templateDataObj);
-// 				break;
-// 			case DELETE:
-// 				ret = doDeleteRequest(templateDataObj);
-// 				break;
-// 			}
-			
-// 			if (ret) {
-// 				outputRequest(templateDataObj, getWriter());
-// 			}
-			
-// 			// // Flush the output stream
-// 			// getWriter().flush();
-// 			// getOutputStream().flush();
-			
-// 			return ret;
-// 		} catch (Exception e) {
-// 			return outputRequestException(templateDataObj, getWriter(), e);
-// 		}
-// 	}
+	/**
+	 * [To be extended by sub class, if needed]
+	 * Does the output processing, this is after do(Post/Get/Put/Delete)Request
+	 *
+	 * Important note: when output testual data like HTML/JS/etc. and not raw data,
+	 * somehow the protocol requires an ending new line for the output to work properly.
+	 * If you are using print() extensively, you may simply do a final println()
+	 * at the end to terminate the output correctly.
+	 **/
+	public void doRequest(PrintWriter writer) throws Exception {
+		// Does nothing (to override)
+	}
 	
-// 	/**
-// 	 * The process chain part specific to JSON request
-// 	 **/
-// 	@SuppressWarnings("incomplete-switch")
-// 	private boolean processChainJSON() throws Exception {
-// 		try {
-// 			// Does authentication check
-// 			if (!doAuth(templateDataObj)) {
-// 				return false;
-// 			}
-			
-// 			// Does for all JSON
-// 			if (!doJSON(jsonDataObj, templateDataObj)) {
-// 				return false;
-// 			}
-			
-// 			boolean ret = true;
-			
-// 			// Switch is used over if,else for slight compiler optimization
-// 			// http://stackoverflow.com/questions/6705955/why-switch-is-faster-than-if
-// 			//
-// 			switch (requestType) {
-// 			case GET:
-// 				ret = doGetJSON(jsonDataObj, templateDataObj);
-// 				break;
-// 			case POST:
-// 				ret = doPostJSON(jsonDataObj, templateDataObj);
-// 				break;
-// 			case PUT:
-// 				ret = doPutJSON(jsonDataObj, templateDataObj);
-// 				break;
-// 			case DELETE:
-// 				ret = doDeleteJSON(jsonDataObj, templateDataObj);
-// 				break;
-// 			}
-			
-// 			if (ret) {
-// 				outputJSON(jsonDataObj, templateDataObj, getWriter());
-// 			}
-			
-// 			return ret;
-// 		} catch (Exception e) {
-// 			return outputJSONException(jsonDataObj, templateDataObj, getWriter(), e);
-// 		}
-// 	}
+	/**
+	 * [To be extended by sub class, if needed]
+	 * Handles all other exceptions that was not previously handled
+	 **/
+	public void handleRequestException(Exception e) throws Exception {
+		throw e;
+	}
 	
-// 	///////////////////////////////////////////////////////
-// 	//
-// 	// Process chains overwrites
-// 	//
-// 	///////////////////////////////////////////////////////
+	//
+	// CorePage, previously had request specific endpoints
+	// this is deprecated in favour of annotation based end point declearation
+	//
+
+	// /**
+	//  * [To be extended by sub class, if needed]
+	//  * Does the required page GET processing, AFTER doRequest
+	//  **/
+	// public boolean doGetRequest() throws Exception {
+	// 	return true;
+	// }
+	// /**
+	//  * [To be extended by sub class, if needed]
+	//  * Does the required page POST processing, AFTER doRequest
+	//  **/
+	// public boolean doPostRequest() throws Exception {
+	// 	return true;
+	// }
+	// /**
+	//  * [To be extended by sub class, if needed]
+	//  * Does the required page PUT processing, AFTER doRequest
+	//  **/
+	// public boolean doPutRequest() throws Exception {
+	// 	return true;
+	// }
+	// /**
+	//  * [To be extended by sub class, if needed]
+	//  * Does the required page DELETE processing, AFTER doRequest
+	//  **/
+	// public boolean doDeleteRequest() throws Exception {
+	// 	return true;
+	// }
 	
-// 	/**
-// 	 * [To be extended by sub class, if needed]
-// 	 * Called once when initialized per request, and by the initializeContext thread.
-// 	 *
-// 	 * The distinction is important, as certain parameters (such as requesrt details),
-// 	 * cannot be assumed to be avaliable in initializeContext, but is present for most requests
-// 	 **/
-// 	public void doSharedSetup() throws Exception {
-// 		// Does nothing (to override)
-// 	}
+	///////////////////////////////////////////////////////
+	//
+	// Final exception fallback
+	//
+	///////////////////////////////////////////////////////
 	
-// 	/**
-// 	 * [To be extended by sub class, if needed]
-// 	 * Called once when completed per request, regardless of request status, and by the destroyContext thread
-// 	 *
-// 	 * PS: This is rarely needed, just rely on java GC =)
-// 	 *
-// 	 * The distinction is important, as certain parameters (such as requesrt details),
-// 	 * cannot be assumed to be avaliable in initializeContext, but is present for most requests
-// 	 **/
-// 	public void doSharedTeardown() throws Exception {
-// 		// Does nothing (to override)
-// 	}
+	/**
+	 * Exception handler for the request stack
+	 *
+	 * note that this should return false, or throw a ServletException, UNLESS the exception was gracefully handled.
+	 * which in most cases SHOULD NOT be handled here.
+	 **/
+	public void handleException(Exception e) throws Exception {
+		// Throws a runtime Exception, let the servlet manager handle the rest
+		throw e;
+	}
 	
-// 	/**
-// 	 * [To be extended by sub class, if needed]
-// 	 * Called once when initialized per request
-// 	 **/
-// 	public void doRequestSetup() throws Exception {
-// 		// Does nothing (to override)
-// 	}
+	///////////////////////////////////////////////////////
+	//
+	// Process Chain execution
+	//
+	///////////////////////////////////////////////////////
 	
-// 	/**
-// 	 * [To be extended by sub class, if needed]
-// 	 * Called once when completed per request, regardless of request status
-// 	 * PS: This is rarely needed, just rely on java GC =)
-// 	 **/
-// 	public void doRequestTearDown() throws Exception {
-// 		// Does nothing (to override)
-// 	}
+	/**
+	 * Triggers the process chain with the current setup
+	 **/
+	protected void processChain() throws ServletException {
+		try {
+			try {
+				// Does setup
+				try {
+					doSharedSetup();
+					doRequestSetup();
+				} catch(Exception e) {
+					handleRequestSetupTeardownException(e);
+				}
 	
-// 	/**
-// 	 * Handles setup and teardown exception
-// 	 **/
-// 	public void doException(Exception e) throws Exception {
-// 		throw e;
-// 	}
+				// Process the request
+				// Flush any data if exists
+				try {
+					doRequest(getWriter());
+					getWriter().flush();
+				} catch(Exception e) {
+					handleRequestException(e);
+				}
 	
-// 	//-------------------------------------------
-// 	// HTTP request handling
-// 	//-------------------------------------------
+				// Does teardwon
+				try {
+					doSharedTeardown();
+					doRequestTearDown();
+				} catch(Exception e) {
+					handleRequestSetupTeardownException(e);
+				}
+			} catch(Exception e) {
+				// Final exception catcher
+				handleException(e);
+			}
+		} catch (Exception e) {
+			throw new ServletException(e);
+		}
+	}
 	
-// 	/**
-// 	 * [To be extended by sub class, if needed]
-// 	 * Does the needed page request authentication, page redirects (if needed), and so forth. Should not do any actual,
-// 	 * output processing. Returns true to continue process chian (default) or false to terminate the process chain.
-// 	 **/
-// 	public boolean doAuth(Map<String, Object> templateData) throws Exception {
-// 		return true;
-// 	}
+	///////////////////////////////////////////////////////
+	//
+	// Native Servlet do overwrites [Avoid overwriting]
+	//
+	///////////////////////////////////////////////////////
 	
-// 	/**
-// 	 * [To be extended by sub class, if needed]
-// 	 * Does the required page request processing, this is used if both post / get behaviour is consistent
-// 	 **/
-// 	public boolean doRequest(Map<String, Object> templateData) throws Exception {
-// 		return true;
-// 	}
+	/**
+	 * [Do not extend] Diverts the native doX to spawnInstance().setupInstance(TYPE,Req,Res).processChain()
+	 **/
+	@Override
+	public final void doGet(HttpServletRequest request, HttpServletResponse response)
+		throws ServletException {
+		spawnInstance().setupInstance(HttpRequestType.GET, request, response).processChain();
+	}
 	
-// 	/**
-// 	 * [To be extended by sub class, if needed]
-// 	 * Does the required page GET processing, AFTER doRequest
-// 	 **/
-// 	public boolean doGetRequest(Map<String, Object> templateData) throws Exception {
-// 		return true;
-// 	}
+	/**
+	 * [Do not extend] Diverts the native doX to spawnInstance().setupInstance(TYPE,Req,Res).processChain()
+	 **/
+	@Override
+	public final void doPost(HttpServletRequest request, HttpServletResponse response)
+		throws ServletException {
+		spawnInstance().setupInstance(HttpRequestType.POST, request, response).processChain();
+	}
 	
-// 	/**
-// 	 * [To be extended by sub class, if needed]
-// 	 * Does the required page POST processing, AFTER doRequest
-// 	 **/
-// 	public boolean doPostRequest(Map<String, Object> templateData) throws Exception {
-// 		return true;
-// 	}
+	/**
+	 * [Do not extend] Diverts the native doX to spawnInstance().setupInstance(TYPE,Req,Res).processChain()
+	 **/
+	@Override
+	public final void doPut(HttpServletRequest request, HttpServletResponse response)
+		throws ServletException {
+		spawnInstance().setupInstance(HttpRequestType.PUT, request, response).processChain();
+	}
 	
-// 	/**
-// 	 * [To be extended by sub class, if needed]
-// 	 * Does the required page PUT processing, AFTER doRequest
-// 	 **/
-// 	public boolean doPutRequest(Map<String, Object> templateData) throws Exception {
-// 		return true;
-// 	}
+	/**
+	 * [Do not extend] Diverts the native doX to spawnInstance().setupInstance(TYPE,Req,Res).processChain()
+	 **/
+	@Override
+	public final void doDelete(HttpServletRequest request, HttpServletResponse response)
+		throws ServletException {
+		spawnInstance().setupInstance(HttpRequestType.DELETE, request, response).processChain();
+	}
 	
-// 	/**
-// 	 * [To be extended by sub class, if needed]
-// 	 * Does the required page DELETE processing, AFTER doRequest
-// 	 **/
-// 	public boolean doDeleteRequest(Map<String, Object> templateData) throws Exception {
-// 		return true;
-// 	}
+	// /**
+	//  * [Do not extend] Diverts the native doX to spawnInstance().setupInstance(TYPE,Req,Res).processChain()
+	//  **/
+	// @Override
+	// public final void doOptions(HttpServletRequest request, HttpServletResponse response)
+	// 	throws ServletException {
+	// 	spawnInstance().setupInstance(HttpRequestType.OPTION, request, response).processChain();
+	// 	try {
+	// 		super.doOptions(request, response);
+	// 	} catch (Exception e) {
+	// 		throw new ServletException(e);
+	// 	}
+	// }
 	
-// 	/**
-// 	 * [To be extended by sub class, if needed]
-// 	 * Does the output processing, this is after do(Post/Get/Put/Delete)Request
-// 	 *
-// 	 * Important note: when output testual data like HTML/JS/etc. and not raw data,
-// 	 * somehow the protocol requires an ending new line for the output to work.
-// 	 * If you are using print() extensively, you may simply do a final println()
-// 	 * at the end to terminate the output correctly.
-// 	 **/
-// 	public boolean outputRequest(Map<String, Object> templateData, PrintWriter output)
-// 		throws Exception {
-		
-// 		/**
-// 		 * Does string output if parameter is set
-// 		 **/
-// 		Object outputString = templateData.get("OutputString");
-// 		if (outputString != null) {
-// 			output.println(outputString.toString());
-// 			return true;
-// 		}
-		
-// 		/**
-// 		 * Does standard file output - if file exists
-// 		 **/
-// 		outputFileServlet().processRequest( //
-// 			getHttpServletRequest(), //
-// 			getHttpServletResponse(), //
-// 			requestType() == HttpRequestType.HEAD, //
-// 			requestWildcardUri());
-		
-// 		/**
-// 		 * Completes and return
-// 		 **/
-// 		return true;
-// 	}
+	/**
+	 * [Do not extend] Servlet context initializer handling.
+	 **/
+	public void contextInitialized(ServletContextEvent sce) {
+		_servletContextEvent = sce;
+		try {
+			doSharedSetup();
+			initializeContext();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 	
-// 	/**
-// 	 * Exception handler for the request stack
-// 	 *
-// 	 * note that this should return false, or throw a ServletException, UNLESS the exception was gracefully handled.
-// 	 * which in most cases SHOULD NOT be handled here.
-// 	 **/
-// 	public boolean outputRequestException(Map<String, Object> templateData, PrintWriter output,
-// 		Exception e) throws Exception {
-// 		// Throws a runtime Exception, let the servlet manager handle the rest
-// 		throw e;
-// 		//return false;
-// 	}
+	/**
+	 * [Do not extend] Servlet context destroyed handling
+	 **/
+	public void contextDestroyed(ServletContextEvent sce) {
+		_servletContextEvent = sce;
+		try {
+			doSharedTeardown();
+			destroyContext();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 	
-// 	///////////////////////////////////////////////////////
-// 	//
-// 	// Servlet Context handling
-// 	//
-// 	///////////////////////////////////////////////////////
-	
-// 	/**
-// 	 * Cached servlet context event
-// 	 **/
-// 	protected ServletContextEvent _servletContextEvent = null;
-	
-// 	/**
-// 	 * [To be extended by sub class, if needed]
-// 	 * Initialize context setup process
-// 	 **/
-// 	public void initializeContext() throws Exception {
-// 		// does nothing
-// 	}
-	
-// 	/**
-// 	 * [To be extended by sub class, if needed]
-// 	 * Initialize context destroy process
-// 	 **/
-// 	public void destroyContext() throws Exception {
-// 		// does nothing
-// 	}
-	
-// 	///////////////////////////////////////////////////////
-// 	//
-// 	// Native Servlet do overwrites [Avoid overwriting]
-// 	//
-// 	///////////////////////////////////////////////////////
-	
-// 	/**
-// 	 * [Do not extend] Diverts the native doX to spawnInstance().setupInstance(TYPE,Req,Res).processChain()
-// 	 **/
-// 	@Override
-// 	public final void doGet(HttpServletRequest request, HttpServletResponse response)
-// 		throws ServletException {
-// 		spawnInstance().setupInstance(HttpRequestType.GET, request, response).processChain();
-// 	}
-	
-// 	/**
-// 	 * [Do not extend] Diverts the native doX to spawnInstance().setupInstance(TYPE,Req,Res).processChain()
-// 	 **/
-// 	@Override
-// 	public final void doPost(HttpServletRequest request, HttpServletResponse response)
-// 		throws ServletException {
-// 		spawnInstance().setupInstance(HttpRequestType.POST, request, response).processChain();
-// 	}
-	
-// 	/**
-// 	 * [Do not extend] Diverts the native doX to spawnInstance().setupInstance(TYPE,Req,Res).processChain()
-// 	 **/
-// 	@Override
-// 	public final void doPut(HttpServletRequest request, HttpServletResponse response)
-// 		throws ServletException {
-// 		spawnInstance().setupInstance(HttpRequestType.PUT, request, response).processChain();
-// 	}
-	
-// 	/**
-// 	 * [Do not extend] Diverts the native doX to spawnInstance().setupInstance(TYPE,Req,Res).processChain()
-// 	 **/
-// 	@Override
-// 	public final void doDelete(HttpServletRequest request, HttpServletResponse response)
-// 		throws ServletException {
-// 		spawnInstance().setupInstance(HttpRequestType.DELETE, request, response).processChain();
-// 	}
-	
-// 	/**
-// 	 * [Do not extend] Diverts the native doX to spawnInstance().setupInstance(TYPE,Req,Res).processChain()
-// 	 **/
-// 	@Override
-// 	public final void doOptions(HttpServletRequest request, HttpServletResponse response)
-// 		throws ServletException {
-// 		spawnInstance().setupInstance(HttpRequestType.OPTION, request, response).processChain();
-// 		try {
-// 			super.doOptions(request, response);
-// 		} catch (Exception e) {
-// 			throw new ServletException(e);
-// 		}
-// 	}
-	
-// 	/**
-// 	 * [Do not extend] Servlet context initializer handling.
-// 	 **/
-// 	public void contextInitialized(ServletContextEvent sce) {
-// 		_servletContextEvent = sce;
-// 		try {
-// 			doSharedSetup();
-// 			initializeContext();
-// 		} catch (Exception e) {
-// 			throw new RuntimeException(e);
-// 		}
-// 	}
-	
-// 	/**
-// 	 * [Do not extend] Servlet context destroyed handling
-// 	 **/
-// 	public void contextDestroyed(ServletContextEvent sce) {
-// 		_servletContextEvent = sce;
-// 		try {
-// 			doSharedTeardown();
-// 			destroyContext();
-// 		} catch (Exception e) {
-// 			throw new RuntimeException(e);
-// 		}
-// 	}
-	
-// 	/**
-// 	 * @TODO : HEAD SUPPORT, for integration with FileServlet
-// 	 **/
+	/**
+	 * @TODO : HEAD SUPPORT, for integration with FileServlet
+	 **/
 	
 }
