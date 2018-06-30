@@ -105,11 +105,11 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		this._requestCookieMap = ori._requestCookieMap;
 		this._requestHeaderMap = ori._requestHeaderMap;
 		this._servletContextEvent = ori._servletContextEvent;
-		this.httpRequest = ori.httpRequest;
-		this.httpResponse = ori.httpResponse;
-		this.requestMap = ori.requestMap;
-		this.requestType = ori.requestType;
-		this.responseOutputStream = ori.responseOutputStream;
+		this._httpRequest = ori._httpRequest;
+		this._httpResponse = ori._httpResponse;
+		this._requestMap = ori._requestMap;
+		this._requestType = ori._requestType;
+		this._responseOutputStream = ori._responseOutputStream;
 	}
 	
 	/**
@@ -124,11 +124,6 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 			// Cast and apply servlet config
 			ret = pageClass.cast(ret);
 			ret.applyServletConfig(this.getServletConfig());
-
-			// Store a ThreadLocal copy
-			if(localCopy.get() == null) {
-				localCopy.set(ret);
-			}
 
 			// Return result
 			return ret;
@@ -178,27 +173,27 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * Request type indicator
 	 **/
 	//protected byte requestType = 0;
-	protected HttpRequestType requestType = null;
+	protected HttpRequestType _requestType = null;
 	
 	/**
 	 * The actual output stream used
 	 **/
-	protected OutputStream responseOutputStream = null;
+	protected OutputStream _responseOutputStream = null;
 	
 	/**
 	 * httpRequest used [modification of this value, is highly discouraged]
 	 **/
-	protected HttpServletRequest httpRequest = null;
+	protected HttpServletRequest _httpRequest = null;
 	
 	/**
 	 * httpResponse used [modification of this value, is highly discouraged]
 	 **/
-	protected HttpServletResponse httpResponse = null;
+	protected HttpServletResponse _httpResponse = null;
 
 	/**
 	 * ServletRequestMap used for the current request
 	 */
-	protected ServletRequestMap requestMap = null;
+	protected ServletRequestMap _requestMap = null;
 	
 	/**
 	 * Setup the instance, with http request and response
@@ -219,7 +214,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 			
 			// @TODO: To use IOUtils.buffer for inputstream of httpRequest / parameterMap
 			// THIS IS CRITICAL, for the POST request in proxyServlet to work
-			requestParameters = new ServletRequestMap( httpRequest );
+			requestMap = new ServletRequestMap( httpRequest );
 			
 			// Response output stream 
 			responseOutputStream = httpResponse.getOutputStream();
@@ -241,21 +236,21 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * @return the native http servlet request
 	 **/
 	public HttpServletRequest getHttpServletRequest() {
-		return httpRequest;
+		return _httpRequest;
 	}
 	
 	/**
 	 * @return the native http servlet response
 	 **/
 	public HttpServletResponse getHttpServletResponse() {
-		return httpResponse;
+		return _httpResponse;
 	}
 	
 	/**
 	 * @return the request parameters as a map
 	 **/
 	public ServletRequestMap requestMap() {
-		return requestParameters;
+		return _requestMap;
 	}
 
 	///////////////////////////////////////////////////////
@@ -611,7 +606,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * The distinction is important, as certain parameters (such as requesrt details),
 	 * cannot be assumed to be avaliable in initializeContext, but is present for most requests
 	 **/
-	public void doSharedSetup() throws Exception {
+	protected void doSharedSetup() throws Exception {
 		// Does nothing (to override)
 	}
 	
@@ -624,7 +619,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * The distinction is important, as certain parameters (such as requesrt details),
 	 * cannot be assumed to be avaliable in initializeContext, but is present for most requests
 	 **/
-	public void doSharedTeardown() throws Exception {
+	protected void doSharedTeardown() throws Exception {
 		// Does nothing (to override)
 	}
 	
@@ -632,7 +627,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * [To be extended by sub class, if needed]
 	 * Called once when initialized per request
 	 **/
-	public void doRequestSetup() throws Exception {
+	protected void doRequestSetup() throws Exception {
 		// Does nothing (to override)
 	}
 	
@@ -641,7 +636,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * Called once when completed per request, regardless of request status
 	 * PS: This is rarely needed, just rely on java GC =)
 	 **/
-	public void doRequestTearDown() throws Exception {
+	protected void doRequestTearDown() throws Exception {
 		// Does nothing (to override)
 	}
 	
@@ -649,7 +644,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * [To be extended by sub class, if needed]
 	 * Handles setup and teardown exception
 	 **/
-	public void handleRequestSetupTeardownException(Exception e) throws Exception {
+	protected void handleRequestSetupTeardownException(Exception e) throws Exception {
 		throw e;
 	}
 	
@@ -668,7 +663,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * [To be extended by sub class, if needed]
 	 * Initialize context setup process
 	 **/
-	public void initializeContext() throws Exception {
+	protected void initializeContext() throws Exception {
 		// Does nothing (to override)
 	}
 	
@@ -676,7 +671,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * [To be extended by sub class, if needed]
 	 * Initialize context destroy process
 	 **/
-	public void destroyContext() throws Exception {
+	protected void destroyContext() throws Exception {
 		// Does nothing (to override)
 	}
 	
@@ -695,7 +690,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * If you are using print() extensively, you may simply do a final println()
 	 * at the end to terminate the output correctly.
 	 **/
-	public void doRequest(PrintWriter writer) throws Exception {
+	protected void doRequest(PrintWriter writer) throws Exception {
 		// Does nothing (to override)
 	}
 	
@@ -703,7 +698,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * [To be extended by sub class, if needed]
 	 * Handles all other exceptions that was not previously handled
 	 **/
-	public void handleRequestException(Exception e) throws Exception {
+	protected void handleRequestException(Exception e) throws Exception {
 		throw e;
 	}
 	
@@ -753,7 +748,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * note that this should return false, or throw a ServletException, UNLESS the exception was gracefully handled.
 	 * which in most cases SHOULD NOT be handled here.
 	 **/
-	public void handleException(Exception e) throws Exception {
+	protected void handleException(Exception e) throws Exception {
 		// Throws a runtime Exception, let the servlet manager handle the rest
 		throw e;
 	}
@@ -767,9 +762,12 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	/**
 	 * Triggers the process chain with the current setup
 	 **/
-	protected void processChain() throws ServletException {
+	private void processChain() throws ServletException {
 		try {
 			try {
+				// Store a ThreadLocal copy
+				localCopy.set(this);
+
 				// Does setup
 				try {
 					doSharedSetup();
@@ -800,6 +798,9 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 			}
 		} catch (Exception e) {
 			throw new ServletException(e);
+		} finally {
+			// Remove ThreadLocal copy
+			localCopy.remove();
 		}
 	}
 	
@@ -865,6 +866,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	public void contextInitialized(ServletContextEvent sce) {
 		_servletContextEvent = sce;
 		try {
+			localCopy.set(this);
 			doSharedSetup();
 			initializeContext();
 		} catch (Exception e) {
@@ -880,6 +882,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		try {
 			doSharedTeardown();
 			destroyContext();
+			localCopy.remove();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

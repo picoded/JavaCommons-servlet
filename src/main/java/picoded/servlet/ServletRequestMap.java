@@ -15,9 +15,11 @@ import java.io.InputStream;
 import java.io.StringWriter;
 
 import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 // import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.IOUtils;
 
 import picoded.core.struct.GenericConvertArrayList;
 import picoded.core.struct.GenericConvertHashMap;
@@ -98,7 +100,7 @@ public class ServletRequestMap extends GenericConvertHashMap<String,Object> {
 	 * Used internally to convert single name arguments,
 	 * into repeated name arguments within a List
 	 */
-	private class ServletRequestList extends GenericConvertArrayList<Object> {
+	private static class ServletRequestList extends GenericConvertArrayList<Object> {
 		public ServletRequestList() { super(); }
 		public ServletRequestList(Collection<? extends Object> in) { super(in); }
 	}
@@ -234,7 +236,7 @@ public class ServletRequestMap extends GenericConvertHashMap<String,Object> {
 		// Check if no existing value stored
 		if(existing == null) {
 			// Store it and return
-			super.put(name, fieldvalue);
+			super.put(name, value);
 			return;
 		}
 

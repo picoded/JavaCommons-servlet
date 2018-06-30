@@ -39,6 +39,39 @@ public class CoreUtilPage extends CorePage {
 
 	///////////////////////////////////////////////////////
 	//
+	// Constructor extending
+	//
+	///////////////////////////////////////////////////////
+	
+	/**
+	 * Blank constructor, used for template building, unit testing, etc
+	 **/
+	public CoreUtilPage() {
+		super();
+	}
+
+	/**
+	 * Clone constructor, this is used to copy over all values from original instance
+	 */
+	public CoreUtilPage(CoreUtilPage ori) {
+		super(ori);
+	}
+
+	/**
+	 * Gets and return the thread local CorePage used in current servlet request
+	 */
+	public static CoreUtilPage getCoreUtilPage() {
+		CorePage ret = localCopy.get();
+		if(ret instanceof CoreUtilPage) {
+			return ret;
+		} else if(ret != null) {
+			return new CoreUtilPage(ret);
+		}
+		return null;
+	}
+
+	///////////////////////////////////////////////////////
+	//
 	// [Utility] Native FileServlet and path handling
 	//
 	///////////////////////////////////////////////////////
@@ -217,7 +250,7 @@ public class CoreUtilPage extends CorePage {
 	 * Extends `doRequest` to perform `enforceProperRequestPathEnding` and `outputFileServlet`
 	 * only when processing GET requests
 	 */
-	public void doRequest(PrintWriter writer) throws Exception {
+	protected void doRequest(PrintWriter writer) throws Exception {
 		// Extends original behaviour (if any)
 		super.doRequest(writer);
 
