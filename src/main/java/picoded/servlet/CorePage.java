@@ -26,6 +26,7 @@ import org.apache.commons.io.FilenameUtils;
 
 // JavaCommons library used
 import picoded.core.conv.ConvertJSON;
+import picoded.core.file.FileUtil;
 import picoded.core.common.EmptyArray;
 import picoded.core.struct.ArrayListMap;
 import picoded.servlet.util.FileServlet;
@@ -96,21 +97,21 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		super();
 	}
 
-	/**
-	 * Clone constructor, this is used to copy over all values from original instance
-	 */
-	public CorePage(CorePage ori) {
-		this._contextPath = ori._contextPath;
-		this._contextURI = ori._contextURI;
-		this._requestCookieMap = ori._requestCookieMap;
-		this._requestHeaderMap = ori._requestHeaderMap;
-		this._servletContextEvent = ori._servletContextEvent;
-		this._httpRequest = ori._httpRequest;
-		this._httpResponse = ori._httpResponse;
-		this._requestMap = ori._requestMap;
-		this._requestType = ori._requestType;
-		this._responseOutputStream = ori._responseOutputStream;
-	}
+	// /**
+	//  * Clone constructor, this is used to copy over all values from original instance
+	//  */
+	// public CorePage(CorePage ori) {
+	// 	this._contextPath = ori._contextPath;
+	// 	this._contextURI = ori._contextURI;
+	// 	this._requestCookieMap = ori._requestCookieMap;
+	// 	this._requestHeaderMap = ori._requestHeaderMap;
+	// 	this._servletContextEvent = ori._servletContextEvent;
+	// 	this._httpRequest = ori._httpRequest;
+	// 	this._httpResponse = ori._httpResponse;
+	// 	this._requestMap = ori._requestMap;
+	// 	this._requestType = ori._requestType;
+	// 	this._responseOutputStream = ori._responseOutputStream;
+	// }
 	
 	/**
 	 * Spawn an instance of the current class
@@ -204,20 +205,20 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	) throws ServletException {
 
 		// Setup the local instance properties
-		requestType = inRequestType;
-		httpRequest = req;
-		httpResponse = res;
+		_requestType = inRequestType;
+		_httpRequest = req;
+		_httpResponse = res;
 
 		try {
 			// UTF-8 enforcement
-			httpRequest.setCharacterEncoding("UTF-8");
+			_httpRequest.setCharacterEncoding("UTF-8");
 			
 			// @TODO: To use IOUtils.buffer for inputstream of httpRequest / parameterMap
 			// THIS IS CRITICAL, for the POST request in proxyServlet to work
-			requestMap = new ServletRequestMap( httpRequest );
+			_requestMap = new ServletRequestMap( _httpRequest );
 			
 			// Response output stream 
-			responseOutputStream = httpResponse.getOutputStream();
+			_responseOutputStream = _httpResponse.getOutputStream();
 		} catch (Exception e) {
 			throw new ServletException(e);
 		}
@@ -249,7 +250,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	/**
 	 * @return the request parameters as a map
 	 **/
-	public ServletRequestMap requestMap() {
+	public ServletRequestMap requestParameterMap() {
 		return _requestMap;
 	}
 
@@ -274,7 +275,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		}
 		
 		// if the cached copy not previously set, and request is null, nothing can be done
-		if (httpRequest == null) {
+		if (_httpRequest == null) {
 			return null;
 		}
 		
@@ -282,7 +283,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		ArrayListMap<String, String> mapList = new ArrayListMap<String, String>();
 		
 		// Get an Enumeration of all of the header names sent by the client
-		Enumeration<String> headerNames = httpRequest.getHeaderNames();
+		Enumeration<String> headerNames = _httpRequest.getHeaderNames();
 		while (headerNames.hasMoreElements()) {
 			String name = headerNames.nextElement();
 			
@@ -291,7 +292,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 			//        as several headers each with a different value rather than
 			//        sending the header as a comma separated list.
 			// Thus, we get an Enumeration of the header values sent by the client
-			mapList.append(name, httpRequest.getHeaders(name));
+			mapList.append(name, _httpRequest.getHeaders(name));
 		}
 		
 		return _requestHeaderMap = mapList.toMapArray(new String[0]);
@@ -312,13 +313,13 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		}
 		
 		// if the cached copy not previously set, and request is null, nothing can be done
-		if (httpRequest == null || httpRequest.getCookies() == null) {
+		if (_httpRequest == null || _httpRequest.getCookies() == null) {
 			return null;
 		}
 		
 		// Creates the _requestCookieMap from httpRequest
 		ArrayListMap<String, String> mapList = new ArrayListMap<String, String>();
-		for (Cookie oneCookie : httpRequest.getCookies()) {
+		for (Cookie oneCookie : _httpRequest.getCookies()) {
 			mapList.append(oneCookie.getName(), oneCookie.getValue());
 		}
 		
@@ -336,34 +337,34 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * Gets the server name
 	 */
 	public String getServerName() {
-		return httpRequest.getServerName();
+		return _httpRequest.getServerName();
 	}
 	
 	public int getServerPort() {
-		return httpRequest.getServerPort();
+		return _httpRequest.getServerPort();
 	}
 	
 	/**
 	 * Gets the server requestURI
 	 **/
 	public String requestURI() {
-		return httpRequest.getRequestURI();
+		return _httpRequest.getRequestURI();
 	}
 	
 	/**
 	 * Gets the request servlet path
 	 **/
 	public String requestServletPath() {
-		return httpRequest.getServletPath();
+		return _httpRequest.getServletPath();
 	}
 	
 	/**
 	 * Gets the server wildcard segment of the URI
-	 * Note this does any URL decoding if needed, use httpRequest.getPathInfo() for the raw wild card path
+	 * Note this does any URL decoding if needed, use _httpRequest.getPathInfo() for the raw wild card path
 	 **/
 	public String requestWildcardUri() {
 		try {
-			String path = httpRequest.getPathInfo(); //no query values
+			String path = _httpRequest.getPathInfo(); //no query values
 			if (path == null || path.isEmpty()) {
 				return null;
 			}
@@ -415,8 +416,8 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 			return _contextPath;
 		}
 		
-		if (httpRequest != null && httpRequest.getServletContext() != null) {
-			return _contextPath = (httpRequest.getServletContext()).getRealPath("/") + "/";
+		if (_httpRequest != null && _httpRequest.getServletContext() != null) {
+			return _contextPath = (_httpRequest.getServletContext()).getRealPath("/") + "/";
 		}
 		
 		if (_servletContextEvent != null) {
@@ -450,8 +451,8 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 			return _contextURI;
 		}
 		
-		if (httpRequest != null) {
-			return _contextURI = httpRequest.getContextPath();
+		if (_httpRequest != null) {
+			return _contextURI = _httpRequest.getContextPath();
 		}
 		
 		if (_servletContextEvent != null) {
@@ -472,8 +473,8 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * Note that this refers specifically to the current servlet request
 	 **/
 	public String getServletContextURI() {
-		if (httpRequest != null) {
-			return httpRequest.getServletPath();
+		if (_httpRequest != null) {
+			return _httpRequest.getServletPath();
 		}
 		//return getServletPath();
 		throw new RuntimeException(
@@ -481,11 +482,11 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	}
 	
 	/**
-	 * gets a parameter value, from the httpRequest.getParameter
+	 * gets a parameter value, from the _httpRequest.getParameter
 	 **/
 	public String getParameter(String paramName) {
-		if (requestParameters() != null) {
-			return requestParameters().getString(paramName);
+		if (requestParameterMap() != null) {
+			return requestParameterMap().getString(paramName);
 		}
 		return null;
 	}
@@ -500,49 +501,49 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * Returns the request type
 	 **/
 	public HttpRequestType requestType() {
-		return requestType;
+		return _requestType;
 	}
 	
 	/**
 	 * Returns the request type as a string
 	 **/
 	public String requestTypeString() {
-		return requestType.toString();
+		return _requestType.toString();
 	}
 	
 	/**
 	 * Returns if the request is GET
 	 **/
 	public boolean isGET() {
-		return requestType == HttpRequestType.GET;
+		return _requestType == HttpRequestType.GET;
 	}
 	
 	/**
 	 * Returns if the request is POST
 	 **/
 	public boolean isPOST() {
-		return requestType == HttpRequestType.POST;
+		return _requestType == HttpRequestType.POST;
 	}
 	
 	/**
 	 * Returns if the request is PUT
 	 **/
 	public boolean isPUT() {
-		return requestType == HttpRequestType.PUT;
+		return _requestType == HttpRequestType.PUT;
 	}
 	
 	/**
 	 * Returns if the request is DELETE
 	 **/
 	public boolean isDELETE() {
-		return requestType == HttpRequestType.DELETE;
+		return _requestType == HttpRequestType.DELETE;
 	}
 	
 	/**
 	 * Returns if the request is OPTION
 	 **/
 	public boolean isOPTION() {
-		return requestType == HttpRequestType.OPTION;
+		return _requestType == HttpRequestType.OPTION;
 	}
 	
 	///////////////////////////////////////////////////////
@@ -570,16 +571,16 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * also surpresses IOException, as RuntimeException
 	 **/
 	public OutputStream getOutputStream() {
-		return responseOutputStream;
+		return _responseOutputStream;
 	}
 	
 	/**
 	 * Proxies to httpResponse.sendRedirect,
 	 **/
 	public void sendRedirect(String uri) {
-		if (httpResponse != null) {
+		if (_httpResponse != null) {
 			try {
-				httpResponse.sendRedirect(uri);
+				_httpResponse.sendRedirect(uri);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -779,8 +780,8 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 				// Process the request
 				// Flush any data if exists
 				try {
-					doRequest(getWriter());
-					getWriter().flush();
+					doRequest(getPrintWriter());
+					getPrintWriter().flush();
 				} catch(Exception e) {
 					handleRequestException(e);
 				}

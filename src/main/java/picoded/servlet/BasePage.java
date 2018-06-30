@@ -20,12 +20,12 @@ public class BasePage extends CoreUtilPage {
 		super();
 	}
 
-	/**
-	 * Clone constructor, this is used to copy over all values from original instance
-	 */
-	public BasePage(BasePage ori) {
-		super(ori);
-	}
+	// /**
+	//  * Clone constructor, this is used to copy over all values from original instance
+	//  */
+	// public BasePage(BasePage ori) {
+	// 	super(ori);
+	// }
 
 	///////////////////////////////////////////////////////
 	//

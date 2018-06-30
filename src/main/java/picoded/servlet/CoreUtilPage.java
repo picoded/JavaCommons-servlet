@@ -27,6 +27,7 @@ import org.apache.commons.io.FilenameUtils;
 // JavaCommons library used
 import picoded.core.conv.ConvertJSON;
 import picoded.core.common.EmptyArray;
+import picoded.core.common.HttpRequestType;
 import picoded.core.struct.ArrayListMap;
 import picoded.servlet.util.FileServlet;
 
@@ -50,25 +51,25 @@ public class CoreUtilPage extends CorePage {
 		super();
 	}
 
-	/**
-	 * Clone constructor, this is used to copy over all values from original instance
-	 */
-	public CoreUtilPage(CoreUtilPage ori) {
-		super(ori);
-	}
+	// /**
+	//  * Clone constructor, this is used to copy over all values from original instance
+	//  */
+	// public CoreUtilPage(CoreUtilPage ori) {
+	// 	super(ori);
+	// }
 
-	/**
-	 * Gets and return the thread local CorePage used in current servlet request
-	 */
-	public static CoreUtilPage getCoreUtilPage() {
-		CorePage ret = localCopy.get();
-		if(ret instanceof CoreUtilPage) {
-			return ret;
-		} else if(ret != null) {
-			return new CoreUtilPage(ret);
-		}
-		return null;
-	}
+	// /**
+	//  * Gets and return the thread local CorePage used in current servlet request
+	//  */
+	// public static CoreUtilPage getCoreUtilPage() {
+	// 	CorePage ret = localCopy.get();
+	// 	if(ret instanceof CoreUtilPage) {
+	// 		return ret;
+	// 	} else if(ret != null) {
+	// 		return new CoreUtilPage(ret);
+	// 	}
+	// 	return null;
+	// }
 
 	///////////////////////////////////////////////////////
 	//
@@ -135,7 +136,7 @@ public class CoreUtilPage extends CorePage {
 	 * This will also safely handle the forwarding of all GET request parameters.
 	 * For example: "host/subpath?abc=xyz" will be redirected to "host/subpath/?abc=xyz"
 	 *
-	 * Note: THIS will silently pass as true, if a httpRequest is not found. This is to facilitate
+	 * Note: THIS will silently pass as true, if a _httpRequest is not found. This is to facilitate
 	 *       possible function calls done on servlet setup. Without breaking them
 	 *
 	 * Now that was ALOT of explaination for one simple function wasnt it >_>
@@ -144,8 +145,8 @@ public class CoreUtilPage extends CorePage {
 	 * which basically resolves this issue. Unless its in relative path mode. Required for app exports.
 	 **/
 	protected boolean enforceProperRequestPathEnding() throws IOException {
-		if (httpRequest != null) {
-			String fullURI = httpRequest.getRequestURI();
+		if (_httpRequest != null) {
+			String fullURI = _httpRequest.getRequestURI();
 			
 			// Check request type, ignore if not a get request
 			if( !isGET() ) {
@@ -178,7 +179,7 @@ public class CoreUtilPage extends CorePage {
 			//
 			// Get the query string to append (if needed)
 			//
-			String queryString = httpRequest.getQueryString();
+			String queryString = _httpRequest.getQueryString();
 			if (queryString == null) {
 				queryString = "";
 			} else if (!queryString.startsWith("?")) {
@@ -188,7 +189,7 @@ public class CoreUtilPage extends CorePage {
 			//
 			// Enforce proper URL handling
 			//
-			httpResponse.sendRedirect(fullURI + "/" + queryString);
+			_httpResponse.sendRedirect(fullURI + "/" + queryString);
 			return false;
 		}
 		
@@ -206,16 +207,16 @@ public class CoreUtilPage extends CorePage {
 	 * Add the necessery headers to allow the current request to be processed with CORS
 	 */
 	protected void enableCORS() {
-		// If httpResponse isnt set, there is nothing to CORS
-		if (httpResponse == null) {
+		// If _httpResponse isnt set, there is nothing to CORS
+		if (_httpResponse == null) {
 			return;
 		}
 		
 		// Get origin server
-		String originServer = httpRequest.getHeader("Referer");
+		String originServer = _httpRequest.getHeader("Referer");
 		if (originServer == null || originServer.isEmpty()) {
 			// Unable to process CORS as no referer was sent
-			httpResponse.addHeader("Access-Control-Warning",
+			_httpResponse.addHeader("Access-Control-Warning",
 				"Missing Referer header, Unable to process CORS");
 			return;
 		}
@@ -234,9 +235,9 @@ public class CoreUtilPage extends CorePage {
 		// @TODO : Validate originServer against accepted list?
 		
 		// By default CORS is enabled for all API requests
-		httpResponse.addHeader("Access-Control-Allow-Origin", originServer);
-		httpResponse.addHeader("Access-Control-Allow-Credentials", "true");
-		httpResponse.addHeader("Access-Control-Allow-Methods",
+		_httpResponse.addHeader("Access-Control-Allow-Origin", originServer);
+		_httpResponse.addHeader("Access-Control-Allow-Credentials", "true");
+		_httpResponse.addHeader("Access-Control-Allow-Methods",
 			"POST, GET, OPTIONS, PUT, DELETE, HEAD");
 	}
 	
@@ -283,7 +284,7 @@ public class CoreUtilPage extends CorePage {
 	// 		// PathEnding enforcement
 	// 		// https://stackoverflow.com/questions/4836858/is-response-redirect-always-an-http-get-response
 	// 		// To explain why its only used for GET requests
-	// 		if (requestType == HttpRequestType.GET && !enforceProperRequestPathEnding()) {
+	// 		if (requestType == _httpRequestType.GET && !enforceProperRequestPathEnding()) {
 	// 			return false;
 	// 		}
 			
@@ -301,7 +302,7 @@ public class CoreUtilPage extends CorePage {
 	// 		// Switch is used over if,else for slight compiler optimization
 	// 		// http://stackoverflow.com/questions/6705955/why-switch-is-faster-than-if
 	// 		//
-	// 		// HttpRequestType reqTypeAsEnum = HttpRequestType(requestType);
+	// 		// _httpRequestType reqTypeAsEnum = _httpRequestType(requestType);
 	// 		switch (requestType) {
 	// 		case GET:
 	// 			ret = doGetRequest(templateDataObj);
