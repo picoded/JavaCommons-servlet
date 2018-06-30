@@ -81,7 +81,7 @@ dependencies {
 
 	// Embedded tomcat 
 	api "org.apache.tomcat.embed:tomcat-embed-core:9.0.8"
-	// api "com.liferay:org.apache.commons.fileupload:1.2.2.LIFERAY-PATCHED-1"
+	api "com.liferay:org.apache.commons.fileupload:1.2.2.LIFERAY-PATCHED-1"
 
 	// // Apache-commons
 	// api "org.apache.commons:commons-lang3:3.7"
