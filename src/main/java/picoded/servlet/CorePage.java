@@ -158,6 +158,16 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	private static ThreadLocal<CorePage> localCopy = new ThreadLocal<>();
 
 	/**
+	 * Setup the ThreadLocal storage internally, throws an error if existing value is found
+	 */
+	private void setupThreadLocal() {
+		if( localCopy.get() != null ) {
+			throw new RuntimeException("Existing CorePage instance found in current thread - multiple CorePage instances per thread is not supported");
+		}
+		localCopy.set(this);
+	}
+
+	/**
 	 * Gets and return the thread local CorePage used in current servlet request
 	 */
 	public static CorePage getCorePage() {
@@ -767,7 +777,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		try {
 			try {
 				// Store a ThreadLocal copy
-				localCopy.set(this);
+				setupThreadLocal();
 
 				// Does setup
 				try {
@@ -867,7 +877,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	public void contextInitialized(ServletContextEvent sce) {
 		_servletContextEvent = sce;
 		try {
-			localCopy.set(this);
+			setupThreadLocal();
 			doSharedSetup();
 			initializeContext();
 		} catch (Exception e) {
