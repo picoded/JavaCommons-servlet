@@ -28,17 +28,11 @@ public class AnnotationUtil {
 	 * @return  list of Method with valid annotation
 	 */
 	static <A,B extends Annotation> List<Method> fetchMethodsWithAnnotation(Class<A> inClass, Class<B>annotationClass) {
-		Method[] methodArray = inClass.getMethods();
-
-		// if(methods.length == 0) {
-		// 	return new List<Method>();
-		// }
-		// else {
-		// 	return new ArrayList<Method>(methods);
-		// }
-
+		// Result to return
 		List<Method> result = new ArrayList<>();
 
+		// Iterate the class methods, and append to result those with valid annotation
+		Method[] methodArray = inClass.getMethods();
 		for(Method methodObj : methodArray) {
 			B annotation = methodObj.getAnnotation(annotationClass);
 			if(annotation != null) {
@@ -46,7 +40,9 @@ public class AnnotationUtil {
 			}
 		}
 
+		// Return result
 		return result;
 	}
+
 
 }
