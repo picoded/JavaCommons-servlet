@@ -97,21 +97,38 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		super();
 	}
 
-	// /**
-	//  * Clone constructor, this is used to copy over all values from original instance
-	//  */
-	// public CorePage(CorePage ori) {
-	// 	this._contextPath = ori._contextPath;
-	// 	this._contextURI = ori._contextURI;
-	// 	this._requestCookieMap = ori._requestCookieMap;
-	// 	this._requestHeaderMap = ori._requestHeaderMap;
-	// 	this._servletContextEvent = ori._servletContextEvent;
-	// 	this._httpRequest = ori._httpRequest;
-	// 	this._httpResponse = ori._httpResponse;
-	// 	this._requestMap = ori._requestMap;
-	// 	this._requestType = ori._requestType;
-	// 	this._responseOutputStream = ori._responseOutputStream;
-	// }
+	/**
+	 * Clone constructor, this is used to copy over all values from original instance
+	 * 
+	 * @param  ori original CorePage to copy from
+	 */
+	public CorePage(CorePage ori) {
+		super();
+		this.transferParams(ori);
+	}
+
+	/**
+	 * Import CorePage instance parameters over to another instance
+	 * 
+	 * @param  ori original CorePage to copy from
+	 */
+	protected void transferParams(CorePage ori) {
+		// Skip transfer step, if null is passed
+		if(ori == null) {
+			return;
+		}
+		// Import the values respectively
+		this._contextPath = ori._contextPath;
+		this._contextURI = ori._contextURI;
+		this._requestCookieMap = ori._requestCookieMap;
+		this._requestHeaderMap = ori._requestHeaderMap;
+		this._servletContextEvent = ori._servletContextEvent;
+		this._httpRequest = ori._httpRequest;
+		this._httpResponse = ori._httpResponse;
+		this._requestMap = ori._requestMap;
+		this._requestType = ori._requestType;
+		this._responseOutputStream = ori._responseOutputStream;
+	}
 	
 	/**
 	 * Spawn an instance of the current class
@@ -696,7 +713,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * [To be extended by sub class, if needed]
 	 * Does the output processing, this is after do(Post/Get/Put/Delete)Request
 	 *
-	 * Important note: when output testual data like HTML/JS/etc. and not raw data,
+	 * Important note: when outputing textual data like HTML/JS/etc. and not raw data,
 	 * somehow the protocol requires an ending new line for the output to work properly.
 	 * If you are using print() extensively, you may simply do a final println()
 	 * at the end to terminate the output correctly.

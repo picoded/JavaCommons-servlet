@@ -51,12 +51,12 @@ public class CoreUtilPage extends CorePage {
 		super();
 	}
 
-	// /**
-	//  * Clone constructor, this is used to copy over all values from original instance
-	//  */
-	// public CoreUtilPage(CoreUtilPage ori) {
-	// 	super(ori);
-	// }
+	/**
+	 * Clone constructor, this is used to copy over all values from original instance
+	 */
+	public CoreUtilPage(CorePage ori) {
+		super(ori);
+	}
 
 	// /**
 	//  * Gets and return the thread local CorePage used in current servlet request

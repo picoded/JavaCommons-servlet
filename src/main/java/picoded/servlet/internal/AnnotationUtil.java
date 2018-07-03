@@ -3,12 +3,15 @@ package picoded.servlet.internal;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import picoded.core.exception.ExceptionMessage;
 
 /**
  * Static utility class used to faciliated annotation processing
+ * This is structured and designed in a way for users not too familiar with 
+ * Java "Class", "Annotation" types and java reflections
  */
 public class AnnotationUtil {
 
@@ -19,22 +22,49 @@ public class AnnotationUtil {
 		throw new RuntimeException(ExceptionMessage.staticClassConstructor);
 	}
 
+	//--------------------------------------------------------------------------------------
+	//
+	//  Generic annotation utils, for nearly any annotation types
+	//
+	//--------------------------------------------------------------------------------------
+
 	/**
-	 * Fetch a list of Methods found in the given class with the annotation
+	 * Extract out the generic class object of the given object instance
 	 * 
-	 * @param  inClass object to scan for methods
-	 * @param  annotationClass to scan methods for
+	 * @param  inObj to extract the class
 	 * 
-	 * @return  list of Method with valid annotation
+	 * @return Class object of the given inObj
 	 */
-	static <A,B extends Annotation> List<Method> fetchMethodsWithAnnotation(Class<A> inClass, Class<B>annotationClass) {
+	static Class<?> extractClass(Object inObj) {
+		return inObj.getClass();
+	}
+
+	/**
+	 * Extract out array list of methods in a class
+	 * 
+	 * @param  classObj to extract methods from
+	 * 
+	 * @return List of methods
+	 */
+	static List<Method> fetchMethodList(Class<?> classObj) {
+		return new ArrayList<>( Arrays.asList( classObj.getMethods() ) );
+	}
+
+	/**
+	 * Filter method list given the annotation class
+	 * 
+	 * @param  inList  to filter and return
+	 * @param  annotationClass to filter the list from
+	 * 
+	 * @return  List of methods filtered
+	 */
+	static <A extends Annotation> List<Method> filterMethodListWithAnnotationClass(List<Method> inList, Class<A>annotationClass) {
 		// Result to return
 		List<Method> result = new ArrayList<>();
 
 		// Iterate the class methods, and append to result those with valid annotation
-		Method[] methodArray = inClass.getMethods();
-		for(Method methodObj : methodArray) {
-			B annotation = methodObj.getAnnotation(annotationClass);
+		for(Method methodObj : inList) {
+			A annotation = methodObj.getAnnotation(annotationClass);
 			if(annotation != null) {
 				result.add(methodObj);
 			}
@@ -44,5 +74,11 @@ public class AnnotationUtil {
 		return result;
 	}
 
+	//--------------------------------------------------------------------------------------
+	//
+	//  Specific annotation utils
+	//
+	//--------------------------------------------------------------------------------------
 
+	
 }
