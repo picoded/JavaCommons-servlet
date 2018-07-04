@@ -19,8 +19,8 @@ public class BasePage extends CoreUtilPage {
 	 **/
 	public BasePage() {
 		super();
-		// Automatically import any existing "basePage" where applicable
-		transferParams(CorePage.getCorePage());
+		// // Automatically import any existing "basePage" where applicable
+		// transferParams(CorePage.getCorePage());
 	}
 
 	/**
@@ -53,6 +53,7 @@ public class BasePage extends CoreUtilPage {
 		// Does additional transfer for base page
 
 	}
+
 	///////////////////////////////////////////////////////
 	//
 	// Overwriting doRequest pipeline
@@ -73,8 +74,8 @@ public class BasePage extends CoreUtilPage {
 	/**
 	 * Takes the existing request, and perform routing logic on it respectively.
 	 * 
-	 * This is automatically called on any request, or alternatively when forwarding 
-	 * to another instnce request.
+	 * This is automatically called on any request, or alternatively when  
+	 * forwarding to another instnce request.
 	 */
 	public void route() {
 

@@ -1,4 +1,4 @@
-package picoded.servlet;
+package picoded.servlet.annotation;
 
 // Junit includes
 import static org.junit.Assert.assertArrayEquals;

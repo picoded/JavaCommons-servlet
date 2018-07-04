@@ -1,4 +1,4 @@
-package picoded.servlet;
+package picoded.servlet.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -11,16 +11,16 @@ import java.lang.annotation.Target;
  * Annotation for request path, used to detect endpoint to handle request at the appropriate path
  * 
  * ```
- * @RequestPath("hello")
- * public void loadWorld() {
- * 	getPrintWriter().println("world");
+ * @ApiPath("api/hello")
+ * public Map<String,Object> loadWorld() {
+ * 	return ConvertJSON.toMap("{ hello : 'world' }");
  * }
  * ```
  */
 @Inherited
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
-public @interface RequestPath {
+@Target(ElementType.METHOD)
+public @interface ApiPath {
 	public String value();
 }
