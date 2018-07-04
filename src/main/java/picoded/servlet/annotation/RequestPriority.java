@@ -8,19 +8,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation for request path, used to detect endpoint to handle request at the appropriate path
- * 
- * ```
- * @ApiPath("api.hello")
- * public Map<String,Object> loadWorld() {
- * 	return ConvertJSON.toMap("{ hello : 'world' }");
- * }
- * ```
+ * Annotation for request path priority, used to enforce priority order (if conflict occurs)
  */
 @Inherited
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
-public @interface ApiPath {
-	public String value();
+@Target({ElementType.METHOD, ElementType.FIELD})
+public @interface RequestPriority {
+	public int value();
 }

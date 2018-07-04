@@ -30,6 +30,7 @@ import picoded.core.file.FileUtil;
 import picoded.core.common.EmptyArray;
 import picoded.core.struct.ArrayListMap;
 import picoded.servlet.util.FileServlet;
+import picoded.servlet.internal.ServletStringUtil;
 
 import picoded.core.common.HttpRequestType;
 
@@ -411,21 +412,8 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 			return EmptyArray.STRING;
 		}
 		
-		// Remove "/" prefix and suffix
-		if (raw.startsWith("/") || raw.startsWith("\\")) {
-			raw = raw.substring(1);
-		}
-		if (raw.endsWith("/") || raw.endsWith("\\")) {
-			raw = raw.substring(0, raw.length() - 1);
-		}
-
-		// Does duplicative "//" remove
-		while( raw.indexOf("//") >= 0 ) {
-			raw = raw.replaceAll("[\\\\/\\\\/]", "/");
-		}
-		
-		// Does the actual splitting
-		return raw.split("[\\\\/]");
+		// Normalize and split the string representation
+		return ServletStringUtil.splitUriString(raw);
 	}
 	
 	/**
