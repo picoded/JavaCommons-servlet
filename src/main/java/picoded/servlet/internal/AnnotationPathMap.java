@@ -33,7 +33,7 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String,An
 	/**
 	 * Relevent method list for this current endpoint
 	 */
-	protected List<MethodWrapper> methodList = new ArrayList<>();
+	protected List<Method> methodList = new ArrayList<>();
 
 	///////////////////////////////////////////////////////
 	//
@@ -42,24 +42,36 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String,An
 	///////////////////////////////////////////////////////
 	
 	/**
-	 * Get annotation endpoint path
+	 * Get annotation endpoint path, or initialize it if it does not exist
 	 * 
 	 * @param   path  to fetch annotation
 	 * 
 	 * @return  AnootationPathMap at the respective path
 	 */
-	public AnnotationPathMap fetchAnnotationPath(String path) {
-		return fetchAnnotationPath( ServletStringUtil.splitUriString(path) );
+	public AnnotationPathMap initAnnotationPath(String path) {
+		return fetchAnnotationPath( ServletStringUtil.splitUriString(path), true );
+	}
+
+	/**
+	 * Get annotation endpoint path, return null if not found
+	 * 
+	 * @param   path  to fetch annotation
+	 * 
+	 * @return  AnootationPathMap at the respective path
+	 */
+	public AnnotationPathMap getAnnotationPath(String path) {
+		return fetchAnnotationPath( ServletStringUtil.splitUriString(path), false );
 	}
 
 	/**
 	 * Get annotation endpoint path
 	 * 
 	 * @param   splitPath  to fetch annotation
+	 * @param   init      boolean flag to initialize endpoint if it does not exist
 	 * 
 	 * @return  AnootationPathMap at the respective path
 	 */
-	public AnnotationPathMap fetchAnnotationPath(String[] splitPath) {
+	protected AnnotationPathMap fetchAnnotationPath(String[] splitPath, boolean init) {
 		// Annotation path map to recusively fetch from
 		AnnotationPathMap step = this;
 
@@ -71,12 +83,23 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String,An
 				continue;
 			}
 
-			// Get the nested part map
-			// or initialize it
-			if(step.get(part) == null) {
-				step.put(part, new AnnotationPathMap());
+			if(init) {
+				// Get the nested path map
+				// And initialize it if it does not exist
+				AnnotationPathMap nextStep = step.get(part);
+				if(nextStep == null) {
+					nextStep = new AnnotationPathMap();
+					step.put(part, nextStep);
+				}
+				step = nextStep;
+			} else {
+				// Get the nested path map
+				// and return null if its not initialized
+				step = step.get(part);
+				if(step == null) {
+					return null;
+				}
 			}
-			step = step.get(part);
 		}
 
 		// Return the annotation path mapping
@@ -114,13 +137,13 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String,An
 			//
 			// Minor note : Because annotation is not extendable, we cant fully refactor 
 			// the duplicative loop into a generic function, that is reusable.
-			for(RequestPath pathObj : methodObj.getAnnotationsByType(RequestPath.class)) {
+			for(RequestPath pathObj   : methodObj.getAnnotationsByType(RequestPath.class)) {
 				mapMethod(pathObj.value(), methodObj);
 			}
 			for(RequestBefore pathObj : methodObj.getAnnotationsByType(RequestBefore.class)) {
 				mapMethod(pathObj.value(), methodObj);
 			}
-			for(RequestAfter pathObj : methodObj.getAnnotationsByType(RequestAfter.class)) {
+			for(RequestAfter pathObj  : methodObj.getAnnotationsByType(RequestAfter.class)) {
 				mapMethod(pathObj.value(), methodObj);
 			}
 		}
@@ -133,8 +156,10 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String,An
 	 * @param  methodObj to register
 	 */
 	protected void mapMethod(String path, Method methodObj) {
-		AnnotationPathMap pathObj = fetchAnnotationPath(path);
-		pathObj.methodList.add( new MethodWrapper(methodObj) );
+		AnnotationPathMap pathObj = initAnnotationPath(path);
+		if( pathObj.methodList.indexOf(methodObj) < 0 ) {
+			pathObj.methodList.add( methodObj );
+		}
 	}
 
 }
