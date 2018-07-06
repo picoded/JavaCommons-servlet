@@ -51,6 +51,10 @@ public class AnnotationPathMap_test {
 		assertNotNull( pathMap.getAnnotationPath("hello/world/:user/location") );
 	}
 
+	/**
+	 * 
+	 */
+
 	// /**
 	//  * 
 	//  */

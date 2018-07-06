@@ -1,5 +1,6 @@
 package picoded.servlet;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.FileOutputStream;
@@ -10,6 +11,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import picoded.servlet.util.EmbeddedServlet;
+import picoded.core.web.RequestHttpClient;
+import picoded.core.web.ResponseHttp;
 import picoded.servlet.annotation.*;
 
 public class BasePage_test {
@@ -20,12 +23,13 @@ public class BasePage_test {
 
 	int testPort = 0;
 	EmbeddedServlet testServlet = null;
-
+	RequestHttpClient httpClient = null;
 
 	@Before
 	public void setUp() {
 		testPort = ServletTestConfig.issuePortNumber();
 		testServlet = null;
+		httpClient = new RequestHttpClient();
 	}
 
 	@After
@@ -49,7 +53,10 @@ public class BasePage_test {
 	// @Test
 	// public void testHelloPath() throws Exception {
 	// 	assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
-	// 	String testUrl = "http://localhost:"+testPort+"/hello";
+	// 	String testUrl = "http://127.0.0.1:"+testPort+"/hello";
+
+	// 	ResponseHttp response = httpClient.get(testUrl, null, null, null);
+	// 	assertEquals("world", response.toString());
 	// }
 
 }

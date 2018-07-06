@@ -132,7 +132,6 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String,An
 
 		// Map the method list with annotation class
 		for(Method methodObj : methodList) {
-
 			// Get and process each type of annotation we currently support for methods
 			//
 			// Minor note : Because annotation is not extendable, we cant fully refactor 
@@ -147,6 +146,8 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String,An
 				mapMethod(pathObj.value(), methodObj);
 			}
 		}
+
+		
 	}
 
 	/**

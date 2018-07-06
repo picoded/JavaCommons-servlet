@@ -1,77 +1,75 @@
-// package picoded.servlet.util;
+package picoded.servlet.util;
 
-// import static org.junit.Assert.*;
-// import org.junit.*;
+import static org.junit.Assert.*;
+import org.junit.*;
 
-// import java.io.*;
-// import java.net.*;
-// import java.util.*;
-// import java.nio.file.*;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.nio.file.*;
 
-// import javax.servlet.*;
-// import javax.servlet.http.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
 
-// import picoded.TestConfig;
-// import picoded.core.conv.*;
-// import picoded.core.common.*;
-// import picoded.web.*;
+import picoded.servlet.ServletTestConfig;
+import picoded.core.conv.*;
+import picoded.core.common.*;
 
-// ///
-// /// Test the EmbeddedServlet implmentation
-// ///
-// public class EmbeddedServlet_test {
+///
+/// Test the EmbeddedServlet implmentation
+///
+public class EmbeddedServlet_test {
 	
-// 	//
-// 	// The test folders to use
-// 	//
-// 	File testCollection = new File("./test/files/servlet/util/EmbeddedServlet/");
-// 	File helloWorldHtml = new File(testCollection, "HelloWorldHtml");
-// 	File helloWorldJava = new File(testCollection, "HelloWorldJava");
-// 	File helloWorldJWar = new File(testCollection, "HelloWorldJWar/test.war");
+	//
+	// The test folders to use
+	//
+	File testCollection = new File("./test/EmbeddedServlet/");
+	File helloWorldHtml = new File(testCollection, "HelloWorldHtml");
+	File helloWorldJava = new File(testCollection, "HelloWorldJava");
+	File helloWorldJWar = new File(testCollection, "HelloWorldJWar/test.war");
 	
-// 	//
-// 	// The test vars to use
-// 	//
-// 	int testPort = 0; //Test port to use
-// 	EmbeddedServlet testServlet = null; //Test servlet to use
+	//
+	// The test vars to use
+	//
+	int testPort = 0; //Test port to use
+	EmbeddedServlet testServlet = null; //Test servlet to use
 	
-// 	//
-// 	// Standard setup and teardown
-// 	//
-// 	@Before
-// 	public void setUp() {
-// 		// Issue a possible port to use
-// 		testPort = TestConfig.issuePortNumber();
-// 		testServlet = null;
-// 	}
+	//
+	// Standard setup and teardown
+	//
+	@Before
+	public void setUp() {
+		// Issue a possible port to use
+		testPort = ServletTestConfig.issuePortNumber();
+		testServlet = null;
+	}
 	
-// 	@After
-// 	public void tearDown() throws Exception {
-// 		if (testServlet != null) {
-// 			testServlet.close();
-// 			testServlet = null;
-// 		}
-// 	}
+	@After
+	public void tearDown() throws Exception {
+		if (testServlet != null) {
+			testServlet.close();
+			testServlet = null;
+		}
+	}
 	
-// 	// Sanity check
-// 	@Test
-// 	public void fileChecks() {
-// 		assertTrue(testCollection.isDirectory());
-// 		assertTrue(helloWorldHtml.isDirectory());
-// 		assertTrue(helloWorldJava.isDirectory());
-// 		assertTrue(helloWorldJWar.isFile());
-		
-// 	}
+	// Sanity check
+	@Test
+	public void fileChecks() {
+		assertTrue(testCollection.isDirectory());
+		assertTrue(helloWorldHtml.isDirectory());
+		assertTrue(helloWorldJava.isDirectory());
+		assertTrue(helloWorldJWar.isFile());
+	}
 	
-// 	//
-// 	// Testing various servlet packages deployment
-// 	//
-// 	@Test
-// 	public void helloWorldHtml() {
-// 		assertNotNull(testServlet = new EmbeddedServlet(testPort, helloWorldHtml));
-// 		assertEquals("<h1>Hello World</h1>",
-// 			RequestHttp.get("http://localhost:" + testPort + "/index.html").toString().trim());
-// 	}
+// //
+// // Testing various servlet packages deployment
+// //
+// @Test
+// public void helloWorldHtml() {
+// 	assertNotNull(testServlet = new EmbeddedServlet(testPort, helloWorldHtml));
+// 	assertEquals("<h1>Hello World</h1>",
+// 		RequestHttp.get("http://localhost:" + testPort + "/index.html").toString().trim());
+// }
 	
 // 	@Test
 // 	public void helloWorldJava() {
@@ -154,4 +152,4 @@
 // 		assertEquals("<h1>Hello World</h1>",
 // 			RequestHttp.get("http://localhost:" + testPort + "/ctest/test").toString().trim());
 // 	}
-// }
+}
