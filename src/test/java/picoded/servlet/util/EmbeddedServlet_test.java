@@ -69,7 +69,6 @@ public class EmbeddedServlet_test {
 	@Test
 	public void helloWorldHtml() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, helloWorldHtml));
-		System.out.println("http://localhost:" + testPort + "/index.html");
 		RequestHttpClient client = new RequestHttpClient();
 		assertEquals("<h1>Hello World</h1>",
 			client.get("http://localhost:" + testPort + "/index.html").toString().trim());
