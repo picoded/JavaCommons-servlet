@@ -7,7 +7,7 @@ import java.io.PrintWriter;
  * doRequest behaviour to depend on annotations routing for paths
  */
 public class BasePage extends CoreUtilPage {
-
+	
 	///////////////////////////////////////////////////////
 	//
 	// Constructor extending
@@ -22,7 +22,7 @@ public class BasePage extends CoreUtilPage {
 		// // Automatically import any existing "basePage" where applicable
 		// transferParams(CorePage.getCorePage());
 	}
-
+	
 	/**
 	 * Clone constructor, this is used to copy over 
 	 * all values from original instance
@@ -31,7 +31,7 @@ public class BasePage extends CoreUtilPage {
 		super();
 		transferParams(ori);
 	}
-
+	
 	/**
 	 * Import CorePage/BasePage instance parameters over to another instance
 	 * 
@@ -39,21 +39,21 @@ public class BasePage extends CoreUtilPage {
 	 */
 	protected void transferParams(CorePage ori) {
 		// Skip transfer step, if null is passed
-		if(ori == null) {
+		if (ori == null) {
 			return;
 		}
-
+		
 		// Does original transfer (if applicable)
 		super.transferParams(ori);
 		// Abort if instance is not extended from BasePage
-		if( !(ori instanceof BasePage) ) {
+		if (!(ori instanceof BasePage)) {
 			return;
 		}
-
+		
 		// Does additional transfer for base page
-
+		
 	}
-
+	
 	///////////////////////////////////////////////////////
 	//
 	// Overwriting doRequest pipeline
@@ -64,7 +64,7 @@ public class BasePage extends CoreUtilPage {
 	protected void doRequest(PrintWriter writer) throws Exception {
 		route();
 	}
-
+	
 	///////////////////////////////////////////////////////
 	//
 	// route handling
@@ -78,8 +78,7 @@ public class BasePage extends CoreUtilPage {
 	 * forwarding to another instnce request.
 	 */
 	public void route() {
-
+		
 	}
-
-
+	
 }

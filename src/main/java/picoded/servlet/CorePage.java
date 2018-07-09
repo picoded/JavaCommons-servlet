@@ -97,7 +97,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	public CorePage() {
 		super();
 	}
-
+	
 	/**
 	 * Clone constructor, this is used to copy over all values from original instance
 	 * 
@@ -107,7 +107,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		super();
 		this.transferParams(ori);
 	}
-
+	
 	/**
 	 * Import CorePage instance parameters over to another instance
 	 * 
@@ -115,7 +115,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 */
 	protected void transferParams(CorePage ori) {
 		// Skip transfer step, if null is passed
-		if(ori == null) {
+		if (ori == null) {
 			return;
 		}
 		// Import the values respectively
@@ -139,18 +139,18 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 			// Get new instance of page (via its extended class)
 			Class<? extends CorePage> pageClass = this.getClass();
 			CorePage ret = pageClass.newInstance();
-
+			
 			// Cast and apply servlet config
 			ret = pageClass.cast(ret);
 			ret.applyServletConfig(this.getServletConfig());
-
+			
 			// Return result
 			return ret;
 		} catch (Exception e) {
 			throw new ServletException(e);
 		}
 	}
-
+	
 	/**
 	 * Copy servlet config from the orginal instance, to a new instance
 	 * 
@@ -174,24 +174,25 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	
 	// Actual threadLocal storage
 	private static ThreadLocal<CorePage> localCopy = new ThreadLocal<>();
-
+	
 	/**
 	 * Setup the ThreadLocal storage internally, throws an error if existing value is found
 	 */
 	private void setupThreadLocal() {
-		if( localCopy.get() != null ) {
-			throw new RuntimeException("Existing CorePage instance found in current thread - multiple CorePage instances per thread is not supported");
+		if (localCopy.get() != null) {
+			throw new RuntimeException(
+				"Existing CorePage instance found in current thread - multiple CorePage instances per thread is not supported");
 		}
 		localCopy.set(this);
 	}
-
+	
 	/**
 	 * Gets and return the thread local CorePage used in current servlet request
 	 */
 	public static CorePage getCorePage() {
 		return localCopy.get();
 	}
-
+	
 	///////////////////////////////////////////////////////
 	//
 	// setupInstance with its respective variables
@@ -218,7 +219,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * httpResponse used [modification of this value, is highly discouraged]
 	 **/
 	protected HttpServletResponse _httpResponse = null;
-
+	
 	/**
 	 * ServletRequestMap used for the current request
 	 */
@@ -231,26 +232,26 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		HttpRequestType inRequestType, HttpServletRequest req, //
 		HttpServletResponse res //
 	) throws ServletException {
-
+		
 		// Setup the local instance properties
 		_requestType = inRequestType;
 		_httpRequest = req;
 		_httpResponse = res;
-
+		
 		try {
 			// UTF-8 enforcement
 			_httpRequest.setCharacterEncoding("UTF-8");
 			
 			// @TODO: To use IOUtils.buffer for inputstream of httpRequest / parameterMap
 			// THIS IS CRITICAL, for the POST request in proxyServlet to work
-			_requestMap = new ServletRequestMap( _httpRequest );
+			_requestMap = new ServletRequestMap(_httpRequest);
 			
 			// Response output stream 
 			_responseOutputStream = _httpResponse.getOutputStream();
 		} catch (Exception e) {
 			throw new ServletException(e);
 		}
-
+		
 		// Return instance 
 		return this;
 	}
@@ -281,7 +282,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	public ServletRequestMap requestParameterMap() {
 		return _requestMap;
 	}
-
+	
 	///////////////////////////////////////////////////////
 	//
 	// Header and cookie map handling
@@ -722,7 +723,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	// CorePage, previously had request specific endpoints
 	// this is deprecated in favour of annotation based end point declearation
 	//
-
+	
 	// /**
 	//  * [To be extended by sub class, if needed]
 	//  * Does the required page GET processing, AFTER doRequest
@@ -783,32 +784,32 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 			try {
 				// Store a ThreadLocal copy
 				setupThreadLocal();
-
+				
 				// Does setup
 				try {
 					doSharedSetup();
 					doRequestSetup();
-				} catch(Exception e) {
+				} catch (Exception e) {
 					handleRequestSetupTeardownException(e);
 				}
-	
+				
 				// Process the request
 				// Flush any data if exists
 				try {
 					doRequest(getPrintWriter());
 					getPrintWriter().flush();
-				} catch(Exception e) {
+				} catch (Exception e) {
 					handleRequestException(e);
 				}
-	
+				
 				// Does teardwon
 				try {
 					doSharedTeardown();
 					doRequestTearDown();
-				} catch(Exception e) {
+				} catch (Exception e) {
 					handleRequestSetupTeardownException(e);
 				}
-			} catch(Exception e) {
+			} catch (Exception e) {
 				// Final exception catcher
 				handleException(e);
 			}

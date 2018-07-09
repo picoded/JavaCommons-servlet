@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 @Inherited
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
+@Target({ ElementType.METHOD })
 public @interface RequestBefore {
 	public String value();
 }

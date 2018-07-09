@@ -16,47 +16,47 @@ import picoded.core.web.ResponseHttp;
 import picoded.servlet.annotation.*;
 
 public class BasePage_test {
-
+	
 	//
 	// The test folders to use 
 	//
-
+	
 	int testPort = 0;
 	EmbeddedServlet testServlet = null;
 	RequestHttpClient httpClient = null;
-
+	
 	@Before
 	public void setUp() {
 		testPort = ServletTestConfig.issuePortNumber();
 		testServlet = null;
 		httpClient = new RequestHttpClient();
 	}
-
+	
 	@After
 	public void teardown() {
-		if(testServlet != null) {
+		if (testServlet != null) {
 			testServlet.close();
 			testServlet = null;
 		}
 	}
-
+	
 	/**
 	 * Hello world test class
 	 */
 	public class HelloWorld extends BasePage {
 		@RequestPath("hello")
-		public void helloWorld() { 
+		public void helloWorld() {
 			getPrintWriter().println("world");
 		}
 	}
-
+	
 	// @Test
 	// public void testHelloPath() throws Exception {
 	// 	assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
 	// 	String testUrl = "http://127.0.0.1:"+testPort+"/hello";
-
+	
 	// 	ResponseHttp response = httpClient.get(testUrl, null, null, null);
 	// 	assertEquals("world", response.toString());
 	// }
-
+	
 }

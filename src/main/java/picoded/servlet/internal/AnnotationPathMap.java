@@ -9,14 +9,15 @@ import java.util.List;
 import picoded.servlet.annotation.*;
 import picoded.core.exception.ExceptionMessage;
 import picoded.core.struct.GenericConvertConcurrentHashMap;
+
 /**
  * Internal utility class, used to mapped the relvent 
  * annotation routes of a given class object.
  * 
  * And perform the subsquent request/api call for it.
  **/
-public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String,AnnotationPathMap> {
-
+public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String, AnnotationPathMap> {
+	
 	///////////////////////////////////////////////////////
 	//
 	// Consturctor and method list init
@@ -29,12 +30,12 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String,An
 	public AnnotationPathMap() {
 		// blank constructor
 	}
-
+	
 	/**
 	 * Relevent method list for this current endpoint
 	 */
 	protected List<Method> methodList = new ArrayList<>();
-
+	
 	///////////////////////////////////////////////////////
 	//
 	// Annotation path mapping
@@ -49,9 +50,9 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String,An
 	 * @return  AnootationPathMap at the respective path
 	 */
 	public AnnotationPathMap initAnnotationPath(String path) {
-		return fetchAnnotationPath( ServletStringUtil.splitUriString(path), true );
+		return fetchAnnotationPath(ServletStringUtil.splitUriString(path), true);
 	}
-
+	
 	/**
 	 * Get annotation endpoint path, return null if not found
 	 * 
@@ -60,9 +61,9 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String,An
 	 * @return  AnootationPathMap at the respective path
 	 */
 	public AnnotationPathMap getAnnotationPath(String path) {
-		return fetchAnnotationPath( ServletStringUtil.splitUriString(path), false );
+		return fetchAnnotationPath(ServletStringUtil.splitUriString(path), false);
 	}
-
+	
 	/**
 	 * Get annotation endpoint path
 	 * 
@@ -74,20 +75,20 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String,An
 	protected AnnotationPathMap fetchAnnotationPath(String[] splitPath, boolean init) {
 		// Annotation path map to recusively fetch from
 		AnnotationPathMap step = this;
-
+		
 		// For each annotation path part, 
 		// find the nested path map 
-		for(String part : splitPath) {
+		for (String part : splitPath) {
 			// Skips processing if part is blank
-			if(part.length() == 0) {
+			if (part.length() == 0) {
 				continue;
 			}
-
-			if(init) {
+			
+			if (init) {
 				// Get the nested path map
 				// And initialize it if it does not exist
 				AnnotationPathMap nextStep = step.get(part);
-				if(nextStep == null) {
+				if (nextStep == null) {
 					nextStep = new AnnotationPathMap();
 					step.put(part, nextStep);
 				}
@@ -96,16 +97,16 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String,An
 				// Get the nested path map
 				// and return null if its not initialized
 				step = step.get(part);
-				if(step == null) {
+				if (step == null) {
 					return null;
 				}
 			}
 		}
-
+		
 		// Return the annotation path mapping
 		return step;
 	}
-
+	
 	///////////////////////////////////////////////////////
 	//
 	// Class mapping
@@ -121,7 +122,7 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String,An
 		// Map the class methods
 		mapClassMethods(classObj);
 	}
-
+	
 	/**
 	 * Import and scan the given class object for relevent 
 	 * annotations and map its methods accordingly internally
@@ -129,27 +130,26 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String,An
 	public void mapClassMethods(Class<?> classObj) {
 		// Lets get the list of methods
 		List<Method> methodList = AnnotationUtil.fetchMethodList(classObj);
-
+		
 		// Map the method list with annotation class
-		for(Method methodObj : methodList) {
+		for (Method methodObj : methodList) {
 			// Get and process each type of annotation we currently support for methods
 			//
 			// Minor note : Because annotation is not extendable, we cant fully refactor 
 			// the duplicative loop into a generic function, that is reusable.
-			for(RequestPath pathObj   : methodObj.getAnnotationsByType(RequestPath.class)) {
+			for (RequestPath pathObj : methodObj.getAnnotationsByType(RequestPath.class)) {
 				mapMethod(pathObj.value(), methodObj);
 			}
-			for(RequestBefore pathObj : methodObj.getAnnotationsByType(RequestBefore.class)) {
+			for (RequestBefore pathObj : methodObj.getAnnotationsByType(RequestBefore.class)) {
 				mapMethod(pathObj.value(), methodObj);
 			}
-			for(RequestAfter pathObj  : methodObj.getAnnotationsByType(RequestAfter.class)) {
+			for (RequestAfter pathObj : methodObj.getAnnotationsByType(RequestAfter.class)) {
 				mapMethod(pathObj.value(), methodObj);
 			}
 		}
-
 		
 	}
-
+	
 	/**
 	 * Register a method endpoint
 	 * 
@@ -158,9 +158,9 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String,An
 	 */
 	protected void mapMethod(String path, Method methodObj) {
 		AnnotationPathMap pathObj = initAnnotationPath(path);
-		if( pathObj.methodList.indexOf(methodObj) < 0 ) {
-			pathObj.methodList.add( methodObj );
+		if (pathObj.methodList.indexOf(methodObj) < 0) {
+			pathObj.methodList.add(methodObj);
 		}
 	}
-
+	
 }

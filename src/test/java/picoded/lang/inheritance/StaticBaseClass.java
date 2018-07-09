@@ -6,7 +6,7 @@ public class StaticBaseClass {
 	public static String hello() {
 		return "world";
 	}
-
+	
 	// Static function to overwrite?
 	public static String toExtend() {
 		return "base";

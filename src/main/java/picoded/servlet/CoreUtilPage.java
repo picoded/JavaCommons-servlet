@@ -37,7 +37,7 @@ import picoded.core.common.HttpRequestType;
  * Extension of CorePage with various utility functionalities
  */
 public class CoreUtilPage extends CorePage {
-
+	
 	///////////////////////////////////////////////////////
 	//
 	// Constructor extending
@@ -50,14 +50,14 @@ public class CoreUtilPage extends CorePage {
 	public CoreUtilPage() {
 		super();
 	}
-
+	
 	/**
 	 * Clone constructor, this is used to copy over all values from original instance
 	 */
 	public CoreUtilPage(CorePage ori) {
 		super(ori);
 	}
-
+	
 	// /**
 	//  * Gets and return the thread local CorePage used in current servlet request
 	//  */
@@ -70,7 +70,7 @@ public class CoreUtilPage extends CorePage {
 	// 	}
 	// 	return null;
 	// }
-
+	
 	///////////////////////////////////////////////////////
 	//
 	// [Utility] Native FileServlet and path handling
@@ -149,10 +149,10 @@ public class CoreUtilPage extends CorePage {
 			String fullURI = _httpRequest.getRequestURI();
 			
 			// Check request type, ignore if not a get request
-			if( !isGET() ) {
+			if (!isGET()) {
 				return true;
 			}
-
+			
 			// This does not validate blank / root requests
 			//
 			// Should we? : To fix if this is required (as of now no)
@@ -254,10 +254,10 @@ public class CoreUtilPage extends CorePage {
 	protected void doRequest(PrintWriter writer) throws Exception {
 		// Extends original behaviour (if any)
 		super.doRequest(writer);
-
+		
 		// Only does file serving with GET request
 		// and valid file path handling
-		if( isGET() && enforceProperRequestPathEnding() ) {
+		if (isGET() && enforceProperRequestPathEnding()) {
 			/**
 			 * Does standard file output - if file exists
 			 **/
@@ -287,18 +287,18 @@ public class CoreUtilPage extends CorePage {
 	// 		if (requestType == _httpRequestType.GET && !enforceProperRequestPathEnding()) {
 	// 			return false;
 	// 		}
-			
+	
 	// 		// Does authentication check
 	// 		if (!doAuth(templateDataObj)) {
 	// 			return false;
 	// 		}
-			
+	
 	// 		// Does for all requests
 	// 		if (!doRequest(templateDataObj)) {
 	// 			return false;
 	// 		}
 	// 		boolean ret = true;
-			
+	
 	// 		// Switch is used over if,else for slight compiler optimization
 	// 		// http://stackoverflow.com/questions/6705955/why-switch-is-faster-than-if
 	// 		//
@@ -317,15 +317,15 @@ public class CoreUtilPage extends CorePage {
 	// 			ret = doDeleteRequest(templateDataObj);
 	// 			break;
 	// 		}
-			
+	
 	// 		if (ret) {
 	// 			outputRequest(templateDataObj, getWriter());
 	// 		}
-			
+	
 	// 		// // Flush the output stream
 	// 		// getWriter().flush();
 	// 		// getOutputStream().flush();
-			
+	
 	// 		return ret;
 	// 	} catch (Exception e) {
 	// 		return outputRequestException(templateDataObj, getWriter(), e);
@@ -342,14 +342,14 @@ public class CoreUtilPage extends CorePage {
 	// 		if (!doAuth(templateDataObj)) {
 	// 			return false;
 	// 		}
-			
+	
 	// 		// Does for all JSON
 	// 		if (!doJSON(jsonDataObj, templateDataObj)) {
 	// 			return false;
 	// 		}
-			
+	
 	// 		boolean ret = true;
-			
+	
 	// 		// Switch is used over if,else for slight compiler optimization
 	// 		// http://stackoverflow.com/questions/6705955/why-switch-is-faster-than-if
 	// 		//
@@ -367,11 +367,11 @@ public class CoreUtilPage extends CorePage {
 	// 			ret = doDeleteJSON(jsonDataObj, templateDataObj);
 	// 			break;
 	// 		}
-			
+	
 	// 		if (ret) {
 	// 			outputJSON(jsonDataObj, templateDataObj, getWriter());
 	// 		}
-			
+	
 	// 		return ret;
 	// 	} catch (Exception e) {
 	// 		return outputJSONException(jsonDataObj, templateDataObj, getWriter(), e);

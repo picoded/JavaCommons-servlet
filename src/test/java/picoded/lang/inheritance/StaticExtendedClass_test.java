@@ -10,12 +10,12 @@ import org.junit.Test;
 
 // Base class to build on
 public class StaticExtendedClass_test {
-
+	
 	@Test
 	public void hello() {
 		assertEquals("world", StaticExtendedClass.hello());
 	}
-
+	
 	@Test
 	public void extended() {
 		assertEquals("base plus", StaticExtendedClass.toExtend());

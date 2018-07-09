@@ -14,20 +14,20 @@ import picoded.core.exception.ExceptionMessage;
  * Java "Class", "Annotation" types and java reflections
  */
 public class AnnotationUtil {
-
+	
 	/**
 	 * Static class annotation exception
 	 */
 	AnnotationUtil() {
 		throw new RuntimeException(ExceptionMessage.staticClassConstructor);
 	}
-
+	
 	//--------------------------------------------------------------------------------------
 	//
 	//  Generic annotation utils, for nearly any annotation types
 	//
 	//--------------------------------------------------------------------------------------
-
+	
 	/**
 	 * Extract out the generic class object of the given object instance
 	 * 
@@ -38,7 +38,7 @@ public class AnnotationUtil {
 	static Class<?> extractClass(Object inObj) {
 		return inObj.getClass();
 	}
-
+	
 	/**
 	 * Extract out array list of methods in a class
 	 * 
@@ -47,9 +47,9 @@ public class AnnotationUtil {
 	 * @return List of methods
 	 */
 	static List<Method> fetchMethodList(Class<?> classObj) {
-		return new ArrayList<>( Arrays.asList( classObj.getMethods() ) );
+		return new ArrayList<>(Arrays.asList(classObj.getMethods()));
 	}
-
+	
 	/**
 	 * Filter method list given the annotation class
 	 * 
@@ -58,27 +58,27 @@ public class AnnotationUtil {
 	 * 
 	 * @return  List of methods filtered
 	 */
-	static <A extends Annotation> List<Method> filterMethodListWithAnnotationClass(List<Method> inList, Class<A>annotationClass) {
+	static <A extends Annotation> List<Method> filterMethodListWithAnnotationClass(
+		List<Method> inList, Class<A> annotationClass) {
 		// Result to return
 		List<Method> result = new ArrayList<>();
-
+		
 		// Iterate the class methods, and append to result those with valid annotation
-		for(Method methodObj : inList) {
+		for (Method methodObj : inList) {
 			A annotation = methodObj.getAnnotation(annotationClass);
-			if(annotation != null) {
+			if (annotation != null) {
 				result.add(methodObj);
 			}
 		}
-
+		
 		// Return result
 		return result;
 	}
-
+	
 	//--------------------------------------------------------------------------------------
 	//
 	//  Specific annotation utils
 	//
 	//--------------------------------------------------------------------------------------
-
 	
 }

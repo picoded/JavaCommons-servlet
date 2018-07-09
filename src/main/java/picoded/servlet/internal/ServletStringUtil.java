@@ -7,14 +7,14 @@ import picoded.core.exception.ExceptionMessage;
  * the servlet project
  */
 public class ServletStringUtil {
-
+	
 	/**
 	 * Static class annotation exception
 	 */
 	ServletStringUtil() {
 		throw new RuntimeException(ExceptionMessage.staticClassConstructor);
 	}
-
+	
 	/**
 	 * Normalize a URI string path, by removing
 	 * duplicative "/" slash pathings
@@ -35,16 +35,16 @@ public class ServletStringUtil {
 		if (raw.endsWith("/") || raw.endsWith("\\")) {
 			raw = raw.substring(0, raw.length() - 1);
 		}
-
+		
 		// Does duplicative "//" remove
-		while( raw.indexOf("//") >= 0 ) {
+		while (raw.indexOf("//") >= 0) {
 			raw = raw.replaceAll("[\\\\/\\\\/]", "/");
 		}
 		
 		// Does the actual splitting
 		return raw;
 	}
-
+	
 	/**
 	 * Split a uri string (after normalizing it)
 	 * 

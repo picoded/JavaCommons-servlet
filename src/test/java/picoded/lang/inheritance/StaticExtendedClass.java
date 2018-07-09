@@ -5,6 +5,6 @@ public class StaticExtendedClass extends StaticBaseClass {
 	
 	// Static function to overwrite?
 	public static String toExtend() {
-		return StaticBaseClass.toExtend()+" plus";
+		return StaticBaseClass.toExtend() + " plus";
 	}
 }

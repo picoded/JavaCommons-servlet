@@ -22,7 +22,7 @@ public class ServletRequestFile {
 	 * Apache disk file item, representing the actual file
 	 **/
 	protected DiskFileItem diskItem = null;
-
+	
 	/**
 	 * ServletRequestFile constructor with DiskFileItem
 	 * 
@@ -31,7 +31,7 @@ public class ServletRequestFile {
 	public ServletRequestFile(DiskFileItem inFile) {
 		diskItem = inFile;
 	}
-
+	
 	/**
 	 * Writes the file content to another file
 	 *
@@ -85,7 +85,7 @@ public class ServletRequestFile {
 	
 	// Memoizer for toString
 	private String _toString = null;
-
+	
 	/**
 	 * Gets the file, as a UTF-8 decoded string
 	 *
@@ -103,7 +103,7 @@ public class ServletRequestFile {
 			
 			// Get and cache result
 			_toString = diskItem.getString("UTF-8");
-
+			
 			// Return result
 			return _toString;
 		} catch (Exception e) {

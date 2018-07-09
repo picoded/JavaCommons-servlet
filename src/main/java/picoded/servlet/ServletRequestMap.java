@@ -33,7 +33,7 @@ import picoded.core.conv.ConvertJSON;
  *
  * @TODO: Optimize the class to do the conversion between String[] to String only ON DEMAND, and to cache the result
  **/
-public class ServletRequestMap extends GenericConvertHashMap<String,Object> {
+public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 	
 	//------------------------------------------------------------------------------
 	//
@@ -55,7 +55,7 @@ public class ServletRequestMap extends GenericConvertHashMap<String,Object> {
 		super();
 		processHttpServletRequest(req);
 	}
-
+	
 	//------------------------------------------------------------------------------
 	// 
 	// Parameter handling (the whole point of this class)
@@ -68,47 +68,52 @@ public class ServletRequestMap extends GenericConvertHashMap<String,Object> {
 	 * @param  req servlet parameter
 	 */
 	private void processHttpServletRequest(HttpServletRequest req) {
-			// This covers GET request,
-			// and/or form POST request
-			super.putAll(formParameterConversion(req.getParameterMap()));
-
-			// Get the content type
-			String contentType = req.getContentType();
-
-			// No further processing if content type is null
-			if( contentType == null ) {
-				throw new IllegalArgumentException("Missing HTTP request contentType");
-			}
-
-			// Does specific processing for application/json
-			if (contentType.contains("application/json")) {
-				// Does processing of JSON request, and return
-				processJsonParams(req);
-				return;
-			} 
-
-			// Multipart processing, this covers file uploads
-			// Used in the other post types
-			multipartProcessing(req);
+		// This covers GET request,
+		// and/or form POST request
+		super.putAll(formParameterConversion(req.getParameterMap()));
+		
+		// Get the content type
+		String contentType = req.getContentType();
+		
+		// No further processing if content type is null
+		if (contentType == null) {
+			throw new IllegalArgumentException("Missing HTTP request contentType");
+		}
+		
+		// Does specific processing for application/json
+		if (contentType.contains("application/json")) {
+			// Does processing of JSON request, and return
+			processJsonParams(req);
+			return;
+		}
+		
+		// Multipart processing, this covers file uploads
+		// Used in the other post types
+		multipartProcessing(req);
 	}
 	
 	//-------------------------------------------------
 	// Repeated argument handling
 	//-------------------------------------------------
-
+	
 	/**
 	 * Used internally to convert single name arguments,
 	 * into repeated name arguments within a List
 	 */
 	private static class ServletRequestList extends GenericConvertArrayList<Object> {
-		public ServletRequestList() { super(); }
-		public ServletRequestList(Collection<? extends Object> in) { super(in); }
+		public ServletRequestList() {
+			super();
+		}
+		
+		public ServletRequestList(Collection<? extends Object> in) {
+			super(in);
+		}
 	}
-
+	
 	//-------------------------------------------------
 	// GET / POST form parameter handling
 	//-------------------------------------------------
-
+	
 	/**
 	 * Does the conversion of a Map<String,String[]> to a Map<String,Object>, for GET/POST form request arguments.
 	 * If multiple string valeus are found in the String[], it will be converted into a list
@@ -152,14 +157,14 @@ public class ServletRequestMap extends GenericConvertHashMap<String,Object> {
 		if (in.length == 1) {
 			return in[0];
 		}
-
+		
 		return new ServletRequestList(Arrays.asList(in));
 	}
 	
 	//-------------------------------------------------
 	// binary data handling (pre-requisite for JSON)
 	//-------------------------------------------------
-
+	
 	// Request body's content
 	private byte[] reqBodyByteArray = null;
 	
@@ -182,7 +187,7 @@ public class ServletRequestMap extends GenericConvertHashMap<String,Object> {
 	//-------------------------------------------------
 	// JSON request handling
 	//-------------------------------------------------
-
+	
 	/**
 	 * Extract the JSON data from the input stream and converts it into parameters
 	 * @param  req servlet parameter
@@ -204,11 +209,11 @@ public class ServletRequestMap extends GenericConvertHashMap<String,Object> {
 			throw new RuntimeException(e);
 		}
 	}
-
+	
 	//-------------------------------------------------
 	// Multipart upload settings
 	//-------------------------------------------------
-
+	
 	// Upload size treshold, in which the file system decides
 	// to store the current upload request into memory (if below threshold)
 	// or into a temporary file (if above threshold)
@@ -221,7 +226,7 @@ public class ServletRequestMap extends GenericConvertHashMap<String,Object> {
 	//-------------------------------------------------
 	// Multipart processing
 	//-------------------------------------------------
-
+	
 	/**
 	 * Given a fieldname, append the value to param map
 	 * If an existing value is found, the value is appended into a List instead
@@ -232,37 +237,37 @@ public class ServletRequestMap extends GenericConvertHashMap<String,Object> {
 	private void appendRequestParameter(String name, Object value) {
 		// Get the existing value
 		Object existing = super.get(name);
-
+		
 		// Check if no existing value stored
-		if(existing == null) {
+		if (existing == null) {
 			// Store it and return
 			super.put(name, value);
 			return;
 		}
-
+		
 		// There is an existing value, time to map into a list
 		ServletRequestList reqList = null;
-		if( existing instanceof ServletRequestList ) {
-			reqList = (ServletRequestList)existing;
+		if (existing instanceof ServletRequestList) {
+			reqList = (ServletRequestList) existing;
 		} else {
 			reqList = new ServletRequestList();
 			reqList.add(existing);
 		}
-
+		
 		// Add the new value to list
 		reqList.add(value);
-
+		
 		// Store it, and return
 		super.put(name, reqList);
 	}
-
+	
 	/**
 	 * Processes the multipart request parameters
 	 * 
 	 * @param  req servlet parameter
 	 **/
 	private boolean multipartProcessing(HttpServletRequest request) {
-
+		
 		// Only work when there is multi part
 		if (!ServletFileUpload.isMultipartContent(request)) {
 			return false;
@@ -302,14 +307,14 @@ public class ServletRequestMap extends GenericConvertHashMap<String,Object> {
 					// Field name to handle
 					// This is not the "same" as "file name"
 					String fieldname = item.getFieldName();
-
+					
 					// processes only fields that are not form fields
 					if (item.isFormField()) {
 						// Get the field value and store it
 						appendRequestParameter(fieldname, item.getString(encoding));
 					} else {
 						// Process the file, and store it
-						appendRequestParameter(fieldname, new ServletRequestFile((DiskFileItem)item) );
+						appendRequestParameter(fieldname, new ServletRequestFile((DiskFileItem) item));
 					}
 				}
 			}
