@@ -77,7 +77,7 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 		
 		// No further processing if content type is null
 		if (contentType == null) {
-			throw new IllegalArgumentException("Missing HTTP request contentType");
+			return;
 		}
 		
 		// Does specific processing for application/json

@@ -43,7 +43,7 @@ public class BasePage_test {
 	/**
 	 * Hello world test class
 	 */
-	public class HelloWorld extends BasePage {
+	public static class HelloWorld extends BasePage {
 		@RequestPath("hello")
 		public void helloWorld() {
 			getPrintWriter().println("world");
@@ -54,7 +54,6 @@ public class BasePage_test {
 	// public void testHelloPath() throws Exception {
 	// 	assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
 	// 	String testUrl = "http://127.0.0.1:"+testPort+"/hello";
-	
 	// 	ResponseHttp response = httpClient.get(testUrl, null, null, null);
 	// 	assertEquals("world", response.toString());
 	// }
