@@ -50,12 +50,12 @@ public class BasePage_test {
 		}
 	}
 	
-	// @Test
-	// public void testHelloPath() throws Exception {
-	// 	assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
-	// 	String testUrl = "http://127.0.0.1:"+testPort+"/hello";
-	// 	ResponseHttp response = httpClient.get(testUrl, null, null, null);
-	// 	assertEquals("world", response.toString());
-	// }
+	@Test
+	public void testHelloPath() throws Exception {
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
+		String testUrl = "http://127.0.0.1:"+testPort+"/hello";
+		ResponseHttp response = httpClient.get(testUrl, null, null, null);
+		assertEquals("world", response.toString());
+	}
 	
 }
