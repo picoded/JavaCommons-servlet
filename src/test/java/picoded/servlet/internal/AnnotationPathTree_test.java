@@ -13,7 +13,7 @@ import org.junit.Test;
 import picoded.servlet.annotation.*;
 
 // Base class to build on
-public class AnnotationPathMap_test {
+public class AnnotationPathTree_test {
 	
 	/**
 	 * Hello world annotation detection
@@ -32,12 +32,12 @@ public class AnnotationPathMap_test {
 	}
 	
 	/**
-	 * This test the AnnotationPathMap, scanning for RequestPath annotations only
+	 * This test the AnnotationPathTree, scanning for RequestPath annotations only
 	 * and succesfully mapping them
 	 */
 	@Test
 	public void requestPathMapping() {
-		AnnotationPathMap pathMap = new AnnotationPathMap();
+		AnnotationPathTree pathMap = new AnnotationPathTree();
 		pathMap.mapClass(HelloServlet.class);
 		
 		assertNull(pathMap.getAnnotationPath("does-not-exist"));
@@ -62,7 +62,7 @@ public class AnnotationPathMap_test {
 	
 	// 	@RequestForward("account")
 	// 	@RequestForwardClass(HelloServlet.class)
-	// 	public static void pointlessLineForTheSakeOfMakingThisCompile;
+	// 	private static void pointlessLineForTheSakeOfMakingThisCompile;
 	
 	// 	@RequestPath("account/list")
 	// 	public void something() {

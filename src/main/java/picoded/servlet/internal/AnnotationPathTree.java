@@ -16,7 +16,7 @@ import picoded.core.struct.GenericConvertConcurrentHashMap;
  * 
  * And perform the subsquent request/api call for it.
  **/
-public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String, AnnotationPathMap> {
+public class AnnotationPathTree extends GenericConvertConcurrentHashMap<String, AnnotationPathTree> {
 	
 	///////////////////////////////////////////////////////
 	//
@@ -27,7 +27,7 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String, A
 	/**
 	 * Blank constructor
 	 */
-	public AnnotationPathMap() {
+	public AnnotationPathTree() {
 		// blank constructor
 	}
 	
@@ -49,7 +49,7 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String, A
 	 * 
 	 * @return  AnootationPathMap at the respective path
 	 */
-	public AnnotationPathMap initAnnotationPath(String path) {
+	public AnnotationPathTree initAnnotationPath(String path) {
 		return fetchAnnotationPath(ServletStringUtil.splitUriString(path), true);
 	}
 	
@@ -60,7 +60,7 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String, A
 	 * 
 	 * @return  AnootationPathMap at the respective path
 	 */
-	public AnnotationPathMap getAnnotationPath(String path) {
+	public AnnotationPathTree getAnnotationPath(String path) {
 		return fetchAnnotationPath(ServletStringUtil.splitUriString(path), false);
 	}
 	
@@ -72,9 +72,9 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String, A
 	 * 
 	 * @return  AnootationPathMap at the respective path
 	 */
-	protected AnnotationPathMap fetchAnnotationPath(String[] splitPath, boolean init) {
+	protected AnnotationPathTree fetchAnnotationPath(String[] splitPath, boolean init) {
 		// Annotation path map to recusively fetch from
-		AnnotationPathMap step = this;
+		AnnotationPathTree step = this;
 		
 		// For each annotation path part, 
 		// find the nested path map 
@@ -87,9 +87,9 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String, A
 			if (init) {
 				// Get the nested path map
 				// And initialize it if it does not exist
-				AnnotationPathMap nextStep = step.get(part);
+				AnnotationPathTree nextStep = step.get(part);
 				if (nextStep == null) {
-					nextStep = new AnnotationPathMap();
+					nextStep = new AnnotationPathTree();
 					step.put(part, nextStep);
 				}
 				step = nextStep;
@@ -157,7 +157,7 @@ public class AnnotationPathMap extends GenericConvertConcurrentHashMap<String, A
 	 * @param  methodObj to register
 	 */
 	protected void mapMethod(String path, Method methodObj) {
-		AnnotationPathMap pathObj = initAnnotationPath(path);
+		AnnotationPathTree pathObj = initAnnotationPath(path);
 		if (pathObj.methodList.indexOf(methodObj) < 0) {
 			pathObj.methodList.add(methodObj);
 		}
