@@ -1,6 +1,10 @@
 package picoded.servlet;
 
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+import picoded.servlet.internal.*;
 
 /**
  * BasePage builds ontop of CorePage, and completely overwrites 
@@ -19,7 +23,7 @@ public class BasePage extends CoreUtilPage {
 	 **/
 	public BasePage() {
 		super();
-		// // Automatically import any existing "basePage" where applicable
+		// Automatically import any existing "basePage" where applicable
 		// transferParams(CorePage.getCorePage());
 	}
 	
@@ -62,7 +66,7 @@ public class BasePage extends CoreUtilPage {
 	
 	@Override
 	protected void doRequest(PrintWriter writer) throws Exception {
-		route();
+		route(requestWildcardUriArray());
 	}
 	
 	///////////////////////////////////////////////////////
@@ -72,13 +76,65 @@ public class BasePage extends CoreUtilPage {
 	///////////////////////////////////////////////////////
 	
 	/**
+	 * Execute the given method in the context of the current class object (this)
+	 * Adapting the given parameters according to the expected parameter types.
+	 * 
+	 * Also does the relevent output processing based on the output types
+	 * 
+	 * Map / List - JSON output
+	 * String / StringBuilder - println output
+	 * File - binary file output
+	 * byte[] - binary output
+	 * void - does nothing
+	 * 
+	 * Similarly, it passes in the following values, according to the parameter type
+	 * 
+	 * PrintWriter / OutputStream - respective output objects
+	 * HttpServletRequest / Response - respective request / response specific objects
+	 * ServletRequestMap / Map - ServletRequestMap
+	 * 
+	 * @param  toExecute - method to execute
+	 */
+	protected void executeMethod(Method toExecute) {
+		// @TODO : Does method detection and parameter / output logic respectively
+
+		// Invoke the method
+		try {
+			toExecute.invoke(this);
+		} catch(IllegalAccessException e) {
+			throw new RuntimeException(e);
+		} catch(InvocationTargetException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
 	 * Takes the existing request, and perform routing logic on it respectively.
 	 * 
 	 * This is automatically called on any request, or alternatively when  
 	 * forwarding to another instnce request.
 	 */
-	public void route() {
+	protected void route(String[] routePath) {
+
+		// Get the current class path tree
+		AnnotationPathTree pathTree = AnnotationPathTree.setupAndCachePagePathTree(this);
+
+		// @TODO : RequestPath / ApiPath method fetching (only 1 valid result)
+		// @TODO : RequestPath class reroute fetching (only 1 valid result)
+
+		// @TODO : RequestBefore handling + execution
 		
+		// @TODO : method execution
+
+		// @TODO : RequestAfter handling + execution
+
+		AnnotationPathTree endpoint = pathTree.getAnnotationPath(routePath);
+		if( endpoint.methodList.size() == 0 ) {
+			throw new RuntimeException( "404 error should occur here" );
+		}
+
+		executeMethod(endpoint.methodList.get(0));
 	}
-	
+
+
 }

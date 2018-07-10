@@ -38,7 +38,7 @@ public class AnnotationPathTree_test {
 	@Test
 	public void requestPathMapping() {
 		AnnotationPathTree pathMap = new AnnotationPathTree();
-		pathMap.mapClass(HelloServlet.class);
+		pathMap.registerClass(HelloServlet.class);
 		
 		assertNull(pathMap.getAnnotationPath("does-not-exist"));
 		assertEquals(0, pathMap.getAnnotationPath("/").methodList.size());

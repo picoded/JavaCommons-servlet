@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import picoded.core.exception.ExceptionMessage;
+import picoded.servlet.*;
 
 /**
  * Static utility class used to faciliated annotation processing
@@ -77,7 +78,7 @@ public class AnnotationUtil {
 	
 	//--------------------------------------------------------------------------------------
 	//
-	//  Specific annotation utils
+	//  AnnotationPathTree utility
 	//
 	//--------------------------------------------------------------------------------------
 	
