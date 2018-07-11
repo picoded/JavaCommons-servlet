@@ -1,6 +1,7 @@
 package picoded.servlet.internal;
 
 // Junit includes
+
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -21,30 +22,30 @@ public class EndpointMap_test {
 	public void setUp() {
 		endpoints = new EndpointMap<>();
 	}
-	
+
 	@Test
-	public void fullValidPathMatch(){
+	public void fullValidPathMatch() {
 		assertEquals(0, endpoints.findValidKeys("hello/good/world").size());
 		endpoints.registerEndpointPath("hello/good/world", "Awesome world");
 		assertEquals(1, endpoints.findValidKeys("hello/good/world").size());
 	}
 
 	@Test
-	public void invalidRegisteredFullPathMatch(){
+	public void invalidRegisteredFullPathMatch() {
 		assertEquals(0, endpoints.findValidKeys("hello/good/world/others").size());
 		endpoints.registerEndpointPath("hello/good/world", "Awesome world");
 		assertEquals(0, endpoints.findValidKeys("hello/good/world/others").size());
 	}
 
 	@Test
-	public void invalidRequestFullPathMatch(){
+	public void invalidRequestFullPathMatch() {
 		assertEquals(0, endpoints.findValidKeys("hello/good/world").size());
 		endpoints.registerEndpointPath("hello/good/world/others", "Awesome world");
 		assertEquals(0, endpoints.findValidKeys("hello/good/world").size());
 	}
 
 	@Test
-	public void wildCardPathMatch(){
+	public void wildCardPathMatch() {
 		assertEquals(0, endpoints.findValidKeys("hello/good/world").size());
 		endpoints.registerEndpointPath("hello/good/*", "Awesome world");
 		assertEquals(1, endpoints.findValidKeys("hello/good/world").size());
@@ -54,14 +55,14 @@ public class EndpointMap_test {
 	}
 
 	@Test
-	public void badRequestPath(){
+	public void badRequestPath() {
 		assertEquals(0, endpoints.findValidKeys("hello/bad/world").size());
 		endpoints.registerEndpointPath("hello/good/*", "Awesome world");
 		assertEquals(0, endpoints.findValidKeys("hello/bad/world").size());
 	}
 
 	@Test
-	public void emptyRequestPath(){
+	public void emptyRequestPath() {
 		assertEquals(0, endpoints.findValidKeys("").size());
 		endpoints.registerEndpointPath("hello/good/*", "Awesome world");
 		assertEquals(0, endpoints.findValidKeys("").size());
@@ -70,7 +71,7 @@ public class EndpointMap_test {
 	}
 
 	@Test
-	public void endpointPathVariableMatch(){
+	public void endpointPathVariableMatch() {
 		assertEquals(0, endpoints.findValidKeys("hello/test/world").size());
 		endpoints.registerEndpointPath("hello/:variable/world", "Awesome world");
 		assertEquals(1, endpoints.findValidKeys("hello/test/world").size());
@@ -78,7 +79,7 @@ public class EndpointMap_test {
 	}
 
 	@Test
-	public void endpointPathVariableFailMatch(){
+	public void endpointPathVariableFailMatch() {
 		assertEquals(0, endpoints.findValidKeys("hello/test/notworld").size());
 		endpoints.registerEndpointPath("hello/:variable/world", "Awesome world");
 		assertEquals(0, endpoints.findValidKeys("hello/test/notworld").size());
