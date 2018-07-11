@@ -109,12 +109,33 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 	 */
 	public boolean isValidEndpoint(String[] endpointPathArr, String[] requestPathArr) {
 		//
-		for(int i=0; i<endpointPathArr.length; ++i) {
-			
-			if(!endpointPathArr[i].equals(requestPathArr[i])){
+		for (int index = 0; index < endpointPathArr.length; ++index) {
+
+			// Check for asterisks
+			if (endpointPathArr[index].equals("*")) {
+				return true;
+			}
+
+			// EndpointPath is longer than requestPath
+			if (index >= requestPathArr.length) {
+				return false;
+			}
+
+			// Path variable matching check
+			if (endpointPathArr[index].startsWith(":")) {
+				continue;
+			}
+
+			// the endpoint sub path does not match the request's sub path
+			if (!endpointPathArr[index].equals(requestPathArr[index])) {
 				return false;
 			}
 		}
+
+		if (requestPathArr.length > endpointPathArr.length) {
+			return false;
+		}
+
 		return true;
 	}
 
