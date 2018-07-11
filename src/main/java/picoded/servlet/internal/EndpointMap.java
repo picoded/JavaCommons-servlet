@@ -15,9 +15,9 @@ import picoded.core.exception.ExceptionMessage;
 import picoded.core.struct.GenericConvertConcurrentHashMap;
 
 /**
- * Internal utility class, used to mapped the relvent 
+ * Internal utility class, used to mapped the relvent
  * annotated path routes to a given object
- * 
+ *
  * And perform the subsquent storage and/or lookup for it
  **/
 public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
@@ -27,20 +27,20 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 	// Consturctor setup
 	//
 	///////////////////////////////////////////////////////
-	
+
 	/**
 	 * Blank constructor
 	 */
 	public EndpointMap() {
 		super();
 	}
-	
+
 	///////////////////////////////////////////////////////
 	//
 	// local Split URI handling & caching
 	//
 	///////////////////////////////////////////////////////
-	
+
 	/** Memoizer for splitUriString */
 	protected ConcurrentHashMap<String,String[]> _splitUriString = new ConcurrentHashMap<>();
 
@@ -68,10 +68,10 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 	// Path handling / lookup
 	//
 	///////////////////////////////////////////////////////
-	
+
 	/**
 	 * Register a method endpoint
-	 * 
+	 *
 	 * @param  path of the method endpoint
 	 * @param  obj  to register
 	 */
@@ -83,10 +83,10 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 
 	/**
 	 * Validate endpoint path arrays
-	 * 
-	 * For example the following request path "hello/good/world" 
+	 *
+	 * For example the following request path "hello/good/world"
 	 * will match the following endpoint path
-	 * 
+	 *
 	 * ```
 	 * hello/*
 	 * :start/*
@@ -94,10 +94,10 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 	 * hello/good/*
 	 * hello/good/world
 	 * hello/:test/world
-	 * ``` 
-	 * 
+	 * ```
+	 *
 	 * And ignore the following
-	 * 
+	 *
 	 * ```
 	 * hello
 	 * hello/bad/world
@@ -105,7 +105,7 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 	 * hello/:test/notaworld
 	 * hello/good/world/others
 	 * ```
-	 * 
+	 *
 	 */
 	public boolean isValidEndpoint(String[] endpointPathArr, String[] requestPathArr) {
 		// Get some of the endpointPathArr numbers
@@ -114,7 +114,7 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 		int requestPathArr_length = requestPathArr.length;
 
 		// If endpoint is longer then request path, it will always fail
-		if(endpointPathArr_length > requestPathArr_length) {
+		if (endpointPathArr_length > requestPathArr_length) {
 			return false;
 		}
 
@@ -133,37 +133,51 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 		//
 		// Iteration ends at i=2, and returns true
 		//
-		for(int i=0; i<endpointPathArr_length; ++i) {
-			
+		for (int index = 0; index < endpointPathArr_length; ++index) {
+
 			// Get the part to compare
-			String endpointPart = endpointPathArr[i];
-			String requestPart = (requestPathArr_length <= i)? null : requestPathArr[i];
+			String endpointPart = endpointPathArr[index];
+			String requestPart = (requestPathArr_length <= index) ? null : requestPathArr[index];
 
 			// Ending wildcard check
 			// If this triggers, its is presumed that every part segment 
 			// before was validated correctly
-			if( i == endpointPathArr_lastIndex && endpointPart.equalsIgnoreCase("*") ) {
+			if (index == endpointPathArr_lastIndex && endpointPart.equalsIgnoreCase("*")) {
 				return true;
 			}
 
-			if( endpointPart.equalsIgnoreCase("*") || endpointPart.startsWith(":") ) {
+			if (endpointPart.equalsIgnoreCase("*") || endpointPart.startsWith(":")) {
 				// go to next part
 				continue;
 			}
 
+			// EndpointPath is longer than requestPath
+			if (index >= requestPathArr.length) {
+				return false;
+			}
+
+
 			// Finally this would be textual part to part comparision
 			// if this fails, the endpoint mapping is invalid
-			if( endpointPart.equalsIgnoreCase(requestPart) ) {
+			if (!endpointPart.equalsIgnoreCase(requestPart)) {
 				return false;
 			}
 		}
+
+		// the endpointPath matches everything but requestPath is longer
+		// endpointPath: hello/good/world
+		// requestPath:  hello/good/world/others
+		if (requestPathArr.length > endpointPathArr.length) {
+			return false;
+		}
+
 		return true;
 	}
 
 	/**
 	 * Given an endpoint path, search and find all relevent
 	 * endpoint paths and return its list of relevent "keys"
-	 * 
+	 *
 	 * @param  requestPathArr of the method endpoint
 	 */
 	public List<String> findValidKeys(String[] requestPathArr) {
@@ -186,7 +200,7 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 	/**
 	 * Given an endpoint path, search and find all relevent
 	 * endpoint paths and return its list of relevent "keys"
-	 * 
+	 *
 	 * @param  reuqestPath of the method endpoint
 	 */
 	public List<String> findValidKeys(String reuqestPath) {
