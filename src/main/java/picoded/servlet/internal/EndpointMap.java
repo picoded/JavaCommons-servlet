@@ -73,7 +73,7 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 	 * Register a method endpoint
 	 * 
 	 * @param  path of the method endpoint
-	 * @param  obj to register
+	 * @param  obj  to register
 	 */
 	public void registerEndpointPath(String path, V obj) {
 		// And register the endpoint & cache its split path
@@ -83,21 +83,6 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 
 	/**
 	 * Validate endpoint path arrays
-	 * 
-	 */
-	public boolean isValidEndpoint(String[] endpointPathArr, String[] requestPathArr) {
-		//
-		for(int i=0; i<endpointPathArr.length; ++i) {
-			if(!endpointPathArr[i].equals(requestPathArr[i])){
-				return false;
-			}
-		}
-		return true;
-	}
-
-	/**
-	 * Given an endpoint path, search and find all relevent
-	 * endpoint paths and return its list of relevent "keys"
 	 * 
 	 * For example the following request path "hello/good/world" 
 	 * will match the following endpoint path
@@ -121,6 +106,22 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 	 * hello/good/world/others
 	 * ```
 	 * 
+	 */
+	public boolean isValidEndpoint(String[] endpointPathArr, String[] requestPathArr) {
+		//
+		for(int i=0; i<endpointPathArr.length; ++i) {
+			
+			if(!endpointPathArr[i].equals(requestPathArr[i])){
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Given an endpoint path, search and find all relevent
+	 * endpoint paths and return its list of relevent "keys"
+	 * 
 	 * @param  requestPathArr of the method endpoint
 	 */
 	public List<String> findValidKeys(String[] requestPathArr) {
@@ -131,20 +132,23 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 		for( String endpoint : this.keySet() ) {
 			// Get the key array from the cache
 			String[] endpointPathArr = splitUriString(endpoint);
-
+			// Find the valid endpoints
 			if(isValidEndpoint(endpointPathArr, requestPathArr)){
 				ret.add(endpoint);
 			}
-
 		}
-
 		// Return found result
 		return ret;
 	}
 
-
-	public List<String> findValidKeys(String path) {
-		return findValidKeys(ServletStringUtil.splitUriString(path));
+	/**
+	 * Given an endpoint path, search and find all relevent
+	 * endpoint paths and return its list of relevent "keys"
+	 * 
+	 * @param  reuqestPath of the method endpoint
+	 */
+	public List<String> findValidKeys(String reuqestPath) {
+		return findValidKeys(ServletStringUtil.splitUriString(reuqestPath));
 	}
 
 }
