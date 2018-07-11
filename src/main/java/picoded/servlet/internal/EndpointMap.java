@@ -113,7 +113,21 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 		int endpointPathArr_lastIndex = endpointPathArr_length - 1;
 		int requestPathArr_length = requestPathArr.length;
 
+		//
 		// Iterate each endpoint path array part
+		// So for example, with the following requestPath of "hello/good/world/and/beyond",
+		// and endpointPath of "hello/:test/*"
+		//
+		// The following endpointPart / requestPart, is compared with the respective index i
+		//
+		// | i | endpointPart | requestPart |
+		// |---|--------------|-------------|
+		// | 0 | hello        | hello       |
+		// | 1 | :test        | good        |
+		// | 2 | *            | world       |
+		//
+		// Iteration ends at i=2, and returns true
+		//
 		for(int i=0; i<endpointPathArr.length; ++i) {
 			
 			// Get the part to compare
