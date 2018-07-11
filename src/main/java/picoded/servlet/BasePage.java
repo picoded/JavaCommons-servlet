@@ -116,14 +116,17 @@ public class BasePage extends CoreUtilPage {
 	 */
 	protected void route(String[] routePath) {
 
-		// Get the current class path tree
-		AnnotationPathTree pathTree = AnnotationPathTree.setupAndCachePagePathTree(this);
+		// Get the current class map
+		BasePageClassMap classMap = BasePageClassMap.setupAndCache(this);
 
-		// @TODO : RequestPath / ApiPath method fetching (only 1 valid result)
-		// @TODO : RequestPath class reroute fetching (only 1 valid result)
+
+		AnnotationPathTree pathTree = AnnotationPathTree.setupAndCachePagePathTree(this);
 
 		// @TODO : RequestBefore handling + execution
 		
+		// @TODO : RequestPath / ApiPath method fetching + execution (only 1 valid result)
+		// @TODO : RequestPath class reroute fetching + execution(only 1 valid result)
+
 		// @TODO : method execution
 
 		// @TODO : RequestAfter handling + execution

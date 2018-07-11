@@ -1,6 +1,7 @@
 package picoded.servlet.internal;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,6 +70,42 @@ public class AnnotationUtil {
 			A annotation = methodObj.getAnnotation(annotationClass);
 			if (annotation != null) {
 				result.add(methodObj);
+			}
+		}
+		
+		// Return result
+		return result;
+	}
+	
+	/**
+	 * Extract out array list of methods in a class
+	 * 
+	 * @param  classObj to extract methods from
+	 * 
+	 * @return List of methods
+	 */
+	static List<Field> fetchFieldList(Class<?> classObj) {
+		return new ArrayList<>(Arrays.asList(classObj.getFields()));
+	}
+	
+	/**
+	 * Filter field list given the annotation class
+	 * 
+	 * @param  inList  to filter and return
+	 * @param  annotationClass to filter the list from
+	 * 
+	 * @return  List of methods filtered
+	 */
+	static <A extends Annotation> List<Field> filterFieldListWithAnnotationClass(
+		List<Field> inList, Class<A> annotationClass) {
+		// Result to return
+		List<Field> result = new ArrayList<>();
+		
+		// Iterate the class methods, and append to result those with valid annotation
+		for (Field fieldObj : inList) {
+			A annotation = fieldObj.getAnnotation(annotationClass);
+			if (annotation != null) {
+				result.add(fieldObj);
 			}
 		}
 		
