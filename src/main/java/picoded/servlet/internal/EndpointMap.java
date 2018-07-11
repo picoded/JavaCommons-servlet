@@ -94,6 +94,7 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 	 * hello/good/*
 	 * hello/good/world
 	 * hello/:test/world
+	 * hello/* /world # we did a space in between because Java recognize it as end of comment block
 	 * ``` 
 	 * 
 	 * And ignore the following
@@ -104,6 +105,7 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 	 * hello/bad/*
 	 * hello/:test/notaworld
 	 * hello/good/world/others
+	 * hello/* /awieu # we did a space in between because Java recognize it as end of comment block
 	 * ```
 	 * 
 	 */
@@ -111,9 +113,18 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 		//
 		for (int index = 0; index < endpointPathArr.length; ++index) {
 
-			// Check for asterisks
-			if (endpointPathArr[index].equals("*")) {
+			String requestSubPath = (requestPathArr.length <= index) ? null : requestPathArr[index];
+
+			// Ending wildcard check
+			// If this triggers, its is presumed that every part segment
+			// before was validated correctly
+			if( index == endpointPathArr.length-1 && endpointPathArr[index].equals("*") ) {
 				return true;
+			}
+
+			// Check for asterisks and path variable matching
+			if (endpointPathArr[index].equals("*") || endpointPathArr[index].startsWith(":")) {
+				continue;
 			}
 
 			// EndpointPath is longer than requestPath
@@ -121,17 +132,15 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 				return false;
 			}
 
-			// Path variable matching check
-			if (endpointPathArr[index].startsWith(":")) {
-				continue;
-			}
-
 			// the endpoint sub path does not match the request's sub path
-			if (!endpointPathArr[index].equals(requestPathArr[index])) {
+			if (!endpointPathArr[index].equals(requestSubPath)) {
 				return false;
 			}
 		}
 
+		// the endpointPath matches everything but requestPath is longer
+		// endpointPath: hello/good/world
+		// requestPath:  hello/good/world/others
 		if (requestPathArr.length > endpointPathArr.length) {
 			return false;
 		}
