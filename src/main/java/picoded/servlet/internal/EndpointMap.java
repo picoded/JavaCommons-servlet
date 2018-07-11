@@ -113,6 +113,11 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 		int endpointPathArr_lastIndex = endpointPathArr_length - 1;
 		int requestPathArr_length = requestPathArr.length;
 
+		// If endpoint is longer then request path, it will always fail
+		if(endpointPathArr_length > requestPathArr_length) {
+			return false;
+		}
+
 		//
 		// Iterate each endpoint path array part
 		// So for example, with the following requestPath of "hello/good/world/and/beyond",
