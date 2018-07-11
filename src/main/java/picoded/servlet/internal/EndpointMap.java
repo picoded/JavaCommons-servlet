@@ -133,7 +133,7 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 		//
 		// Iteration ends at i=2, and returns true
 		//
-		for(int i=0; i<endpointPathArr.length; ++i) {
+		for(int i=0; i<endpointPathArr_length; ++i) {
 			
 			// Get the part to compare
 			String endpointPart = endpointPathArr[i];
@@ -146,7 +146,6 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 				return true;
 			}
 
-			// In between wildcard checks, or named paraemter checks
 			if( endpointPart.equalsIgnoreCase("*") || endpointPart.startsWith(":") ) {
 				// go to next part
 				continue;
