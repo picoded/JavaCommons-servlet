@@ -1,21 +1,18 @@
 package picoded.servlet.internal;
 
-import java.lang.annotation.Annotation;
+import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import picoded.servlet.*;
 import picoded.servlet.annotation.*;
-import picoded.core.exception.ExceptionMessage;
-import picoded.core.struct.GenericConvertConcurrentHashMap;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Internal utility class, used to mapped the relvent 
@@ -330,11 +327,30 @@ public class BasePageClassMap {
 	 * @param  toExecute method to execute
 	 */
 	protected void executeMethod(BasePage page, Method toExecute) {
-		// @TODO : Does method detection and parameter / output logic respectively
 
-		// Invoke the method
+		// Using the list of parameters that the method requires, detect the appropriate
+		// variables to pass to the method
+		Class<?>[] parameterTypes = toExecute.getParameterTypes();
+		List<Object> arguments = new ArrayList<>();
+		for (Class<?> type : parameterTypes) {
+			// How isAssignableFrom works:
+			// Map.class.isAssignableFrom(ServletRequestMap) translate to
+			// Map<String, Object> map = new ServletRequestMap(page.getHttpServletRequest());
+			// Map is the parent class and ServletRequestMap is the child class
+			if(PrintWriter.class.isAssignableFrom(type)){
+				arguments.add(page.getPrintWriter());
+			} else if(Map.class.isAssignableFrom(type)) {
+				arguments.add(new ServletRequestMap(page.getHttpServletRequest()));
+			} else if(HttpServletRequest.class.isAssignableFrom(type)){
+				arguments.add(page.getHttpServletRequest());
+			} else {
+				throw new RuntimeException("Unsupported type in method.");
+			}
+		}
+
 		try {
-			toExecute.invoke(page);
+			// Invoke the method
+			toExecute.invoke(page, arguments.toArray());
 		} catch(IllegalAccessException e) {
 			throw new RuntimeException(e);
 		} catch(InvocationTargetException e) {
