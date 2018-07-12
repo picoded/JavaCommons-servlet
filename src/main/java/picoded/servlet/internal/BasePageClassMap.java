@@ -308,9 +308,23 @@ public class BasePageClassMap {
 	 * 
 	 * Similarly, it passes in the following values, according to the parameter type
 	 * 
+	 * StringBuilder - previously StringBuilder output
+	 * 
 	 * PrintWriter / OutputStream - respective output objects
 	 * HttpServletRequest / Response - respective request / response specific objects
 	 * ServletRequestMap / Map - ServletRequestMap
+	 * 
+	 * ```
+	 * @RequestPath("hello")
+	 * public void hello(PrintWriter writer) {
+	 * 	writer.println("hello");
+	 * }
+	 * 
+	 * @RequestPath("hello/:name")
+	 * public void hello(PrintWriter writer, ServletRequestMap param) {
+	 * 	writer.println("hello "+param.getString("name", "stranger"));
+	 * }
+	 * ```
 	 * 
 	 * @param  page to execute from
 	 * @param  toExecute method to execute
