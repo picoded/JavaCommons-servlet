@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +49,7 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 	 * Local memoizer copy of `ServletStringUtil.splitUriString`.
 	 * USed this only internally within enpoint map class
 	 */
-	protected String[] splitUriString(String path) {
+	public String[] splitUriString(String path) {
 		// Get and return the cached result
 		String[] res = _splitUriString.get(path);
 		if( res != null ) {
@@ -156,7 +157,6 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 				return false;
 			}
 
-
 			// Finally this would be textual part to part comparision
 			// if this fails, the endpoint mapping is invalid
 			if (!endpointPart.equalsIgnoreCase(requestPart)) {
@@ -171,14 +171,48 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 			return false;
 		}
 
+		// Final return true
 		return true;
+	}
+
+	/**
+	 * Sort a list of endpoints, in order of 
+	 * 
+	 * + Longest path match
+	 * + String comparision (final)
+	 * 
+	 * @param  list of string paths, to sort
+	 */
+	protected void sortEndpointList(List<String> list) {
+		Collections.sort(list, (a,b) -> {
+			String[] a_arr = splitUriString(a);
+			String[] b_arr = splitUriString(b);
+
+			// Longest path match sorting
+			if( a_arr.length > b_arr.length ) {
+				return 1;
+			} else if( b_arr.length > a_arr.length ) {
+				return -1;
+			}
+ 
+			// @TODO "least wildcard match" is implemented
+			// this is so that more exact matches (starting from left)
+			// takes priority over least exact matches
+
+			// String comparision
+			return a.compareTo(b);
+		});
 	}
 
 	/**
 	 * Given an endpoint path, search and find all relevent
 	 * endpoint paths and return its list of relevent "keys"
+	 * 
+	 * @TODO : annotatation type varient (when needed)
 	 *
 	 * @param  requestPathArr of the method endpoint
+	 * 
+	 * @return  list for valid keys found, null if no keys found
 	 */
 	public List<String> findValidKeys(String[] requestPathArr) {
 		// Return list of results
@@ -193,6 +227,15 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 				ret.add(endpoint);
 			}
 		}
+
+		// no valid key found check
+		if( ret.size() <= 0 ) {
+			return null;
+		}
+
+		// Sort the result
+		sortEndpointList(ret);
+
 		// Return found result
 		return ret;
 	}

@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -191,36 +192,102 @@ public class BasePageClassMap {
 	 * This is automatically called on any request, or alternatively when  
 	 * forwarding to another instnce request.
 	 */
-	protected void route(BasePage page, String[] routePath) {
+	public void handleRequest(BasePage page, String[] routePath) {
+		// Try to use the various routing options
+		if( request_api(page, routePath) ) {
+			return;
+		}
+		if( request_path(page, routePath) ) {
+			return;
+		}
+		if( request_reroute(page, routePath) ) {
+			return;
+		}
 
-		// @TODO : RequestPath / ApiPath method fetching (only 1 valid result)
-		// @TODO : RequestPath class reroute fetching (only 1 valid result)
+		// If none is found throws a 404 =(
+		page.handleMissingRouteFailure();
+	}
 
-		// @TODO : 404 exception handaling
+	/**
+	 * Attempts to route a request with a valid ApiPath if found.
+	 * Return true if valid
+	 */
+	protected boolean request_api(BasePage page, String[] routePath) {
+		return false;
+	}
+
+	/**
+	 * Attempts to route a request with a valid ApiPath if found.
+	 * Return true if valid
+	 */
+	protected boolean request_path(BasePage page, String[] routePath) {
+		// Get list of valid paths
+		List<String> pathList = pathMap.findValidKeys(routePath);
+
+		// Return null (if no endpoint)
+		if( pathList == null || pathList.size() <= 0 ) {
+			return false;
+		}
+
+		// Return the Method associated with a valid endpoint
+		Method toExecute = pathMap.get( pathList.get(0) );
 
 		// @TODO : RequestBefore handling + execution
 		
-		// @TODO : method execution
+		// Execute the method
+		executeMethod(page, toExecute);
 
 		// @TODO : RequestAfter handling + execution
+		
+		return true;
+	}
 
-		// throw new RuntimeException( "404 error should occur here" ) ?
+	/**
+	 * Attempts to route a request with a valid ApiPath if found.
+	 * Return true if valid
+	 */
+	protected boolean request_reroute(BasePage page, String[] routePath) {
+		return false;
 	}
 
 	///////////////////////////////////////////////////////
 	//
-	// Valid path searching
+	// Method execution handling
 	//
 	///////////////////////////////////////////////////////
 	
-	// /**
-	//  * Get and returns all possible valid paths that is applicable
-	//  * for the given the request URI
-	//  */
-	// public String[] listApplicablePaths(String path) {
-	// 	String[] splitPath = ServletStringUtil.splitUriString(path);
+	/**
+	 * Execute the given method in the context of the current class object (this)
+	 * Adapting the given parameters according to the expected parameter types.
+	 * 
+	 * Also does the relevent output processing based on the output types
+	 * 
+	 * Map / List - JSON output
+	 * String / StringBuilder - println output
+	 * File - binary file output
+	 * byte[] - binary output
+	 * void - does nothing
+	 * 
+	 * Similarly, it passes in the following values, according to the parameter type
+	 * 
+	 * PrintWriter / OutputStream - respective output objects
+	 * HttpServletRequest / Response - respective request / response specific objects
+	 * ServletRequestMap / Map - ServletRequestMap
+	 * 
+	 * @param  page to execute from
+	 * @param  toExecute method to execute
+	 */
+	protected void executeMethod(BasePage page, Method toExecute) {
+		// @TODO : Does method detection and parameter / output logic respectively
 
-	// 	// Temporary code : over simplified fetching 
+		// Invoke the method
+		try {
+			toExecute.invoke(page);
+		} catch(IllegalAccessException e) {
+			throw new RuntimeException(e);
+		} catch(InvocationTargetException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-	// }
 }
