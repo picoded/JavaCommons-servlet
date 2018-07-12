@@ -129,6 +129,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		this._requestMap = ori._requestMap;
 		this._requestType = ori._requestType;
 		this._responseOutputStream = ori._responseOutputStream;
+		this._printWriter = ori._printWriter;
 	}
 	
 	/**
@@ -569,21 +570,21 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	///////////////////////////////////////////////////////
 	
 	/** Memoizer for printwriter */
-	protected PrintWriter _getPrintWriter = null;
+	protected PrintWriter _printWriter = null;
 
 	/**
 	 * gets the PrintWriter, from the getOutputStream() object and returns it
 	 **/
 	public PrintWriter getPrintWriter() {
-		if( _getPrintWriter != null ) {
-			return _getPrintWriter;
+		if( _printWriter != null ) {
+			return _printWriter;
 		}
 		try {
 			// Important note: You will need to use "true" for auto flush.
 			// "PrintWriter(Writer out, boolean autoFlush)", or it will NOT work.
-			_getPrintWriter =  new PrintWriter(new OutputStreamWriter(getOutputStream(), getHttpServletRequest()
+			_printWriter =  new PrintWriter(new OutputStreamWriter(getOutputStream(), getHttpServletRequest()
 				.getCharacterEncoding()), true);
-			return _getPrintWriter;
+			return _printWriter;
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);
 		}
