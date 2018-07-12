@@ -228,9 +228,9 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 			}
 		}
 
-		// no valid key found check
+		// no valid key found check, skip and return empty list
 		if( ret.size() <= 0 ) {
-			return null;
+			return ret;
 		}
 
 		// Sort the result

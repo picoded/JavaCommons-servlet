@@ -22,6 +22,8 @@ import picoded.core.struct.GenericConvertConcurrentHashMap;
  * annotation routes of a given class object.
  * 
  * And perform the subsquent request/api call for it.
+ * 
+ * Note that this class map is designed for concurrent access by multiple threads
  **/
 public class BasePageClassMap {
 	
@@ -191,6 +193,9 @@ public class BasePageClassMap {
 	 * 
 	 * This is automatically called on any request, or alternatively when  
 	 * forwarding to another instnce request.
+	 * 
+	 * @param  page to execute from
+	 * @param  routePath to route path using
 	 */
 	public void handleRequest(BasePage page, String[] routePath) {
 		// Try to use the various routing options
@@ -210,7 +215,11 @@ public class BasePageClassMap {
 
 	/**
 	 * Attempts to route a request with a valid ApiPath if found.
-	 * Return true if valid
+	 * 
+	 * @param  page to execute from
+	 * @param  routePath to route path using
+	 * 
+	 * @return true if valid execution occurs
 	 */
 	protected boolean request_api(BasePage page, String[] routePath) {
 		return false;
@@ -218,13 +227,17 @@ public class BasePageClassMap {
 
 	/**
 	 * Attempts to route a request with a valid ApiPath if found.
-	 * Return true if valid
+	 * 
+	 * @param  page to execute from
+	 * @param  routePath to route path using
+	 * 
+	 * @return true if valid execution occurs
 	 */
 	protected boolean request_path(BasePage page, String[] routePath) {
 		// Get list of valid paths
 		List<String> pathList = pathMap.findValidKeys(routePath);
 
-		// Return null (if no endpoint)
+		// Return false (if no endpoint found)
 		if( pathList == null || pathList.size() <= 0 ) {
 			return false;
 		}
@@ -232,19 +245,26 @@ public class BasePageClassMap {
 		// Return the Method associated with a valid endpoint
 		Method toExecute = pathMap.get( pathList.get(0) );
 
-		// @TODO : RequestBefore handling + execution
+		// RequestBefore execution
+		executeMethodMap(beforeMap, page, routePath);
 		
 		// Execute the method
 		executeMethod(page, toExecute);
 
-		// @TODO : RequestAfter handling + execution
+		// RequestAfter execution
+		executeMethodMap(afterMap, page, routePath);
 		
+		// Assume valid execution
 		return true;
 	}
 
 	/**
 	 * Attempts to route a request with a valid ApiPath if found.
-	 * Return true if valid
+	 * 
+	 * @param  page to execute from
+	 * @param  routePath to route path using
+	 * 
+	 * @return true if valid execution occurs
 	 */
 	protected boolean request_reroute(BasePage page, String[] routePath) {
 		return false;
@@ -255,6 +275,24 @@ public class BasePageClassMap {
 	// Method execution handling
 	//
 	///////////////////////////////////////////////////////
+	
+	/**
+	 * Execute all relevent request methods, found in an endpointMap for a routePath
+	 * 
+	 * @param  methodMap to execute from
+	 * @param  page to execute from
+	 * @param  routePath to route path using
+	 */
+	protected void executeMethodMap(EndpointMap<Method> methodMap, BasePage page, String[] routePath) {
+		// Get list of valid paths
+		List<String> pathList = methodMap.findValidKeys(routePath);
+
+		// and execute all its relevent method
+		for(String path : pathList) {
+			Method toExecute = methodMap.get(path);
+			executeMethod(page, toExecute);
+		}
+	}
 	
 	/**
 	 * Execute the given method in the context of the current class object (this)
