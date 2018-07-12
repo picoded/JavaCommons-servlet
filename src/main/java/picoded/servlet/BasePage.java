@@ -93,9 +93,6 @@ public class BasePage extends CoreUtilPage {
 		// Get the current class map
 		BasePageClassMap classMap = BasePageClassMap.setupAndCache(this);
 		classMap.handleRequest(this, requestWildcardUriArray());
-
-
-		// route(requestWildcardUriArray());
 	}
 
 }
