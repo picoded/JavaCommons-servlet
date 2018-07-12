@@ -43,7 +43,7 @@ public class BasePage extends CoreUtilPage {
 	 * 
 	 * @param  ori original CorePage to copy from
 	 */
-	protected void transferParams(CorePage ori) {
+	public void transferParams(CorePage ori) {
 		// Skip transfer step, if null is passed
 		if (ori == null) {
 			return;

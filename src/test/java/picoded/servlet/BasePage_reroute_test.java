@@ -54,10 +54,7 @@ public class BasePage_reroute_test {
 	 */
 	public static class LandingPage extends BasePage {
 		@RequestPath("say/*")
-		public static HelloWorld sayPath;
-
-		@RequestPath("say/*")
-		public static Class<HelloWorld> sayClass = HelloWorld.class;
+		public static HelloWorld sayReroute;
 	}
 	
 	@Test
@@ -65,7 +62,7 @@ public class BasePage_reroute_test {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new LandingPage()));
 		String testUrl = "http://127.0.0.1:"+testPort+"/say/hello";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
-		assertEquals("good morning : time to sleep", response.toString().trim());
+		assertEquals("world", response.toString().trim());
 	}
 	
 }

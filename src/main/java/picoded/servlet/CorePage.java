@@ -109,11 +109,11 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	}
 	
 	/**
-	 * Import CorePage instance parameters over to another instance
+	 * Import CorePage instance parameters over from another instance
 	 * 
 	 * @param  ori original CorePage to copy from
 	 */
-	protected void transferParams(CorePage ori) {
+	public void transferParams(CorePage ori) {
 		// Skip transfer step, if null is passed
 		if (ori == null) {
 			return;
