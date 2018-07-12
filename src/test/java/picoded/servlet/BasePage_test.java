@@ -114,6 +114,20 @@ public class BasePage_test {
 
 		}
 
+		@RequestPath("hello/request/mixed")
+		public void helloRequest(ServletRequestMap servletRequestMap, String sentence, GenericConvertMap<String, Object> map){
+			getPrintWriter().print(ConvertJSON.fromObject(servletRequestMap));
+			getPrintWriter().print(sentence);
+			getPrintWriter().print(ConvertJSON.fromObject(map)+" ");
+
+		}
+
+		@RequestPath("hello/request/unknown")
+		public void helloRequest(String sentence, int age){
+			getPrintWriter().print(sentence+ " " + age);
+
+		}
+
 	}
 	@Test
 	public void test_parameter(){
@@ -143,6 +157,22 @@ public class BasePage_test {
 		response = RequestHttp.get(testUrl, params, null, null);
 		assertEquals("{\"first value\":\"first\"} {\"first value\":\"first\"}", response.toString().trim());
 
+	}
+
+	@Test
+	public void test_unknownDefaultParameters(){
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld_withMethodParameters()));
+		String testUrl = "http://127.0.0.1:"+testPort+"/hello/request/unknown";
+		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		assertEquals("0", response.toString().trim());
+	}
+
+	@Test
+	public void test_parametersWithUnknownDefaultParameters(){
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld_withMethodParameters()));
+		String testUrl = "http://127.0.0.1:"+testPort+"/hello/request/mixed";
+		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		assertEquals("{}{}", response.toString().trim());
 	}
 	
 }
