@@ -4,6 +4,8 @@ import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import javax.servlet.http.HttpServletResponse;
+
 import picoded.servlet.internal.*;
 
 /**
@@ -60,84 +62,40 @@ public class BasePage extends CoreUtilPage {
 	
 	///////////////////////////////////////////////////////
 	//
+	// Handle no route found exception
+	//
+	///////////////////////////////////////////////////////
+	
+	/**
+	 * No route found failure condition.
+	 * This typically happen no valid enpoints was found.
+	 */
+	public void handleMissingRouteFailure() {
+		// Set 404 header
+		getHttpServletResponse().setStatus(HttpServletResponse.SC_NOT_FOUND);
+
+		// Print out the error
+		PrintWriter print = getPrintWriter();
+		print.println("<h1>404 Error</h1>");
+		print.println("The requested resource is not avaliable Q.Q");
+		print.println("");
+		print.println("Request URI : "+requestURI());
+	}
+
+	///////////////////////////////////////////////////////
+	//
 	// Overwriting doRequest pipeline
 	//
 	///////////////////////////////////////////////////////
 	
 	@Override
 	protected void doRequest(PrintWriter writer) throws Exception {
-		route(requestWildcardUriArray());
-	}
-	
-	///////////////////////////////////////////////////////
-	//
-	// route handling
-	//
-	///////////////////////////////////////////////////////
-	
-	/**
-	 * Execute the given method in the context of the current class object (this)
-	 * Adapting the given parameters according to the expected parameter types.
-	 * 
-	 * Also does the relevent output processing based on the output types
-	 * 
-	 * Map / List - JSON output
-	 * String / StringBuilder - println output
-	 * File - binary file output
-	 * byte[] - binary output
-	 * void - does nothing
-	 * 
-	 * Similarly, it passes in the following values, according to the parameter type
-	 * 
-	 * PrintWriter / OutputStream - respective output objects
-	 * HttpServletRequest / Response - respective request / response specific objects
-	 * ServletRequestMap / Map - ServletRequestMap
-	 * 
-	 * @param  toExecute - method to execute
-	 */
-	protected void executeMethod(Method toExecute) {
-		// @TODO : Does method detection and parameter / output logic respectively
-
-		// Invoke the method
-		try {
-			toExecute.invoke(this);
-		} catch(IllegalAccessException e) {
-			throw new RuntimeException(e);
-		} catch(InvocationTargetException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	/**
-	 * Takes the existing request, and perform routing logic on it respectively.
-	 * 
-	 * This is automatically called on any request, or alternatively when  
-	 * forwarding to another instnce request.
-	 */
-	protected void route(String[] routePath) {
-
 		// Get the current class map
 		BasePageClassMap classMap = BasePageClassMap.setupAndCache(this);
+		classMap.handleRequest(this, requestWildcardUriArray());
 
 
-		AnnotationPathTree pathTree = AnnotationPathTree.setupAndCachePagePathTree(this);
-
-		// @TODO : RequestBefore handling + execution
-		
-		// @TODO : RequestPath / ApiPath method fetching + execution (only 1 valid result)
-		// @TODO : RequestPath class reroute fetching + execution(only 1 valid result)
-
-		// @TODO : method execution
-
-		// @TODO : RequestAfter handling + execution
-
-		AnnotationPathTree endpoint = pathTree.getAnnotationPath(routePath);
-		if( endpoint.methodList.size() == 0 ) {
-			throw new RuntimeException( "404 error should occur here" );
-		}
-
-		executeMethod(endpoint.methodList.get(0));
+		// route(requestWildcardUriArray());
 	}
-
 
 }
