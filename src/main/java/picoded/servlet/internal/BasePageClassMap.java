@@ -343,10 +343,8 @@ public class BasePageClassMap {
 				arguments.add(new ServletRequestMap(page.getHttpServletRequest()));
 			} else if(HttpServletRequest.class.isAssignableFrom(type)){
 				arguments.add(page.getHttpServletRequest());
-			} else if(Number.class.isAssignableFrom(type)){
-				arguments.add(0);
 			} else {
-				arguments.add(checkPrimitiveType(type));
+				throw new RuntimeException("Unsupported type in method.");
 			}
 		}
 
@@ -358,26 +356,6 @@ public class BasePageClassMap {
 		} catch(InvocationTargetException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	/**
-	 * Primitive type are special as they need to be the exact match to be able to detect
-	 * https://stackoverflow.com/questions/1650614/isassignablefrom-with-reference-and-primitive-types
-	 *
-	 * @param type
-	 * @return the result
-	 */
-	private Object checkPrimitiveType(Class<?> type) {
-		if (int.class.isAssignableFrom(type) || long.class.isAssignableFrom(type) ||
-				double.class.isAssignableFrom(type) || float.class.isAssignableFrom(type)) {
-			return 0;
-		} else if (boolean.class.isAssignableFrom(type)) {
-			return true;
-		} else if (String.class.isAssignableFrom(type)) {
-			return "";
-		}
-
-		return null;
 	}
 
 }

@@ -160,19 +160,25 @@ public class BasePage_test {
 	}
 
 	@Test
-	public void test_unknownDefaultParameters(){
-		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld_withMethodParameters()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/hello/request/unknown";
-		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
-		assertEquals("0", response.toString().trim());
+	public void test_unknownDefaultParameters() {
+		try {
+			assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld_withMethodParameters()));
+			String testUrl = "http://127.0.0.1:" + testPort + "/hello/request/unknown";
+			ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		} catch (RuntimeException e) {
+			assertEquals("Unsupported type in method", e.getMessage());
+		}
 	}
 
 	@Test
-	public void test_parametersWithUnknownDefaultParameters(){
-		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld_withMethodParameters()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/hello/request/mixed";
-		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
-		assertEquals("{}{}", response.toString().trim());
+	public void test_parametersWithUnknownDefaultParameters() {
+		try {
+			assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld_withMethodParameters()));
+			String testUrl = "http://127.0.0.1:" + testPort + "/hello/request/mixed";
+			ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		} catch (RuntimeException e) {
+			assertEquals("Unsupported type in method", e.getMessage());
+		}
 	}
 	
 }
