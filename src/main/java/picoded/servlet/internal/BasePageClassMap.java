@@ -398,8 +398,8 @@ public class BasePageClassMap {
 		executeMethodMap(beforeMap, page, requestPath);
 		
 		// Execute the reroute, with the routing class
-		routeClassMap.handleRequest(page, reroutePathArr);
 		BasePage routeClassObj = setupRerouteClassInstance(routeClass, page);
+		routeClassMap.handleRequest(routeClassObj, reroutePathArr);
 
 		// RequestAfter execution
 		executeMethodMap(afterMap, routeClassObj, requestPath);
