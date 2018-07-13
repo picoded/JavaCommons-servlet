@@ -64,5 +64,27 @@ public class BasePage_reroute_test {
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("world", response.toString().trim());
 	}
+
+	@Test
+	public void test_existRedirectButInvalidPath() throws Exception {
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new LandingPage()));
+		String testUrl = "http://127.0.0.1:"+testPort+"/say/invalid";
+		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		assertEquals("<h1>404 Error</h1>\n" +
+				"The requested resource is not avaliable Q.Q\n" +
+				"\n" +
+				"Request URI : /say/invalid", response.toString().trim());
+	}
+
+	@Test
+	public void test_nonExistenceRedirect() throws Exception {
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new LandingPage()));
+		String testUrl = "http://127.0.0.1:"+testPort+"/gone/invalid";
+		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		assertEquals("<h1>404 Error</h1>\n" +
+				"The requested resource is not avaliable Q.Q\n" +
+				"\n" +
+				"Request URI : /gone/invalid", response.toString().trim());
+	}
 	
 }
