@@ -12,8 +12,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import picoded.servlet.*;
 import picoded.servlet.annotation.*;
+import picoded.core.common.HttpRequestType;
+import picoded.core.conv.ArrayConv;
 import picoded.core.exception.ExceptionMessage;
 import picoded.core.struct.GenericConvertConcurrentHashMap;
+
 
 /**
  * Internal utility class, used to mapped the relvent
@@ -215,6 +218,20 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 	 * @return  list for valid keys found, null if no keys found
 	 */
 	public List<String> findValidKeys(String[] requestPathArr) {
+		return findValidKeys(requestPathArr, null);
+	}
+
+	/**
+	 * Given an endpoint path, search and find all relevent
+	 * endpoint paths and return its list of relevent "keys"
+	 * 
+	 * @TODO : annotatation type varient (when needed)
+	 *
+	 * @param  requestPathArr of the method endpoint
+	 * 
+	 * @return  list for valid keys found, null if no keys found
+	 */
+	public List<String> findValidKeys(String[] requestPathArr, HttpRequestType reqType) {
 		// Return list of results
 		List<String> ret = new ArrayList<>();
 
@@ -223,7 +240,7 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 			// Get the key array from the cache
 			String[] endpointPathArr = splitUriString(endpoint);
 			// Find the valid endpoints
-			if(isValidEndpoint(endpointPathArr, requestPathArr)){
+			if(isValidEndpoint(endpointPathArr, requestPathArr) && validateRequestType(endpoint, reqType)){
 				ret.add(endpoint);
 			}
 		}
@@ -238,6 +255,49 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 
 		// Return found result
 		return ret;
+	}
+
+	/**
+	 * With the requestType of the request, it checks whether does the endpoint is a Method class,
+	 * followed by grabbing the endpoint's RequestTypes to check that the requestType is defined in it.
+	 * 
+	 * By default, the function will pass it as true if the endpoint does not specify the RequestType
+	 * 
+	 * @param endpointName The method to be checked
+	 * @param requestType  The method of the request (POST/GET/DELETE/etc)
+	 * 
+	 * @return true if it is allowed to execute, false otherwise
+	 * 
+	 */
+	private boolean validateRequestType(String endpointName, HttpRequestType requestType){
+
+		// No specific method is give, treat as allowed
+		if(requestType == null) {
+			return true;
+		}
+
+		// If the endpoint is not a method, treats as valid
+		Object endpoint = this.get(endpointName);
+		if(!(endpoint instanceof Method)){
+			return true;
+		}
+
+		// Check through the RequestType annotation of the endpoint and validates if the requestType
+		// is contained in it. If the endpoint does not have any RequestType set, treat as allowed
+		Method endpointImplementation = (Method) endpoint;
+		RequestType endpointRequestType = endpointImplementation.getAnnotation(RequestType.class);
+		if(endpointRequestType == null){
+			return true;
+		}
+
+		HttpRequestType[] types = endpointRequestType.value();
+		if(ArrayConv.contains(types, requestType)) {
+			return true;
+		}
+	
+		// At this point, the method of the request does not match any of the endpoint's RequestType
+		// treat as false
+		return false;
 	}
 
 	/**
