@@ -319,8 +319,29 @@ public class BasePageClassMap {
 	 * 
 	 * @return true if valid execution occurs
 	 */
-	protected boolean request_api(BasePage page, String[] routePath) {
-		return false;
+	protected boolean request_api(BasePage page, String[] requestPath) {
+		// Get list of valid paths
+		List<String> pathList = apiMap.findValidKeys(requestPath);
+
+		// Return false (if no endpoint found)
+		if( pathList == null || pathList.size() <= 0 ) {
+			return false;
+		}
+
+		// Return the Method associated with a valid endpoint
+		Method toExecute = apiMap.get( pathList.get(0) );
+
+		// RequestBefore execution
+		executeMethodMap(beforeMap, page, requestPath);
+		
+		// Execute the method
+		executeMethod(page, toExecute);
+
+		// RequestAfter execution
+		executeMethodMap(afterMap, page, requestPath);
+		
+		// Assume valid execution
+		return true;
 	}
 
 	/**
