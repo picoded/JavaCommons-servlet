@@ -195,7 +195,7 @@ public class BasePageClassMap {
 	 * @return extracted field class
 	 */
 	protected Class<?> getRerouteClass(Field field) {
-		Class<?> ret = field.getDeclaringClass();
+		Class<?> ret = field.getType();
 		if( !BasePage.class.isAssignableFrom(ret) ) {
 			throw new RuntimeException("Expected a BasePage class type, found "+ret.getName()+" instead");
 		}
