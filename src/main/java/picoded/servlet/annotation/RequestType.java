@@ -25,5 +25,5 @@ import picoded.core.common.HttpRequestType;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface RequestType {
-	public HttpRequestType[] value();
+	public String[] value();
 }

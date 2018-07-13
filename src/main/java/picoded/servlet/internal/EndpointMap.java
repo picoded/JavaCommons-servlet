@@ -10,10 +10,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.sound.midi.Soundbank;
+
 import picoded.servlet.*;
 import picoded.servlet.annotation.*;
 import picoded.core.common.HttpRequestType;
 import picoded.core.conv.ArrayConv;
+import picoded.core.conv.ConvertJSON;
 import picoded.core.exception.ExceptionMessage;
 import picoded.core.struct.GenericConvertConcurrentHashMap;
 
@@ -285,16 +288,18 @@ public class EndpointMap<V> extends ConcurrentHashMap<String,V> {
 		// Check through the RequestType annotation of the endpoint and validates if the requestType
 		// is contained in it. If the endpoint does not have any RequestType set, treat as allowed
 		Method endpointImplementation = (Method) endpoint;
-		RequestType endpointRequestType = endpointImplementation.getAnnotation(RequestType.class);
-		if(endpointRequestType == null){
+		RequestType[] endpointRequestTypes = endpointImplementation.getAnnotationsByType(RequestType.class);
+		if(endpointRequestTypes == null || endpointRequestTypes.length == 0){
 			return true;
 		}
 
-		HttpRequestType[] types = endpointRequestType.value();
-		if(ArrayConv.contains(types, requestType)) {
-			return true;
+		for (RequestType endpointRequestType : endpointRequestTypes){
+			String[] types = endpointRequestType.value();
+			if(ArrayConv.containsIgnoreCase(types, requestType.toString())) {
+				return true;
+			}
 		}
-	
+
 		// At this point, the method of the request does not match any of the endpoint's RequestType
 		// treat as false
 		return false;

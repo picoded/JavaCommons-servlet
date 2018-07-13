@@ -22,7 +22,7 @@ import picoded.servlet.annotation.*;
 
 import javax.servlet.ServletRequest;
 
-public class BasePage_test {
+public class BasePage_basic_test {
 	
 	//
 	// The test folders to use 
