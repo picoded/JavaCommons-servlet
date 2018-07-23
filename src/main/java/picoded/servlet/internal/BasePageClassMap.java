@@ -494,17 +494,31 @@ public class BasePageClassMap {
 		// variables to pass to the method
 		Class<?>[] parameterTypes = toExecute.getParameterTypes();
 		List<Object> arguments = new ArrayList<>();
+
+		//
+		// Input handling
+		//
 		for (Class<?> type : parameterTypes) {
 			// How isAssignableFrom works:
 			// Map.class.isAssignableFrom(ServletRequestMap) translate to
 			// Map<String, Object> map = new ServletRequestMap(page.getHttpServletRequest());
 			// Map is the parent class and ServletRequestMap is the child class
+
 			if(PrintWriter.class.isAssignableFrom(type)){
 				arguments.add(page.getPrintWriter());
+
+			} else if(ServletRequestMap.class.isAssignableFrom(type)) {
+				arguments.add(page.requestParameterMap());
+
 			} else if(Map.class.isAssignableFrom(type)) {
 				arguments.add(page.requestParameterMap());
+
 			} else if(HttpServletRequest.class.isAssignableFrom(type)){
 				arguments.add(page.getHttpServletRequest());
+
+			} else if(StringBuilder.class.isAssignableFrom(type)) {
+				arguments.add(page.responseStringBuilder);
+
 			} else {
 				throw new RuntimeException(
 					"Unsupported type in method "+toExecute.getName()+" for parameter type "+type.getSimpleName()
@@ -512,14 +526,50 @@ public class BasePageClassMap {
 			}
 		}
 
+		//
+		// Execution handling
+		//
+		
+		Object executionResponse = null;
 		try {
 			// Invoke the method
-			toExecute.invoke(page, arguments.toArray());
+			executionResponse = toExecute.invoke(page, arguments.toArray());
 		} catch(IllegalAccessException e) {
 			throw new RuntimeException(e);
 		} catch(InvocationTargetException e) {
 			throw new RuntimeException(e);
 		}
+
+		//
+		// Output handling
+		//
+
+		if (executionResponse == null){
+			return;
+		}
+		
+		if (executionResponse instanceof Map) {
+			Map<String, Object> executionMap = (Map<String, Object>) executionResponse;
+			if(!executionMap.equals(page.responseApiMap)) {
+				// @TODO: Recursive merge instead of replacing the entire variable
+				page.responseApiMap.putAll(executionMap);
+			}
+			return;
+		}
+
+		if(executionResponse instanceof StringBuilder){
+			StringBuilder executionStringBuilder = (StringBuilder) executionResponse;
+			if(!executionStringBuilder.equals(page.responseStringBuilder)) {
+				page.responseStringBuilder.append(executionStringBuilder);
+			}
+			return;
+		}
+
+		if ( executionResponse instanceof String ) {
+			page.responseStringBuilder.append(executionResponse.toString());
+			return;
+		}
+
 	}
 
 }
