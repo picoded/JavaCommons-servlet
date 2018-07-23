@@ -97,12 +97,18 @@ public class BasePage extends CoreUtilPage {
 		responseStringBuilder = new StringBuilder();
 		responseApiMap = new GenericConvertHashMap<String, Object>();
 
-		// Get the current class map
-		BasePageClassMap classMap = BasePageClassMap.setupAndCache(this);
-		classMap.handleRequest(this, requestWildcardUriArray());
+		try{
+			// Get the current class map
+			BasePageClassMap classMap = BasePageClassMap.setupAndCache(this);
+			classMap.handleRequest(this, requestWildcardUriArray());
 
-		// Process the response objects, and output them
-		doRequestOutput(writer);
+			// Process the response objects, and output them
+			doRequestOutput(writer);
+		} catch( ApiPathException ape ) {
+			handleApiPathException(ape);
+		} catch( HaltException he ) {
+			handleHaltException(he);
+		}
 	}
 
 	protected void doRequestOutput(PrintWriter writer) throws Exception {
@@ -117,7 +123,7 @@ public class BasePage extends CoreUtilPage {
 		} else if(responseApiMap.size() > 0) {
 			// Setting the response to be JSON output 
 			if( getHttpServletResponse().getContentType() == null) {
-				getHttpServletResponse().setContentType("application/json");
+				getHttpServletResponse().setContentType("application/javascript");
 			}
 			writer.println(ConvertJSON.fromObject(responseApiMap, true));
 		}
@@ -135,6 +141,44 @@ public class BasePage extends CoreUtilPage {
 	 */
 	public StringBuilder responseStringBuilder = null;
 
+	///////////////////////////////////////////////////////
+	//
+	// Exception handling
+	//
+	///////////////////////////////////////////////////////
+	
+	/**
+	 * Throws a halt exception, to stop further processing of the request
+	 */
+	public void halt() {
+		throw new HaltException();
+	}
 
+	static class HaltException extends RuntimeException { }
+	public static class ApiPathException extends RuntimeException {
+		public ApiPathException(Exception e) { super(e); }
+	}
+
+	/**
+	 * Handles HALT exception
+	 **/
+	protected void handleHaltException(Exception e) throws Exception {
+		//intentionally does nothing
+	}
+
+	/**
+	 * Handles API based exceptions
+	 **/
+	protected void handleApiPathException(Exception e) throws Exception {
+		// Converts the stack trace to a string
+		String stackTrace = picoded.core.exception.ExceptionUtils.getStackTrace(e);
+
+		responseApiMap.put("ERROR_MSG", e.getMessage());
+		responseApiMap.put("STACK_TRACE", stackTrace);
+
+		getHttpServletResponse().setContentType("application/javascript");
+		getPrintWriter().println(ConvertJSON.fromObject(responseApiMap, true));
+	}
+	
 
 }

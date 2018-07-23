@@ -244,5 +244,67 @@ public class BasePage_basic_test {
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("added another", response.toString().trim());
 	}
+
+	/**
+	 * Servlet for initializing name parameters endpoints
+	 */
+	public static class NameParametersServlet extends BasePage{
+		@RequestPath("name/:parameter")
+		public String simpleNameParam(ServletRequestMap map){
+			return map.getString("parameter");
+		}
+
+
+		@RequestBefore("name/*/:before/*")
+		public Map<String,Object> simpleNameParamBefore(ServletRequestMap map){
+			return map;
+		}
+		@RequestPath("name/:parameter/*")
+		public Map<String,Object> nameParamExecution(ServletRequestMap map){
+			return map;
+		}
+		@RequestAfter("name/*/*/:after")
+		public Map<String,Object> simpleNameParamAfter(ServletRequestMap map){
+			return map;
+		}
+	}
+
+	@Test
+	public void test_nameParameter(){
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new NameParametersServlet()));
+		String testUrl = "http://127.0.0.1:"+testPort+"/name/testingUser";
+		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		assertEquals("testingUser", response.toString().trim());
+	}
 	
+	@Test
+	public void test_nameParametersWithBeforeAndAfter(){
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new NameParametersServlet()));
+		String testUrl = "http://127.0.0.1:"+testPort+"/name/testingUser/beforeValue/afterValue";
+		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		Map<String, Object> map = response.toMap();
+		assertEquals("beforeValue", map.get("before").toString());
+		assertEquals("testingUser", map.get("parameter").toString());
+		assertEquals("afterValue", map.get("after").toString());
+	}
+
+	/**
+	 * Methods that explicitly throw ApiPathException
+	 */
+	public static class ApiPathExceptionServlet extends BasePage{
+		@ApiPath("name/testing")
+		public void simpleNameParam(Integer wrongParam){
+			// intentionally leave blank
+		}
+	}
+
+	@Test
+	public void test_apiPathException(){
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new ApiPathExceptionServlet()));
+		String testUrl = "http://127.0.0.1:"+testPort+"/name/testing";
+		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		Map<String, Object> map = response.toMap();
+
+		assertEquals("java.lang.RuntimeException: Unsupported type in method simpleNameParam for parameter type Integer", map.get("ERROR_MSG").toString());
+	}
 }
