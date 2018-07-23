@@ -14,8 +14,11 @@ import org.junit.Test;
 
 import picoded.core.conv.ConvertJSON;
 import picoded.core.struct.GenericConvertMap;
+import picoded.core.struct.GenericConvertHashMap;
+import picoded.core.struct.GenericConvertMap;
 import picoded.servlet.util.EmbeddedServlet;
 import picoded.servlet.ServletRequestMap;
+import picoded.servlet.internal.*;
 import picoded.core.web.RequestHttp;
 import picoded.core.web.ResponseHttp;
 import picoded.servlet.annotation.*;
@@ -129,6 +132,7 @@ public class BasePage_basic_test {
 		}
 
 	}
+
 	@Test
 	public void test_parameter(){
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld_withMethodParameters()));
@@ -179,6 +183,66 @@ public class BasePage_basic_test {
 		} catch (RuntimeException e) {
 			assertEquals("Unsupported type in method", e.getMessage());
 		}
+	}
+
+	/**
+	 * Hello world responseStringBuilder and responseApiMap
+	 */
+	public static class HelloWorld_withStringBuilderAndApiMap extends BasePage{
+
+		@RequestPath("different/response/stringbuilder")
+		public StringBuilder differentResponseStringBuilder(ServletRequestMap map){
+			responseStringBuilder.append("first value ");
+			return new StringBuilder("Return mee");
+		}
+
+		@RequestPath("different/response/map")
+		public Map<String, Object> differentResponseMap(ServletRequestMap servletRequestMap) {
+			HashMap<String, Object> map = new HashMap<String, Object>();
+			map.put("return", "money");
+			return map;
+
+		}
+
+		@RequestPath("same/response/stringbuilder")
+		public StringBuilder sameResponseStringBuilder(StringBuilder stringBuilder){
+			stringBuilder.append("added another");
+			return stringBuilder;
+		}
+
+		/**
+		 * KIV first, Still do not know whether we want to pass in basePage's responseApiMap into method as argument
+		 */
+		@RequestPath("same/response/map")
+		public Map<String,Object> sameResponseMap(Map<String, Object> responseMap){
+			responseMap.put("addition", "value");
+			return responseMap;
+		}
+
+	}
+
+	@Test
+	public void test_differentResponseStringBuilder(){
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld_withStringBuilderAndApiMap()));
+		String testUrl = "http://127.0.0.1:"+testPort+"/different/response/stringBuilder";
+		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		assertEquals("first value Return mee", response.toString().trim());
+	}
+
+	@Test
+	public void test_differentResponseMap(){
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld_withStringBuilderAndApiMap()));
+		String testUrl = "http://127.0.0.1:"+testPort+"/different/response/map";
+		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		assertEquals("{\n\t\"return\" : \"money\"\n}", response.toString().trim());
+	}
+
+	@Test
+	public void test_sameResponseStringBuilder(){
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld_withStringBuilderAndApiMap()));
+		String testUrl = "http://127.0.0.1:"+testPort+"/same/response/stringBuilder";
+		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		assertEquals("added another", response.toString().trim());
 	}
 	
 }
