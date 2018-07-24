@@ -4,10 +4,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import picoded.servlet.*;
@@ -179,6 +176,56 @@ public class BasePageClassMap {
 			}
 		}
 	}
+
+	///////////////////////////////////////////////////////
+	//
+	// Endpoint getter functions
+	//
+	///////////////////////////////////////////////////////
+
+	/**
+	 * Obtains all endpoints that including the asterisks format
+	 * @return
+	 */
+	public Map<String, Method> apiEndpoints(String currentPath) {
+		Map<String, Method> endpointNames = new HashMap<>();
+		for(String key : apiMap.keySet()){
+			endpointNames.put(currentPath+key, apiMap.get(key));
+			endpointNames.put(key, apiMap.get(key));
+		}
+		return endpointNames;
+	}
+
+	public Map<String, Class<?>> reroutePaths() {
+		Map<String, Class<?>> reroutePaths = new HashMap<>();
+		for(String key : rerouteMap.keySet()){
+			reroutePaths.put(key, getRerouteClass(rerouteMap.get(key)));
+		}
+		return reroutePaths;
+	}
+
+	public Map<String, Method> getApiEndpointsFromReroutePath(String currentPath, Class<?> clazz){
+		Map<String, Method> endpoints = new HashMap<>();
+		if(currentPath.endsWith("/*")){
+			currentPath = currentPath.replaceAll("\\*$", "");
+		}
+
+		BasePageClassMap basePageClassMap = BasePageClassMap.setupAndCache(clazz);
+
+		// Get all the apiendpoints of clazz
+		endpoints.putAll(basePageClassMap.apiEndpoints(currentPath));
+
+		Map<String, Class<?>> reroutePaths = basePageClassMap.reroutePaths();
+		for(String key: reroutePaths.keySet()){
+			endpoints.putAll(getApiEndpointsFromReroutePath(currentPath+key, reroutePaths.get(key)));
+			endpoints.putAll(getApiEndpointsFromReroutePath(key, reroutePaths.get(key)));
+		}
+		return endpoints;
+	}
+
+//	public Method rerouteMethod(String parentPath, BasePageClassMap classMap){
+//
+//	}
 
 	///////////////////////////////////////////////////////
 	//
