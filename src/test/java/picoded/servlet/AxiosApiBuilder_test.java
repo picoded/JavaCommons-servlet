@@ -78,9 +78,28 @@ public class AxiosApiBuilder_test {
 		public static SmallWorld rerouteToSmallWorld;
 	}
 
+	public static class SameWorld extends BasePage {
+		@ApiPath("hello")
+		public void helloWorld() {
+			getPrintWriter().println("world");
+		}
+
+		@ApiPath("middle/*")
+		public void middle(){
+
+		}
+
+		@RequestPath("to/*")
+		public static SmallWorld rerouteToSmallWorld;
+
+	}
+
 	public static class RerouteWorld extends BasePage {
 		@RequestPath("reroute/*")
 		public static HelloWorld rerouteToHelloWorld;
+
+		@RequestPath("reroute2/*")
+		public static SameWorld rerouteToHelloWorld2;
 
 		@Override
 		protected void doSharedSetup() throws Exception {

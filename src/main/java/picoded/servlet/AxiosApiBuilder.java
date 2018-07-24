@@ -6,6 +6,7 @@ import picoded.servlet.internal.BasePageClassMap;
 import picoded.servlet.internal.EndpointMap;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,16 +26,12 @@ public class AxiosApiBuilder {
 
 	}
 
-	public void scanApiEndpoints() {
+	public Map<String, Method> scanApiEndpoints() {
 		BasePageClassMap classMap = BasePageClassMap.setupAndCache(corePage);
-		Map<String, Method> apiEndpoint = classMap.apiEndpoints("");
-		Map<String, Class<?>> reroutePaths = classMap.reroutePaths();
+		Map<String, Method> apiEndpoint = new HashMap<>();
+		classMap.getApiEndpointsFromClass("", corePage.getClass(), apiEndpoint);
 
-		for(String key : reroutePaths.keySet()){
-			apiEndpoint.putAll(classMap.getApiEndpointsFromReroutePath(key, reroutePaths.get(key)));
-		}
-
-		System.out.println(ConvertJSON.fromObject(apiEndpoint.keySet()));
+		return apiEndpoint;
 	}
 
 	public void obtainAxiosApiTemplate() {

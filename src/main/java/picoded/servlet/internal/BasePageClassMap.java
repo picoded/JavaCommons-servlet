@@ -184,48 +184,58 @@ public class BasePageClassMap {
 	///////////////////////////////////////////////////////
 
 	/**
-	 * Obtains all endpoints that including the asterisks format
+	 * Retrieves the api endpoints of this class
 	 * @return
 	 */
-	public Map<String, Method> apiEndpoints(String currentPath) {
-		Map<String, Method> endpointNames = new HashMap<>();
-		for(String key : apiMap.keySet()){
-			endpointNames.put(currentPath+key, apiMap.get(key));
-			endpointNames.put(key, apiMap.get(key));
-		}
-		return endpointNames;
+	public EndpointMap<Method> apiEndpoints() {
+		return apiMap;
 	}
 
-	public Map<String, Class<?>> reroutePaths() {
-		Map<String, Class<?>> reroutePaths = new HashMap<>();
-		for(String key : rerouteMap.keySet()){
-			reroutePaths.put(key, getRerouteClass(rerouteMap.get(key)));
-		}
-		return reroutePaths;
+	/**
+	 * Retrieves the rerouting fields of this class
+	 * @return
+	 */
+	public EndpointMap<Field> reroutePaths() {
+		return rerouteMap;
 	}
 
-	public Map<String, Method> getApiEndpointsFromReroutePath(String currentPath, Class<?> clazz){
-		Map<String, Method> endpoints = new HashMap<>();
+	/**
+	 * From the given class, performs a recursive loop to generate the list of endpoints that appends the rerouting
+	 * path to the internal class's @ApiPath and store it into the Map<String, Method>.
+	 *
+	 * Do note that due to object referencing, we do not need to perform returning values, instead the endpoints object
+	 * refers to the same object throughout
+	 *
+	 * @param currentPath the current rerouting path String required to be append, the beginning path would usually be ""
+	 * @param clazz       the Class to retrieve the methods and its reroute pathings, the initial Class would be the parent itself
+	 * @param endpoints   the map that contains the entire rerouting paths and api paths
+	 */
+	public void getApiEndpointsFromClass(String currentPath, Class<?> clazz, Map<String, Method> endpoints){
+		// Remove the asterisk so that the path can be appended to the inner class's methods api endpoints
 		if(currentPath.endsWith("/*")){
 			currentPath = currentPath.replaceAll("\\*$", "");
 		}
 
+		// Obtain the ClassMap so that we can retrieve the api endpoints as well as its rerouting paths
 		BasePageClassMap basePageClassMap = BasePageClassMap.setupAndCache(clazz);
 
-		// Get all the apiendpoints of clazz
-		endpoints.putAll(basePageClassMap.apiEndpoints(currentPath));
-
-		Map<String, Class<?>> reroutePaths = basePageClassMap.reroutePaths();
-		for(String key: reroutePaths.keySet()){
-			endpoints.putAll(getApiEndpointsFromReroutePath(currentPath+key, reroutePaths.get(key)));
-			endpoints.putAll(getApiEndpointsFromReroutePath(key, reroutePaths.get(key)));
+		EndpointMap<Method> apis = basePageClassMap.apiEndpoints();
+		for (String key : apis.keySet()){
+			// NOTE: The first implementation will be taken! Future implementation will be ignored
+			// This is so that only one endpoint exist at a time
+			// @TODO: Need to do a logic in cases where methods are extended
+			// Example: Account login method, and there is another class that extends this method
+			endpoints.putIfAbsent(currentPath+key, apis.get(key));
+			endpoints.putIfAbsent(key, apis.get(key));
 		}
-		return endpoints;
-	}
 
-//	public Method rerouteMethod(String parentPath, BasePageClassMap classMap){
-//
-//	}
+		// Recursively call through the reroute fields to retrieve the other api endpoints
+		EndpointMap<Field> reroutePaths = basePageClassMap.reroutePaths();
+		for(String key : reroutePaths.keySet()){
+			getApiEndpointsFromClass(currentPath+key, getRerouteClass(reroutePaths.get(key)), endpoints);
+			getApiEndpointsFromClass(key, getRerouteClass(reroutePaths.get(key)), endpoints);
+		}
+	}
 
 	///////////////////////////////////////////////////////
 	//
