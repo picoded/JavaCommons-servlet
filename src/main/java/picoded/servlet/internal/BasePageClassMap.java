@@ -319,8 +319,34 @@ public class BasePageClassMap {
 	 * 
 	 * @return true if valid execution occurs
 	 */
-	protected boolean request_api(BasePage page, String[] routePath) {
-		return false;
+	protected boolean request_api(BasePage page, String[] requestPath) {
+		try{
+			// Get list of valid paths
+			List<String> pathList = apiMap.findValidKeys(requestPath);
+
+			// Return false (if no endpoint found)
+			if( pathList == null || pathList.size() <= 0 ) {
+				return false;
+			}
+
+			// Return the Method associated with a valid endpoint
+			String annotationPath = pathList.get(0);
+			Method toExecute = apiMap.get( annotationPath );
+
+			// RequestBefore execution
+			executeMethodMap(beforeMap, page, requestPath);
+			
+			// Execute the method
+			executeMethod(page, toExecute, apiMap.splitUriString(annotationPath), requestPath);
+
+			// RequestAfter execution
+			executeMethodMap(afterMap, page, requestPath);
+		} catch(Exception e){
+			throw new BasePage.ApiPathException(e);
+		}
+		
+		// Assume valid execution
+		return true;
 	}
 
 	/**
@@ -333,7 +359,7 @@ public class BasePageClassMap {
 	 */
 	protected boolean request_path(BasePage page, String[] requestPath) {
 		// Get list of valid paths
-		List<String> pathList = pathMap.findValidKeys(requestPath);
+		List<String> pathList = pathMap.findValidKeys(requestPath, page.requestType());
 
 		// Return false (if no endpoint found)
 		if( pathList == null || pathList.size() <= 0 ) {
@@ -341,13 +367,14 @@ public class BasePageClassMap {
 		}
 
 		// Return the Method associated with a valid endpoint
-		Method toExecute = pathMap.get( pathList.get(0) );
+		String annotationPath = pathList.get(0);
+		Method toExecute = pathMap.get( annotationPath );
 
 		// RequestBefore execution
 		executeMethodMap(beforeMap, page, requestPath);
 		
 		// Execute the method
-		executeMethod(page, toExecute);
+		executeMethod(page, toExecute, pathMap.splitUriString(annotationPath), requestPath);
 
 		// RequestAfter execution
 		executeMethodMap(afterMap, page, requestPath);
@@ -398,6 +425,7 @@ public class BasePageClassMap {
 		executeMethodMap(beforeMap, page, requestPath);
 		
 		// Execute the reroute, with the routing class
+		// @TODO: handle name parameters in routePath (e.g. :user)
 		BasePage routeClassObj = setupRerouteClassInstance(routeClass, page);
 		routeClassMap.handleRequest(routeClassObj, reroutePathArr);
 
@@ -426,9 +454,23 @@ public class BasePageClassMap {
 		List<String> pathList = methodMap.findValidKeys(routePath);
 
 		// and execute all its relevent method
-		for(String path : pathList) {
-			Method toExecute = methodMap.get(path);
-			executeMethod(page, toExecute);
+		for(String annotationPath : pathList) {
+			Method toExecute = methodMap.get(annotationPath);
+			executeMethod(page, toExecute, methodMap.splitUriString(annotationPath), routePath);
+		}
+	}
+
+	/**
+	 * From the annotationPath, extract any name parameters that contains ":" and grab the exact value from 
+	 * requestPath and put them into the paramMap with parameter as key and the requestPath's value as value
+	 */
+	protected void processNameParameters(ServletRequestMap paramMap, String[] annotationPath, String[] requestPath){
+		for(int index=0; index< annotationPath.length; index++){
+			String subpath = annotationPath[index];
+			// Identify the name parameters in the annotationPath and put the exact value from requestPath into paramMap
+			if(subpath.startsWith(":")){
+				paramMap.put(subpath.substring(1),requestPath[index]);
+			}
 		}
 	}
 	
@@ -467,23 +509,40 @@ public class BasePageClassMap {
 	 * @param  page to execute from
 	 * @param  toExecute method to execute
 	 */
-	protected void executeMethod(BasePage page, Method toExecute) {
+	protected void executeMethod(BasePage page, Method toExecute, String[] annotationPath, String[] requestPath) {
 
 		// Using the list of parameters that the method requires, detect the appropriate
 		// variables to pass to the method
 		Class<?>[] parameterTypes = toExecute.getParameterTypes();
 		List<Object> arguments = new ArrayList<>();
+
+		// Process name parameters in annotationPath
+		processNameParameters(page.requestParameterMap(), annotationPath, requestPath);
+
+		//
+		// Input handling
+		//
 		for (Class<?> type : parameterTypes) {
 			// How isAssignableFrom works:
 			// Map.class.isAssignableFrom(ServletRequestMap) translate to
 			// Map<String, Object> map = new ServletRequestMap(page.getHttpServletRequest());
 			// Map is the parent class and ServletRequestMap is the child class
+
 			if(PrintWriter.class.isAssignableFrom(type)){
 				arguments.add(page.getPrintWriter());
+
+			} else if(ServletRequestMap.class.isAssignableFrom(type)) {
+				arguments.add(page.requestParameterMap());
+
 			} else if(Map.class.isAssignableFrom(type)) {
 				arguments.add(page.requestParameterMap());
+
 			} else if(HttpServletRequest.class.isAssignableFrom(type)){
 				arguments.add(page.getHttpServletRequest());
+
+			} else if(StringBuilder.class.isAssignableFrom(type)) {
+				arguments.add(page.responseStringBuilder);
+
 			} else {
 				throw new RuntimeException(
 					"Unsupported type in method "+toExecute.getName()+" for parameter type "+type.getSimpleName()
@@ -491,14 +550,50 @@ public class BasePageClassMap {
 			}
 		}
 
+		//
+		// Execution handling
+		//
+
+		Object executionResponse = null;
 		try {
 			// Invoke the method
-			toExecute.invoke(page, arguments.toArray());
+			executionResponse = toExecute.invoke(page, arguments.toArray());
 		} catch(IllegalAccessException e) {
 			throw new RuntimeException(e);
 		} catch(InvocationTargetException e) {
 			throw new RuntimeException(e);
 		}
+
+		//
+		// Output handling
+		//
+
+		if (executionResponse == null){
+			return;
+		}
+		
+		if (executionResponse instanceof Map) {
+			Map<String, Object> executionMap = (Map<String, Object>) executionResponse;
+			if(!executionMap.equals(page.responseApiMap)) {
+				// @TODO: Recursive merge instead of replacing the entire variable
+				page.responseApiMap.putAll(executionMap);
+			}
+			return;
+		}
+
+		if(executionResponse instanceof StringBuilder){
+			StringBuilder executionStringBuilder = (StringBuilder) executionResponse;
+			if(!executionStringBuilder.equals(page.responseStringBuilder)) {
+				page.responseStringBuilder.append(executionStringBuilder);
+			}
+			return;
+		}
+
+		if ( executionResponse instanceof String ) {
+			page.responseStringBuilder.append(executionResponse.toString());
+			return;
+		}
+
 	}
 
 }

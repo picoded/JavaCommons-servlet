@@ -14,6 +14,7 @@ import org.junit.*;
 import picoded.servlet.util.EmbeddedServlet;
 import picoded.core.conv.*;
 import picoded.core.web.RequestHttp;
+import picoded.core.web.ResponseHttp;
 import picoded.core.common.*;
 
 public class CorePage_test {
@@ -87,6 +88,34 @@ public class CorePage_test {
 	public void outputPrintBugFixing() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new SpecialSymbolsTesting()));
 		helloWorldAssert("http://localhost:" + testPort + "/test/", "Test *>> This");
+	}
+
+	public static class TestCorePage extends CorePage {
+
+		// Message to put
+		@Override
+		protected void doRequest(PrintWriter writer) {
+			try{
+				writer.println(this.requestType().toString());
+			} catch(Exception e){
+				e.printStackTrace();
+			}
+
+		}
+	}
+
+	@Test
+	public void test_requestTypes(){
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new TestCorePage()));
+		String testUrl = "http://127.0.0.1:"+testPort+"/type/single";
+		ResponseHttp response = RequestHttp.put(testUrl, null);
+		assertEquals("PUT", response.toString().trim());
+		response = RequestHttp.delete(testUrl, null);
+		assertEquals("DELETE", response.toString().trim());
+		response = RequestHttp.get(testUrl, null);
+		assertEquals("GET", response.toString().trim());
+		response = RequestHttp.post(testUrl, null);
+		assertEquals("POST", response.toString().trim());
 	}
 	
 }
