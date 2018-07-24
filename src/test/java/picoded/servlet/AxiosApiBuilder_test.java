@@ -1,12 +1,17 @@
 package picoded.servlet;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import javax.servlet.ServletRequest;
+import java.lang.reflect.Method;
 
 import org.junit.After;
 import org.junit.Before;
@@ -15,19 +20,13 @@ import org.junit.Test;
 import picoded.core.conv.ConvertJSON;
 import picoded.core.struct.GenericConvertMap;
 import picoded.core.struct.GenericConvertHashMap;
-import picoded.core.struct.GenericConvertMap;
 import picoded.servlet.util.EmbeddedServlet;
 import picoded.servlet.ServletRequestMap;
 import picoded.servlet.internal.*;
-import picoded.core.web.RequestHttp;
-import picoded.core.web.ResponseHttp;
 import picoded.servlet.annotation.*;
-
-import javax.servlet.ServletRequest;
-
-
 import picoded.core.web.RequestHttp;
 import picoded.core.web.ResponseHttp;
+
 
 public class AxiosApiBuilder_test {
 
@@ -69,7 +68,7 @@ public class AxiosApiBuilder_test {
 			getPrintWriter().println("world");
 		}
 
-		@ApiPath("middle/*")
+		@RequestPath("middle/*")
 		public void middle(){
 
 		}
@@ -84,7 +83,7 @@ public class AxiosApiBuilder_test {
 			getPrintWriter().println("world");
 		}
 
-		@ApiPath("middle/*")
+		@RequestPath("middle/*")
 		public void middle(){
 
 		}
@@ -95,6 +94,9 @@ public class AxiosApiBuilder_test {
 	}
 
 	public static class RerouteWorld extends BasePage {
+
+		AxiosApiBuilder axiosApiBuilder;
+
 		@RequestPath("reroute/*")
 		public static HelloWorld rerouteToHelloWorld;
 
@@ -103,16 +105,17 @@ public class AxiosApiBuilder_test {
 
 		@Override
 		protected void doSharedSetup() throws Exception {
-
-			AxiosApiBuilder axiosApiBuilder = new AxiosApiBuilder(this);
+			// @TODO: Take note that this should be called inside initializeContext, but it is not working
+			// so for now we are using doSharedSetup
+			axiosApiBuilder = new AxiosApiBuilder(this);
 			axiosApiBuilder.scanApiEndpoints();
 			super.doSharedSetup();
 
 		}
 
-		@ApiPath("assorted/*")
-		public void assortedPath(){
-
+		@ApiPath("paths/*")
+		public Map<String, Method> assortedPath(){
+			return axiosApiBuilder.scanApiEndpoints();
 		}
 	}
 
@@ -140,5 +143,29 @@ public class AxiosApiBuilder_test {
 		String testUrl = "http://127.0.0.1:"+testPort+"/reroute/hello";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("world", response.toString().trim());
+	}
+
+	@Test
+	public void rerouteScannedApiPaths() throws Exception {
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new RerouteWorld()));
+		String testUrl = "http://127.0.0.1:"+testPort+"/paths/hello";
+		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		Map<String, Object> responseMap = response.toMap();
+		List<String> expectedResult = new ArrayList<>();
+		expectedResult.add("to/smallWorld");
+		expectedResult.add("paths/*");
+		expectedResult.add("reroute/hello");
+		expectedResult.add("reroute/to/smallWorld");
+		expectedResult.add("reroute2/hello");
+		expectedResult.add("reroute2/to/smallWorld");
+		expectedResult.add("smallWorld");
+		expectedResult.add("hello");
+		for(String key : expectedResult){
+			if (responseMap.get(key) != null){
+				responseMap.remove(key);
+			}
+		}
+
+		assertTrue(responseMap.size() == 0);
 	}
 }
