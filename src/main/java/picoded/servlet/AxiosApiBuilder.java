@@ -13,6 +13,7 @@ import java.util.Map;
 public class AxiosApiBuilder {
 
 	private BasePage corePage;
+	private Map<String, Method> scannedApiEndpoints = null;
 
 	public AxiosApiBuilder(BasePage page){
 		corePage = page;
@@ -27,11 +28,15 @@ public class AxiosApiBuilder {
 	}
 
 	public Map<String, Method> scanApiEndpoints() {
-		BasePageClassMap classMap = BasePageClassMap.setupAndCache(corePage);
-		Map<String, Method> apiEndpoint = new HashMap<>();
-		classMap.getApiEndpointsFromClass("", corePage.getClass(), apiEndpoint);
+		if(scannedApiEndpoints != null) {
+			return scannedApiEndpoints;
+		}
 
-		return apiEndpoint;
+		BasePageClassMap classMap = BasePageClassMap.setupAndCache(corePage);
+		scannedApiEndpoints = new HashMap<>();
+		classMap.getApiEndpointsFromClass("", corePage.getClass(), scannedApiEndpoints);
+
+		return scannedApiEndpoints;
 	}
 
 	public void obtainAxiosApiTemplate() {
