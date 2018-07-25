@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletRequest;
 import java.lang.reflect.Method;
 
@@ -18,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import picoded.core.conv.ConvertJSON;
+import picoded.core.conv.GenericConvert;
 import picoded.core.struct.GenericConvertMap;
 import picoded.core.struct.GenericConvertHashMap;
 import picoded.servlet.util.EmbeddedServlet;
@@ -51,7 +53,6 @@ public class AxiosApiBuilder_test {
 		}
 	}
 
-
 	public static class SmallWorld extends BasePage {
 		@ApiPath("smallWorld")
 		public void smallWorld(){
@@ -75,6 +76,12 @@ public class AxiosApiBuilder_test {
 
 		@RequestPath("to/*")
 		public static SmallWorld rerouteToSmallWorld;
+
+		@Override
+		public void contextInitialized(ServletContextEvent sce) {
+			super.contextInitialized(sce);
+			System.out.println("RAMRARANRNAN");
+		}
 	}
 
 	public static class SameWorld extends BasePage {
@@ -167,5 +174,52 @@ public class AxiosApiBuilder_test {
 		}
 
 		assertTrue(responseMap.size() == 0);
+	}
+
+
+	public static class EndpointMapGenerator extends BasePage {
+
+		AxiosApiBuilder axiosApiBuilder;
+
+		@ApiPath("endpoint")
+		public String endpoint() {
+			Map<String, Object> endpointMaps = axiosApiBuilder.generateEndpointMap();
+			GenericConvertMap<String, Object> maps = GenericConvert.toGenericConvertStringMap(endpointMaps);
+			GenericConvertMap<String, Object> endpoint = maps.getGenericConvertStringMap("endpoint");
+			return endpoint.getString("methods");
+		}
+
+		@ApiPath("endpoint/string")
+		public String endpointString(){
+			Map<String, Object> endpointMaps = axiosApiBuilder.generateEndpointMap();
+			return axiosApiBuilder.endpointMapInString();
+		}
+
+		@Override
+		protected void doSharedSetup() throws Exception {
+			// @TODO: Take note that this should be called inside initializeContext, but it is not working
+			// so for now we are using doSharedSetup
+			axiosApiBuilder = new AxiosApiBuilder(this);
+			axiosApiBuilder.scanApiEndpoints();
+			axiosApiBuilder.load();
+			super.doSharedSetup();
+		}
+	}
+
+	@Test
+	public void test_endpointMapGeneration(){
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new EndpointMapGenerator()));
+		String testUrl = "http://127.0.0.1:"+testPort+"/endpoint";
+		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		assertEquals("[\"GET\",\"POST\"]", response.toString().trim());
+	}
+
+	@Test
+	public void test_endpointMapInString(){
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new EndpointMapGenerator()));
+		String testUrl = "http://127.0.0.1:"+testPort+"/endpoint/string";
+		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		assertEquals("\"endpoint\" : {\"methods\":[\"GET\",\"POST\"],\"optional\":[],\"required\":[]},\n" +
+				"\"endpoint/string\" : {\"methods\":[\"GET\",\"POST\"],\"optional\":[],\"required\":[]}", response.toString().trim());
 	}
 }
