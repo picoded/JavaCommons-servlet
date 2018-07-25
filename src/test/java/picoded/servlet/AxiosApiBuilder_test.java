@@ -201,7 +201,6 @@ public class AxiosApiBuilder_test {
 			// so for now we are using doSharedSetup
 			axiosApiBuilder = new AxiosApiBuilder(this);
 			axiosApiBuilder.scanApiEndpoints();
-			axiosApiBuilder.load();
 			super.doSharedSetup();
 		}
 	}
