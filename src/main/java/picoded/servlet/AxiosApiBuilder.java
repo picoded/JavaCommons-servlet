@@ -1,6 +1,5 @@
 package picoded.servlet;
 
-import picoded.core.conv.ArrayConv;
 import picoded.core.conv.ConvertJSON;
 import picoded.servlet.annotation.OptionalVariables;
 import picoded.servlet.annotation.RequestType;
@@ -16,15 +15,25 @@ public class AxiosApiBuilder {
 	private BasePage corePage;
 	private Map<String, Method> scannedApiEndpoints = null;
 	private String toBeReplaced="SET_ENDPOINT_MAP_HERE";
-	private StringBuilder endpointCollector = new StringBuilder();
+	private StringBuilder endpointCollector;
+	private String axiosApiJS = "";
+	private String endpointWrapper = "apicore.setEndpointMap({" + toBeReplaced + "});";
 
 	public AxiosApiBuilder(BasePage page){
 		corePage = page;
+		endpointCollector = new StringBuilder();
 	}
 
 	public void load(){
+		scanApiEndpoints();
 		generateEndpointMap();
-		obtainAxiosApiTemplate();
+		axiosApiJS = obtainAxiosApiTemplate();
+		String completeMap = endpointWrapper.replace(toBeReplaced, endpointCollector.toString());
+		axiosApiJS = axiosApiJS.replace(toBeReplaced, completeMap);
+	}
+
+	public String grabAxiosApiTemplate(){
+		return axiosApiJS;
 	}
 
 	public String endpointMapInString(){
@@ -88,11 +97,11 @@ public class AxiosApiBuilder {
 			//
 			// Append to a StringBuilder
 			//
-			endpointCollector.append("\""+key+"\" : "+convertEndpointMapToString(singleEndpoint)+",\n");
+			endpointCollector.append("\n\t\t\""+key+"\" : "+convertEndpointMapToString(singleEndpoint)+",");
 		}
 
 		// Remove the last ",\n"
-		endpointCollector = endpointCollector.delete(endpointCollector.length()-2, endpointCollector.length());
+		endpointCollector = endpointCollector.delete(endpointCollector.length()-1, endpointCollector.length());
 		return endpointMaps;
 	}
 
@@ -114,8 +123,10 @@ public class AxiosApiBuilder {
 
 	public String obtainAxiosApiTemplate() {
 		StringBuilder fileContents = new StringBuilder();
+		String axiosApiPath = AxiosApiBuilder.class.getClassLoader().getResource("axiosApi.js").getFile();
 		try {
-			InputStream is = AxiosApiBuilder.class.getResourceAsStream("axiosApi.js");
+			File file = new File(axiosApiPath);
+			InputStream is = new FileInputStream(file);
 			BufferedReader br = new BufferedReader(new InputStreamReader(is));
 			String line;
 			while ((line = br.readLine()) != null) {

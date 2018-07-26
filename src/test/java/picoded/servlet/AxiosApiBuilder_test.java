@@ -4,8 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
 
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
+import java.io.*;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -218,7 +220,52 @@ public class AxiosApiBuilder_test {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new EndpointMapGenerator()));
 		String testUrl = "http://127.0.0.1:"+testPort+"/endpoint/string";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
-		assertEquals("\"endpoint\" : {\"methods\":[\"GET\",\"POST\"],\"optional\":[],\"required\":[]},\n" +
-				"\"endpoint/string\" : {\"methods\":[\"GET\",\"POST\"],\"optional\":[],\"required\":[]}", response.toString().trim());
+		assertEquals("\"endpoint\" : {\"methods\":[\"GET\",\"POST\"],\"optional\":[],\"required\":[]}," +
+				"\n\t\t\"endpoint/string\" : {\"methods\":[\"GET\",\"POST\"],\"optional\":[],\"required\":[]}", response.toString().trim());
+	}
+
+
+
+
+	public static class EndpointLoad extends BasePage {
+
+		AxiosApiBuilder axiosApiBuilder;
+
+		@ApiPath("template/load")
+		public String loadTemplate() {
+			return axiosApiBuilder.grabAxiosApiTemplate();
+		}
+
+		@RequestPath("reroute/*")
+		public static SmallWorld rerouteToIt;
+
+		@Override
+		protected void doSharedSetup() throws Exception {
+			// @TODO: Take note that this should be called inside initializeContext, but it is not working
+			// so for now we are using doSharedSetup
+			axiosApiBuilder = new AxiosApiBuilder(this);
+			axiosApiBuilder.load();
+			super.doSharedSetup();
+		}
+	}
+
+	@Test
+	public void test_loadingTemplate(){
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new EndpointLoad()));
+		String testUrl = "http://127.0.0.1:"+testPort+"/template/load";
+		String expectedAxioJS = obtainExpectedAxioJS();
+		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		assertEquals(expectedAxioJS, response.toString().trim());
+	}
+
+	private String obtainExpectedAxioJS() {
+		String result;
+		try {
+			URI uri = AxiosApiBuilder_test.class.getClassLoader().getResource("expectedAxioJS.js").toURI();
+			result = new String(Files.readAllBytes(Paths.get(uri)), "utf-8");
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		return result;
 	}
 }
