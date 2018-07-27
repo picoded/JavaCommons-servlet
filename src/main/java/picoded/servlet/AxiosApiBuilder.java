@@ -123,6 +123,7 @@ public class AxiosApiBuilder {
 
 	public String obtainAxiosApiTemplate() {
 		StringBuilder fileContents = new StringBuilder();
+		// https://discuss.gradle.org/t/how-do-i-use-getresources-with-a-gradle-project/4002
 		String axiosApiPath = AxiosApiBuilder.class.getClassLoader().getResource("axiosApi.js").getFile();
 		try {
 			File file = new File(axiosApiPath);

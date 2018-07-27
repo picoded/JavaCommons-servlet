@@ -57,6 +57,8 @@ public class AxiosApiBuilder_test {
 
 	public static class SmallWorld extends BasePage {
 		@ApiPath("smallWorld")
+		@RequestType({"POST"})
+		@RequiredVariables({"name", "id"})
 		public void smallWorld(){
 
 		}
@@ -261,6 +263,7 @@ public class AxiosApiBuilder_test {
 	private String obtainExpectedAxioJS() {
 		String result;
 		try {
+			// https://stackoverflow.com/questions/24499692/access-resources-in-unit-tests
 			URI uri = AxiosApiBuilder_test.class.getClassLoader().getResource("expectedAxioJS.js").toURI();
 			result = new String(Files.readAllBytes(Paths.get(uri)), "utf-8");
 		} catch (Exception e) {

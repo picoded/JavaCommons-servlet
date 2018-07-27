@@ -283,12 +283,35 @@ var api = (function() {
 ///
 /// @return  Promise object with the api endpoint result
 	function callSingleEndpoint(endpointPath, args) {
+		// @TODO: Change the apicore.rawPostRequest
+		var config = apimap[endpointPath]
+
+		// @TODO: Think about whether should we assume that no matter the request, if the endpoint has
+		// required variables, should we still check for it? If so, alter and shift the checking
+		// logic of requiredVar.forEach(function(variable){ here
 
 		// No arguments, nothing to consider
+		// Check method in endpoint, if there is GET, do GET, else do POST
 		if( args == null || args.length <= 0 ) {
+			// Allow GET request since endpoint did not specify any methods
+			if( config.methods === undefined ) {
+				// @TODO: Change to rawGETRequest
+				return apicore.rawPostRequest(endpointPath);
+			}
+
+			// Check that the apimap has GET method
+			if(config.methods.length > 0 && config.methods.indexOf("GET") < 0) {
+				throw endpointPath + " does not support GET method."
+			}
+
 			return apicore.rawPostRequest(endpointPath);
 		}
 
+		// @TODO: Work in progress
+		// @TODO: Decide whether do we still need callEndpointWithNamedArguments since server side
+		// can already do the filtering the handles it
+
+		// Do the normal raw post request
 		// Possible parameter object request
 		if( args.length == 1 ) {
 			var paramObj = args[0];
@@ -296,6 +319,13 @@ var api = (function() {
 
 			// Its an object, assume its parameters
 			if( paramType == "object" ) {
+				// Check the required variables are fulfilled
+				var requiredVar = apimap[endpointPath].required;
+				requiredVar.forEach(function(variable){
+					if(!paramObj.hasOwnProperty(variable)){
+						throw "Missing endpoint parameter:" + variable
+					}
+				});
 				return apicore.rawPostRequest(endpointPath, paramObj);
 			}
 		}
@@ -344,12 +374,9 @@ var api = (function() {
 /// @param   Endpoint path, must be normalized
 /// @param   Arg names array, for multiple arguments mode / non object mode
 /// @param   Configuration object
-	function setEndpointRaw(endpointPath, argNameList, config) {
+	function setEndpointRaw(endpointPath, config) {
 		// Normalize config object
 		config = config || {};
-
-		// store arguments names
-		config.argNameList = argNameList;
 
 		// Storing the configuration
 		apimap[endpointPath] = config;
@@ -433,8 +460,8 @@ var api = (function() {
 /// @param   Endpoint path
 /// @param   Arg names array, for multiple arguments mode / non object mode
 /// @param   Configuration object
-	apicore.setEndpoint = function setEndpoint(endpointPath, argNameList, config) {
-		return setEndpointRaw( normalizeEndpointPath(endpointPath), argNameList, config );
+	apicore.setEndpoint = function setEndpoint(endpointPath, config) {
+		return setEndpointRaw( normalizeEndpointPath(endpointPath), config );
 	}
 
 /// Function: api._core.setEndpointMap
@@ -452,9 +479,8 @@ var api = (function() {
 	apicore.baseURL("//api.uilicious.com//v0.0/");
 	apicore.setEndpointMap({
 		"template/load" : {"methods":["GET","POST"],"optional":[],"required":[]},
-		"smallWorld" : {"methods":["GET","POST"],"optional":[],"required":[]},
-		"reroute/smallWorld" : {"methods":["GET","POST"],"optional":[],"required":[]}});
-	apicore.setEndpointMap({});
+		"smallWorld" : {"methods":["POST"],"optional":[],"required":["name","id"]},
+		"reroute/smallWorld" : {"methods":["POST"],"optional":[],"required":["name","id"]}});
 	return api;
 })();
 
