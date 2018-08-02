@@ -113,11 +113,22 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * 
 	 * @param  ori original CorePage to copy from
 	 */
-	public void transferParams(CorePage ori) {
+	public final void transferParams(CorePage ori) {
 		// Skip transfer step, if null is passed
 		if (ori == null) {
 			return;
 		}
+		// Calls the transfer param process
+		transferParamsProcess(ori);
+	}
+
+	/**
+	 * Transfer param implementation, that should be extended on.
+	 * This is called by transferParms, after a NULL check
+	 * 
+	 * @param  ori original CorePage to copy from
+	 */
+	protected void transferParamsProcess(CorePage ori) {
 		// Import the values respectively
 		this._contextPath = ori._contextPath;
 		this._contextURI = ori._contextURI;

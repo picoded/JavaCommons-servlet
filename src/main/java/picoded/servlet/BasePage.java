@@ -46,21 +46,21 @@ public class BasePage extends CoreUtilPage {
 	 * 
 	 * @param  ori original CorePage to copy from
 	 */
-	public void transferParams(CorePage ori) {
-		// Skip transfer step, if null is passed
-		if (ori == null) {
-			return;
-		}
-		
-		// Does original transfer (if applicable)
-		super.transferParams(ori);
+	public void transferParamsProcess(CorePage ori) {
+		// Does original transfer
+		super.transferParamsProcess(ori);
+
 		// Abort if instance is not extended from BasePage
 		if (!(ori instanceof BasePage)) {
 			return;
 		}
 		
+		// Get the BasePage instance
+		BasePage oriPage = (BasePage)ori;
+
 		// Does additional transfer for base page
-		
+		this.responseApiMap        = oriPage.responseApiMap;
+		this.responseStringBuilder = oriPage.responseStringBuilder;
 	}
 	
 	///////////////////////////////////////////////////////
