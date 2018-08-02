@@ -1,3 +1,6 @@
 [submodule "JavaCommons-core"]
 	path = JavaCommons-core
 	url = https://github.com/picoded/JavaCommons-core.git
+[submodule "JavaCommons-dstack"]
+	path = JavaCommons-dstack
+	url = https://github.com/picoded/JavaCommons-dstack.git
