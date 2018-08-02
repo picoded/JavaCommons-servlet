@@ -100,7 +100,12 @@ public class BaseUtilPage extends BasePage {
 	private static GenericConvertMap<String,Object> _unmodifiableConfigFileSet = null;
 
 	/**
-	 * Get the configuration file set from the web-inf folder
+	 * Get the configuration file set from the WEB-INF/config/ folder
+	 * And returns its unmodifiableMap object.
+	 * 
+	 * PS : You do not need to optimize or cache this object, its already done.
+	 * 
+	 * @return  config file set map
 	 */
 	public GenericConvertMap<String,Object> configFileSet() {
 		// If static variable is initialized : use it
