@@ -55,8 +55,16 @@ task buildJavaCommonsCore(type: GradleBuild) {
 	tasks = ['build']
 }
 
+
+// JavaCommons dstack compilation
+task buildJavaCommonsDStack(type: GradleBuild) {
+	buildFile = './JavaCommons-dstack/build.gradle'
+	tasks = ['build']
+}
+
 // Dependency linkage of core project build
 compileJava.dependsOn buildJavaCommonsCore
+compileJava.dependsOn buildJavaCommonsDStack
 
 //----------------------------------------------------------------
 //
@@ -70,11 +78,14 @@ dependencies {
 	// JavaCommons dependencies
 	//---------------------------------------
 
-	// Get and compile against the -all.jar lib file from javacommons core
+	// Get and compile against the -all.jar lib file from javacommons core + DStack
 	// note that compileOnly + testImplementation ensures this file is not included 
 	// in any of the 3 jar builds, but still make it part of the test suite
 	compileOnly fileTree(dir: './JavaCommons-core/build/libs', include: ['*-all.jar']) 
 	testImplementation fileTree(dir: './JavaCommons-core/build/libs', include: ['*-all.jar']) 
+
+	compileOnly fileTree(dir: './JavaCommons-dstack/build/libs', include: ['*-all.jar']) 
+	testImplementation fileTree(dir: './JavaCommons-dstack/build/libs', include: ['*-all.jar']) 
 
 	// This dependencies is exported to consumers, that is to say found on their compile classpath.
 	//-------------------------------------------------------------------------------------------------------------------
