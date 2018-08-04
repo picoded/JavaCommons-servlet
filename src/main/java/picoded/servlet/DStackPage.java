@@ -55,4 +55,34 @@ public class DStackPage extends BaseUtilPage {
 		return configFileSet().getGenericConvertStringMap("sys.dstack", null);
 	}
 	
+	/**
+	 * DStack instance object, used to represent the backend data structure
+	 * 
+	 * @return  dstack object, initialized using the dstackConfig if valid
+	 */
+	public DStack dstack() {
+		if (_dstackObj != null) {
+			return _dstackObj;
+		}
+		return dstack_forceInitialize();
+	}
+	
+	/**
+	 * DStack instance object, used to represent the backend data structure
+	 * 
+	 * This forcefully reinitialize the DStack object, so that L0-1 cache
+	 * (eg. stackSimple) could be resetted between background background cycles.
+	 * 
+	 * @return  dstack object, initialized using the dstackConfig if valid
+	 */
+	protected DStack dstack_forceInitialize() {
+		GenericConvertMap<String, Object> configObj = dstackConfig();
+		if (configObj != null) {
+			_dstackObj = new DStack(dstackConfig());
+		} else {
+			_dstackObj = null;
+		}
+		return _dstackObj;
+	}
+	
 }
