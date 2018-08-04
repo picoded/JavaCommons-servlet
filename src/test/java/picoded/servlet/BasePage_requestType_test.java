@@ -54,79 +54,70 @@ public class BasePage_requestType_test {
 		public void helloWorld() {
 			getPrintWriter().println("world");
 		}
-
+		
 		@RequestPath("type/multiple")
-		@RequestType({"GET", "POST"})
+		@RequestType({ "GET", "POST" })
 		public void multiple_requestType() {
 			getPrintWriter().println("world");
 		}
-
+		
 		@RequestPath("type/none")
 		public void no_requestType() {
 			getPrintWriter().println("world");
 		}
-
+		
 	}
 	
 	@Test
 	public void test_singleType() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/type/single";
+		String testUrl = "http://127.0.0.1:" + testPort + "/type/single";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("world", response.toString().trim());
 	}
-
+	
 	@Test
 	public void test_multipleType() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/type/multiple";
+		String testUrl = "http://127.0.0.1:" + testPort + "/type/multiple";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("world", response.toString().trim());
 		response = RequestHttp.post(testUrl, null, null, null);
 		assertEquals("world", response.toString().trim());
 	}
-
+	
 	@Test
 	public void test_noRequestType() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/type/multiple";
+		String testUrl = "http://127.0.0.1:" + testPort + "/type/multiple";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("world", response.toString().trim());
 		response = RequestHttp.post(testUrl, null, null, null);
 		assertEquals("world", response.toString().trim());
 	}
-
+	
 	@Test
 	public void test_invalidRequestType_multiple() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/type/multiple";
+		String testUrl = "http://127.0.0.1:" + testPort + "/type/multiple";
 		ResponseHttp response = RequestHttp.put(testUrl, null, null, null);
-		assertEquals("<h1>404 Error</h1>\n" +
-				"The requested resource is not avaliable Q.Q\n" +
-				"\n" +
-				"Request URI : /type/multiple", response.toString().trim());
+		assertEquals("<h1>404 Error</h1>\n" + "The requested resource is not avaliable Q.Q\n" + "\n"
+			+ "Request URI : /type/multiple", response.toString().trim());
 		response = RequestHttp.delete(testUrl, null, null, null);
-		assertEquals("<h1>404 Error</h1>\n" +
-				"The requested resource is not avaliable Q.Q\n" +
-				"\n" +
-				"Request URI : /type/multiple", response.toString().trim());
+		assertEquals("<h1>404 Error</h1>\n" + "The requested resource is not avaliable Q.Q\n" + "\n"
+			+ "Request URI : /type/multiple", response.toString().trim());
 	}
-
+	
 	@Test
 	public void test_invalidRequestType_single() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/type/single";
+		String testUrl = "http://127.0.0.1:" + testPort + "/type/single";
 		ResponseHttp response = RequestHttp.put(testUrl, null, null, null);
-		assertEquals("<h1>404 Error</h1>\n" +
-				"The requested resource is not avaliable Q.Q\n" +
-				"\n" +
-				"Request URI : /type/single", response.toString().trim());
+		assertEquals("<h1>404 Error</h1>\n" + "The requested resource is not avaliable Q.Q\n" + "\n"
+			+ "Request URI : /type/single", response.toString().trim());
 		response = RequestHttp.delete(testUrl, null, null, null);
-		assertEquals("<h1>404 Error</h1>\n" +
-				"The requested resource is not avaliable Q.Q\n" +
-				"\n" +
-				"Request URI : /type/single", response.toString().trim());
+		assertEquals("<h1>404 Error</h1>\n" + "The requested resource is not avaliable Q.Q\n" + "\n"
+			+ "Request URI : /type/single", response.toString().trim());
 	}
-
 	
 }

@@ -56,13 +56,13 @@ public class BasePage_basic_test {
 		public void helloWorld() {
 			getPrintWriter().println("world");
 		}
-
+		
 	}
 	
 	@Test
 	public void testHelloPath() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/hello";
+		String testUrl = "http://127.0.0.1:" + testPort + "/hello";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("world", response.toString().trim());
 	}
@@ -75,12 +75,12 @@ public class BasePage_basic_test {
 		public void before() {
 			getPrintWriter().print("good ");
 		}
-
+		
 		@RequestPath("hello")
 		public void helloWorld() {
 			getPrintWriter().print("morning : ");
 		}
-
+		
 		@RequestAfter("hello")
 		public void after() {
 			getPrintWriter().print("time to sleep");
@@ -89,222 +89,237 @@ public class BasePage_basic_test {
 	
 	@Test
 	public void test_withSimpleInterceptors() throws Exception {
-		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld_withSimpleInterceptors()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/hello";
+		assertNotNull(testServlet = new EmbeddedServlet(testPort,
+			new HelloWorld_withSimpleInterceptors()));
+		String testUrl = "http://127.0.0.1:" + testPort + "/hello";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("good morning : time to sleep", response.toString().trim());
 	}
-
+	
 	/**
 	 * Hello world with interceptors
 	 */
-	public static class HelloWorld_withMethodParameters extends BasePage{
-
+	public static class HelloWorld_withMethodParameters extends BasePage {
+		
 		@RequestPath("hello")
 		public void helloWorld(PrintWriter pw) {
 			pw.print("morning :");
 		}
-
+		
 		@RequestPath("hello/request")
-		public void helloRequest(PrintWriter pw, GenericConvertMap<String, Object> map){
+		public void helloRequest(PrintWriter pw, GenericConvertMap<String, Object> map) {
 			pw.print(ConvertJSON.fromObject(map));
 		}
-
+		
 		@RequestPath("hello/request/sub")
-		public void helloRequest(ServletRequestMap servletRequestMap, GenericConvertMap<String, Object> map){
-			getPrintWriter().print(ConvertJSON.fromObject(map)+" ");
+		public void helloRequest(ServletRequestMap servletRequestMap,
+			GenericConvertMap<String, Object> map) {
+			getPrintWriter().print(ConvertJSON.fromObject(map) + " ");
 			getPrintWriter().print(ConvertJSON.fromObject(servletRequestMap));
-
+			
 		}
-
+		
 		@RequestPath("hello/request/mixed")
-		public void helloRequest(ServletRequestMap servletRequestMap, String sentence, GenericConvertMap<String, Object> map){
+		public void helloRequest(ServletRequestMap servletRequestMap, String sentence,
+			GenericConvertMap<String, Object> map) {
 			getPrintWriter().print(ConvertJSON.fromObject(servletRequestMap));
 			getPrintWriter().print(sentence);
-			getPrintWriter().print(ConvertJSON.fromObject(map)+" ");
-
+			getPrintWriter().print(ConvertJSON.fromObject(map) + " ");
+			
 		}
-
+		
 		@RequestPath("hello/request/unknown")
-		public void helloRequest(String sentence, int age){
-			getPrintWriter().print(sentence+ " " + age);
-
+		public void helloRequest(String sentence, int age) {
+			getPrintWriter().print(sentence + " " + age);
+			
 		}
-
+		
 	}
-
+	
 	@Test
-	public void test_parameter(){
-		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld_withMethodParameters()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/hello";
+	public void test_parameter() {
+		assertNotNull(testServlet = new EmbeddedServlet(testPort,
+			new HelloWorld_withMethodParameters()));
+		String testUrl = "http://127.0.0.1:" + testPort + "/hello";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("morning :", response.toString().trim());
 	}
-
+	
 	@Test
-	public void test_multipleParams(){
-		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld_withMethodParameters()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/hello/request";
+	public void test_multipleParams() {
+		assertNotNull(testServlet = new EmbeddedServlet(testPort,
+			new HelloWorld_withMethodParameters()));
+		String testUrl = "http://127.0.0.1:" + testPort + "/hello/request";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("{}", response.toString().trim());
 	}
-
+	
 	@Test
-	public void test_subClass(){
-		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld_withMethodParameters()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/hello/request/sub";
+	public void test_subClass() {
+		assertNotNull(testServlet = new EmbeddedServlet(testPort,
+			new HelloWorld_withMethodParameters()));
+		String testUrl = "http://127.0.0.1:" + testPort + "/hello/request/sub";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("{} {}", response.toString().trim());
-
+		
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("first value", "first");
 		response = RequestHttp.get(testUrl, params, null, null);
-		assertEquals("{\"first value\":\"first\"} {\"first value\":\"first\"}", response.toString().trim());
-
+		assertEquals("{\"first value\":\"first\"} {\"first value\":\"first\"}", response.toString()
+			.trim());
+		
 	}
-
+	
 	@Test
 	public void test_unknownDefaultParameters() {
 		try {
-			assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld_withMethodParameters()));
+			assertNotNull(testServlet = new EmbeddedServlet(testPort,
+				new HelloWorld_withMethodParameters()));
 			String testUrl = "http://127.0.0.1:" + testPort + "/hello/request/unknown";
 			ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		} catch (RuntimeException e) {
 			assertEquals("Unsupported type in method", e.getMessage());
 		}
 	}
-
+	
 	@Test
 	public void test_parametersWithUnknownDefaultParameters() {
 		try {
-			assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld_withMethodParameters()));
+			assertNotNull(testServlet = new EmbeddedServlet(testPort,
+				new HelloWorld_withMethodParameters()));
 			String testUrl = "http://127.0.0.1:" + testPort + "/hello/request/mixed";
 			ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		} catch (RuntimeException e) {
 			assertEquals("Unsupported type in method", e.getMessage());
 		}
 	}
-
+	
 	/**
 	 * Hello world responseStringBuilder and responseApiMap
 	 */
-	public static class HelloWorld_withStringBuilderAndApiMap extends BasePage{
-
+	public static class HelloWorld_withStringBuilderAndApiMap extends BasePage {
+		
 		@RequestPath("different/response/stringbuilder")
-		public StringBuilder differentResponseStringBuilder(ServletRequestMap map){
+		public StringBuilder differentResponseStringBuilder(ServletRequestMap map) {
 			responseStringBuilder.append("first value ");
 			return new StringBuilder("Return mee");
 		}
-
+		
 		@RequestPath("different/response/map")
 		public Map<String, Object> differentResponseMap(ServletRequestMap servletRequestMap) {
 			HashMap<String, Object> map = new HashMap<String, Object>();
 			map.put("return", "money");
 			return map;
-
+			
 		}
-
+		
 		@RequestPath("same/response/stringbuilder")
-		public StringBuilder sameResponseStringBuilder(StringBuilder stringBuilder){
+		public StringBuilder sameResponseStringBuilder(StringBuilder stringBuilder) {
 			stringBuilder.append("added another");
 			return stringBuilder;
 		}
-
+		
 		/**
 		 * KIV first, Still do not know whether we want to pass in basePage's responseApiMap into method as argument
 		 */
 		@RequestPath("same/response/map")
-		public Map<String,Object> sameResponseMap(Map<String, Object> responseMap){
+		public Map<String, Object> sameResponseMap(Map<String, Object> responseMap) {
 			responseMap.put("addition", "value");
 			return responseMap;
 		}
-
+		
 	}
-
+	
 	@Test
-	public void test_differentResponseStringBuilder(){
-		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld_withStringBuilderAndApiMap()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/different/response/stringBuilder";
+	public void test_differentResponseStringBuilder() {
+		assertNotNull(testServlet = new EmbeddedServlet(testPort,
+			new HelloWorld_withStringBuilderAndApiMap()));
+		String testUrl = "http://127.0.0.1:" + testPort + "/different/response/stringBuilder";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("first value Return mee", response.toString().trim());
 	}
-
+	
 	@Test
-	public void test_differentResponseMap(){
-		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld_withStringBuilderAndApiMap()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/different/response/map";
+	public void test_differentResponseMap() {
+		assertNotNull(testServlet = new EmbeddedServlet(testPort,
+			new HelloWorld_withStringBuilderAndApiMap()));
+		String testUrl = "http://127.0.0.1:" + testPort + "/different/response/map";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("{\n\t\"return\" : \"money\"\n}", response.toString().trim());
 	}
-
+	
 	@Test
-	public void test_sameResponseStringBuilder(){
-		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld_withStringBuilderAndApiMap()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/same/response/stringBuilder";
+	public void test_sameResponseStringBuilder() {
+		assertNotNull(testServlet = new EmbeddedServlet(testPort,
+			new HelloWorld_withStringBuilderAndApiMap()));
+		String testUrl = "http://127.0.0.1:" + testPort + "/same/response/stringBuilder";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("added another", response.toString().trim());
 	}
-
+	
 	/**
 	 * Servlet for initializing name parameters endpoints
 	 */
-	public static class NameParametersServlet extends BasePage{
+	public static class NameParametersServlet extends BasePage {
 		@RequestPath("name/:parameter")
-		public String simpleNameParam(ServletRequestMap map){
+		public String simpleNameParam(ServletRequestMap map) {
 			return map.getString("parameter");
 		}
-
-
+		
 		@RequestBefore("name/*/:before/*")
-		public Map<String,Object> simpleNameParamBefore(ServletRequestMap map){
+		public Map<String, Object> simpleNameParamBefore(ServletRequestMap map) {
 			return map;
 		}
+		
 		@RequestPath("name/:parameter/*")
-		public Map<String,Object> nameParamExecution(ServletRequestMap map){
+		public Map<String, Object> nameParamExecution(ServletRequestMap map) {
 			return map;
 		}
+		
 		@RequestAfter("name/*/*/:after")
-		public Map<String,Object> simpleNameParamAfter(ServletRequestMap map){
+		public Map<String, Object> simpleNameParamAfter(ServletRequestMap map) {
 			return map;
 		}
 	}
-
+	
 	@Test
-	public void test_nameParameter(){
+	public void test_nameParameter() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new NameParametersServlet()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/name/testingUser";
+		String testUrl = "http://127.0.0.1:" + testPort + "/name/testingUser";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("testingUser", response.toString().trim());
 	}
 	
 	@Test
-	public void test_nameParametersWithBeforeAndAfter(){
+	public void test_nameParametersWithBeforeAndAfter() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new NameParametersServlet()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/name/testingUser/beforeValue/afterValue";
+		String testUrl = "http://127.0.0.1:" + testPort + "/name/testingUser/beforeValue/afterValue";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		Map<String, Object> map = response.toMap();
 		assertEquals("beforeValue", map.get("before").toString());
 		assertEquals("testingUser", map.get("parameter").toString());
 		assertEquals("afterValue", map.get("after").toString());
 	}
-
+	
 	/**
 	 * Methods that explicitly throw ApiPathException
 	 */
-	public static class ApiPathExceptionServlet extends BasePage{
+	public static class ApiPathExceptionServlet extends BasePage {
 		@ApiPath("name/testing")
-		public void simpleNameParam(Integer wrongParam){
+		public void simpleNameParam(Integer wrongParam) {
 			// intentionally leave blank
 		}
 	}
-
+	
 	@Test
-	public void test_apiPathException(){
+	public void test_apiPathException() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new ApiPathExceptionServlet()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/name/testing";
+		String testUrl = "http://127.0.0.1:" + testPort + "/name/testing";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		Map<String, Object> map = response.toMap();
-
-		assertEquals("java.lang.RuntimeException: Unsupported type in method simpleNameParam for parameter type Integer", map.get("ERROR_MSG").toString());
+		
+		assertEquals(
+			"java.lang.RuntimeException: Unsupported type in method simpleNameParam for parameter type Integer",
+			map.get("ERROR_MSG").toString());
 	}
 }

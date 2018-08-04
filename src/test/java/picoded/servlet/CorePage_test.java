@@ -89,25 +89,25 @@ public class CorePage_test {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new SpecialSymbolsTesting()));
 		helloWorldAssert("http://localhost:" + testPort + "/test/", "Test *>> This");
 	}
-
+	
 	public static class TestCorePage extends CorePage {
-
+		
 		// Message to put
 		@Override
 		protected void doRequest(PrintWriter writer) {
-			try{
+			try {
 				writer.println(this.requestType().toString());
-			} catch(Exception e){
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
-
+			
 		}
 	}
-
+	
 	@Test
-	public void test_requestTypes(){
+	public void test_requestTypes() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new TestCorePage()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/type/single";
+		String testUrl = "http://127.0.0.1:" + testPort + "/type/single";
 		ResponseHttp response = RequestHttp.put(testUrl, null);
 		assertEquals("PUT", response.toString().trim());
 		response = RequestHttp.delete(testUrl, null);

@@ -31,22 +31,21 @@ import picoded.servlet.annotation.*;
 import picoded.core.web.RequestHttp;
 import picoded.core.web.ResponseHttp;
 
-
 public class AxiosApiBuilder_test {
-
+	
 	//
 	// The test folders to use
 	//
-
+	
 	int testPort = 0;
 	EmbeddedServlet testServlet = null;
-
+	
 	@Before
 	public void setUp() {
 		testPort = ServletTestConfig.issuePortNumber();
 		testServlet = null;
 	}
-
+	
 	@After
 	public void teardown() {
 		if (testServlet != null) {
@@ -54,16 +53,16 @@ public class AxiosApiBuilder_test {
 			testServlet = null;
 		}
 	}
-
+	
 	public static class SmallWorld extends BasePage {
 		@ApiPath("smallWorld")
-		@RequestType({"POST"})
-		@RequiredVariables({"name", "id"})
-		public void smallWorld(){
-
+		@RequestType({ "POST" })
+		@RequiredVariables({ "name", "id" })
+		public void smallWorld() {
+			
 		}
 	}
-
+	
 	/**
 	 * Hello world test class
 	 */
@@ -72,48 +71,48 @@ public class AxiosApiBuilder_test {
 		public void helloWorld() {
 			getPrintWriter().println("world");
 		}
-
+		
 		@RequestPath("middle/*")
-		public void middle(){
-
+		public void middle() {
+			
 		}
-
+		
 		@RequestPath("to/*")
 		public static SmallWorld rerouteToSmallWorld;
-
+		
 		@Override
 		public void contextInitialized(ServletContextEvent sce) {
 			super.contextInitialized(sce);
 			System.out.println("RAMRARANRNAN");
 		}
 	}
-
+	
 	public static class SameWorld extends BasePage {
 		@ApiPath("hello")
 		public void helloWorld() {
 			getPrintWriter().println("world");
 		}
-
+		
 		@RequestPath("middle/*")
-		public void middle(){
-
+		public void middle() {
+			
 		}
-
+		
 		@RequestPath("to/*")
 		public static SmallWorld rerouteToSmallWorld;
-
+		
 	}
-
+	
 	public static class RerouteWorld extends BasePage {
-
+		
 		AxiosApiBuilder axiosApiBuilder;
-
+		
 		@RequestPath("reroute/*")
 		public static HelloWorld rerouteToHelloWorld;
-
+		
 		@RequestPath("reroute2/*")
 		public static SameWorld rerouteToHelloWorld2;
-
+		
 		@Override
 		protected void doSharedSetup() throws Exception {
 			// @TODO: Take note that this should be called inside initializeContext, but it is not working
@@ -121,23 +120,23 @@ public class AxiosApiBuilder_test {
 			axiosApiBuilder = new AxiosApiBuilder(this);
 			axiosApiBuilder.scanApiEndpoints();
 			super.doSharedSetup();
-
+			
 		}
-
+		
 		@ApiPath("paths/*")
-		public Map<String, Method> assortedPath(){
+		public Map<String, Method> assortedPath() {
 			return axiosApiBuilder.scanApiEndpoints();
 		}
 	}
-
+	
 	@Test
 	public void testHelloPath() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/hello";
+		String testUrl = "http://127.0.0.1:" + testPort + "/hello";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("world", response.toString().trim());
 	}
-
+	
 	/*
 	Effectively the legit endpoints are
 	hello, Method -> helloWorld
@@ -151,15 +150,15 @@ public class AxiosApiBuilder_test {
 	@Test
 	public void testRerouteWorld() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new RerouteWorld()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/reroute/hello";
+		String testUrl = "http://127.0.0.1:" + testPort + "/reroute/hello";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("world", response.toString().trim());
 	}
-
+	
 	@Test
 	public void rerouteScannedApiPaths() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new RerouteWorld()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/paths/hello";
+		String testUrl = "http://127.0.0.1:" + testPort + "/paths/hello";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		Map<String, Object> responseMap = response.toMap();
 		List<String> expectedResult = new ArrayList<>();
@@ -171,34 +170,34 @@ public class AxiosApiBuilder_test {
 		expectedResult.add("reroute2/to/smallWorld");
 		expectedResult.add("smallWorld");
 		expectedResult.add("hello");
-		for(String key : expectedResult){
-			if (responseMap.get(key) != null){
+		for (String key : expectedResult) {
+			if (responseMap.get(key) != null) {
 				responseMap.remove(key);
 			}
 		}
-
+		
 		assertTrue(responseMap.size() == 0);
 	}
-
-
+	
 	public static class EndpointMapGenerator extends BasePage {
-
+		
 		AxiosApiBuilder axiosApiBuilder;
-
+		
 		@ApiPath("endpoint")
 		public String endpoint() {
 			Map<String, Object> endpointMaps = axiosApiBuilder.generateEndpointMap();
-			GenericConvertMap<String, Object> maps = GenericConvert.toGenericConvertStringMap(endpointMaps);
+			GenericConvertMap<String, Object> maps = GenericConvert
+				.toGenericConvertStringMap(endpointMaps);
 			GenericConvertMap<String, Object> endpoint = maps.getGenericConvertStringMap("endpoint");
 			return endpoint.getString("methods");
 		}
-
+		
 		@ApiPath("endpoint/string")
-		public String endpointString(){
+		public String endpointString() {
 			Map<String, Object> endpointMaps = axiosApiBuilder.generateEndpointMap();
 			return axiosApiBuilder.endpointMapInString();
 		}
-
+		
 		@Override
 		protected void doSharedSetup() throws Exception {
 			// @TODO: Take note that this should be called inside initializeContext, but it is not working
@@ -208,39 +207,38 @@ public class AxiosApiBuilder_test {
 			super.doSharedSetup();
 		}
 	}
-
+	
 	@Test
-	public void test_endpointMapGeneration(){
+	public void test_endpointMapGeneration() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new EndpointMapGenerator()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/endpoint";
+		String testUrl = "http://127.0.0.1:" + testPort + "/endpoint";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("[\"GET\",\"POST\"]", response.toString().trim());
 	}
-
+	
 	@Test
-	public void test_endpointMapInString(){
+	public void test_endpointMapInString() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new EndpointMapGenerator()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/endpoint/string";
+		String testUrl = "http://127.0.0.1:" + testPort + "/endpoint/string";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
-		assertEquals("\"endpoint\" : {\"methods\":[\"GET\",\"POST\"],\"optional\":[],\"required\":[]}," +
-				"\n\t\t\"endpoint/string\" : {\"methods\":[\"GET\",\"POST\"],\"optional\":[],\"required\":[]}", response.toString().trim());
+		assertEquals(
+			"\"endpoint\" : {\"methods\":[\"GET\",\"POST\"],\"optional\":[],\"required\":[]},"
+				+ "\n\t\t\"endpoint/string\" : {\"methods\":[\"GET\",\"POST\"],\"optional\":[],\"required\":[]}",
+			response.toString().trim());
 	}
-
-
-
-
+	
 	public static class EndpointLoad extends BasePage {
-
+		
 		AxiosApiBuilder axiosApiBuilder;
-
+		
 		@ApiPath("template/load")
 		public String loadTemplate() {
 			return axiosApiBuilder.grabAxiosApiTemplate();
 		}
-
+		
 		@RequestPath("reroute/*")
 		public static SmallWorld rerouteToIt;
-
+		
 		@Override
 		protected void doSharedSetup() throws Exception {
 			// @TODO: Take note that this should be called inside initializeContext, but it is not working
@@ -250,21 +248,22 @@ public class AxiosApiBuilder_test {
 			super.doSharedSetup();
 		}
 	}
-
+	
 	@Test
-	public void test_loadingTemplate(){
+	public void test_loadingTemplate() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new EndpointLoad()));
-		String testUrl = "http://127.0.0.1:"+testPort+"/template/load";
+		String testUrl = "http://127.0.0.1:" + testPort + "/template/load";
 		String expectedAxioJS = obtainExpectedAxioJS();
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals(expectedAxioJS, response.toString().trim());
 	}
-
+	
 	private String obtainExpectedAxioJS() {
 		String result;
 		try {
 			// https://stackoverflow.com/questions/24499692/access-resources-in-unit-tests
-			URI uri = AxiosApiBuilder_test.class.getClassLoader().getResource("expectedAxioJS.js").toURI();
+			URI uri = AxiosApiBuilder_test.class.getClassLoader().getResource("expectedAxioJS.js")
+				.toURI();
 			result = new String(Files.readAllBytes(Paths.get(uri)), "utf-8");
 		} catch (Exception e) {
 			throw new RuntimeException(e);

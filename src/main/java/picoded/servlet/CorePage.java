@@ -121,7 +121,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		// Calls the transfer param process
 		transferParamsProcess(ori);
 	}
-
+	
 	/**
 	 * Transfer param implementation, that should be extended on.
 	 * This is called by transferParms, after a NULL check
@@ -582,19 +582,19 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	
 	/** Memoizer for printwriter */
 	protected PrintWriter _printWriter = null;
-
+	
 	/**
 	 * gets the PrintWriter, from the getOutputStream() object and returns it
 	 **/
 	public PrintWriter getPrintWriter() {
-		if( _printWriter != null ) {
+		if (_printWriter != null) {
 			return _printWriter;
 		}
 		try {
 			// Important note: You will need to use "true" for auto flush.
 			// "PrintWriter(Writer out, boolean autoFlush)", or it will NOT work.
-			_printWriter =  new PrintWriter(new OutputStreamWriter(getOutputStream(), getHttpServletRequest()
-				.getCharacterEncoding()), true);
+			_printWriter = new PrintWriter(new OutputStreamWriter(getOutputStream(),
+				getHttpServletRequest().getCharacterEncoding()), true);
 			return _printWriter;
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);

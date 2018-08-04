@@ -19,7 +19,7 @@ import picoded.servlet.internal.*;
  * for config files, and various other components.
  */
 public class BaseUtilPage extends BasePage {
-
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// Parameters transfer handling
@@ -34,17 +34,17 @@ public class BaseUtilPage extends BasePage {
 	public void transferParamsProcess(CorePage ori) {
 		// Does original transfer
 		super.transferParamsProcess(ori);
-
+		
 		// Abort if instance is not extended from BasePage
 		if (!(ori instanceof BaseUtilPage)) {
 			return;
 		}
 		
 		// Get the BasePage instance
-		BaseUtilPage oriPage = (BaseUtilPage)ori;
-
+		BaseUtilPage oriPage = (BaseUtilPage) ori;
+		
 		// Does additional transfer for BaseUtilPage
-		this._webInfPath  = oriPage._webInfPath;
+		this._webInfPath = oriPage._webInfPath;
 		this._classesPath = oriPage._classesPath;
 		this._libraryPath = oriPage._libraryPath;
 		this._configsPath = oriPage._configsPath;
@@ -97,8 +97,8 @@ public class BaseUtilPage extends BasePage {
 	
 	// Internal static representation of the config file
 	private static ConfigFileSet _configSet = null;
-	private static GenericConvertMap<String,Object> _unmodifiableConfigFileSet = null;
-
+	private static GenericConvertMap<String, Object> _unmodifiableConfigFileSet = null;
+	
 	/**
 	 * Get the configuration file set from the WEB-INF/config/ folder
 	 * And returns its unmodifiableMap object.
@@ -107,26 +107,26 @@ public class BaseUtilPage extends BasePage {
 	 * 
 	 * @return  config file set map
 	 */
-	public GenericConvertMap<String,Object> configFileSet() {
+	public GenericConvertMap<String, Object> configFileSet() {
 		// If static variable is initialized : use it
-		if( _unmodifiableConfigFileSet != null ) {
+		if (_unmodifiableConfigFileSet != null) {
 			return _unmodifiableConfigFileSet;
 		}
-
+		
 		// Performing a syncronized lock on the static class
 		// before initializing the BaseUtilPage
-		synchronized( BaseUtilPage.class ) {
-
+		synchronized (BaseUtilPage.class) {
+			
 			// Return the config file set if it was
 			// intitialized in a race condition
-			if( _unmodifiableConfigFileSet != null ) {
+			if (_unmodifiableConfigFileSet != null) {
 				return _unmodifiableConfigFileSet;
 			}
-
+			
 			// Load the config file set
 			_configSet = new ConfigFileSet();
 			_configSet.addConfigSet(getConfigPath());
-
+			
 			// Get and return the unmodifiable copy
 			// and return it
 			_unmodifiableConfigFileSet = _configSet.unmodifiableMap();

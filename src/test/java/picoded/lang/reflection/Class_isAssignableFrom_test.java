@@ -24,21 +24,21 @@ public class Class_isAssignableFrom_test {
 		Class<Map> mapClass = Map.class;
 		Class<GenericConvertMap> genericMapClass = GenericConvertMap.class;
 		Class<GenericConvertHashMap> genericHashMapClass = GenericConvertHashMap.class;
-
+		
 		// Example
 		//
 		// Map a = new Map();
 		// Map a = new GenericConvertMap();
 		// Map a = new GenericConvertHashMap();
-		assertTrue( mapClass.isAssignableFrom(mapClass) );
-		assertTrue( mapClass.isAssignableFrom(genericMapClass) );
-		assertTrue( mapClass.isAssignableFrom(genericHashMapClass) );
-
+		assertTrue(mapClass.isAssignableFrom(mapClass));
+		assertTrue(mapClass.isAssignableFrom(genericMapClass));
+		assertTrue(mapClass.isAssignableFrom(genericHashMapClass));
+		
 		// Example Failure
 		//
 		// GenericConvertMap a = new Map();
 		// GenericConvertHashMap a = new Map();
-		assertFalse( genericMapClass.isAssignableFrom(mapClass) );
-		assertFalse( genericHashMapClass.isAssignableFrom(mapClass) );
+		assertFalse(genericMapClass.isAssignableFrom(mapClass));
+		assertFalse(genericHashMapClass.isAssignableFrom(mapClass));
 	}
 }
