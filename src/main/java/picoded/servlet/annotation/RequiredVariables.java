@@ -10,20 +10,11 @@ import java.lang.annotation.Target;
 import picoded.core.common.HttpRequestType;
 
 /**
- * Annotation for request path, used to detect endpoint to handle request at the appropriate path
- * 
- * ```
- * @RequestPath("hello")
- * @RequestType(HttpRequestType.GET)
- * public void loadWorld() {
- * 	getPrintWriter().println("world");
- * }
- * ```
  */
 @Inherited
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface RequestType {
+public @interface RequiredVariables {
 	public String[] value();
 }

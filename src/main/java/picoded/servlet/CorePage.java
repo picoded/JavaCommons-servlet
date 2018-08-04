@@ -109,15 +109,26 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	}
 	
 	/**
-	 * Import CorePage instance parameters over to another instance
+	 * Import CorePage instance parameters over from another instance
 	 * 
 	 * @param  ori original CorePage to copy from
 	 */
-	protected void transferParams(CorePage ori) {
+	public final void transferParams(CorePage ori) {
 		// Skip transfer step, if null is passed
 		if (ori == null) {
 			return;
 		}
+		// Calls the transfer param process
+		transferParamsProcess(ori);
+	}
+	
+	/**
+	 * Transfer param implementation, that should be extended on.
+	 * This is called by transferParms, after a NULL check
+	 * 
+	 * @param  ori original CorePage to copy from
+	 */
+	protected void transferParamsProcess(CorePage ori) {
 		// Import the values respectively
 		this._contextPath = ori._contextPath;
 		this._contextURI = ori._contextURI;
@@ -129,6 +140,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		this._requestMap = ori._requestMap;
 		this._requestType = ori._requestType;
 		this._responseOutputStream = ori._responseOutputStream;
+		this._printWriter = ori._printWriter;
 	}
 	
 	/**
@@ -568,15 +580,22 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	//
 	///////////////////////////////////////////////////////
 	
+	/** Memoizer for printwriter */
+	protected PrintWriter _printWriter = null;
+	
 	/**
 	 * gets the PrintWriter, from the getOutputStream() object and returns it
 	 **/
 	public PrintWriter getPrintWriter() {
+		if (_printWriter != null) {
+			return _printWriter;
+		}
 		try {
 			// Important note: You will need to use "true" for auto flush.
 			// "PrintWriter(Writer out, boolean autoFlush)", or it will NOT work.
-			return new PrintWriter(new OutputStreamWriter(getOutputStream(), getHttpServletRequest()
-				.getCharacterEncoding()), true);
+			_printWriter = new PrintWriter(new OutputStreamWriter(getOutputStream(),
+				getHttpServletRequest().getCharacterEncoding()), true);
+			return _printWriter;
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);
 		}

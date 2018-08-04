@@ -96,8 +96,8 @@ public class AnnotationUtil {
 	 * 
 	 * @return  List of methods filtered
 	 */
-	static <A extends Annotation> List<Field> filterFieldListWithAnnotationClass(
-		List<Field> inList, Class<A> annotationClass) {
+	static <A extends Annotation> List<Field> filterFieldListWithAnnotationClass(List<Field> inList,
+		Class<A> annotationClass) {
 		// Result to return
 		List<Field> result = new ArrayList<>();
 		
