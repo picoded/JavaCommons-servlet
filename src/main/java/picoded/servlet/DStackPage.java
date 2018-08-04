@@ -85,4 +85,37 @@ public class DStackPage extends BaseUtilPage {
 		return _dstackObj;
 	}
 	
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// DStack shared setup
+	//
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	
+	/**
+	 * [To be extended by sub class, if needed]
+	 * Called once when initialized per request, and by the initializeContext thread.
+	 *
+	 * The distinction is important, as certain parameters (such as requesrt details),
+	 * cannot be assumed to be avaliable in initializeContext, but is present for most requests
+	 **/
+	protected void doSharedSetup() throws Exception {
+		// Super call
+		super.doSharedSetup();
+		
+		// DStack initialization
+		dstack();
+	}
+	
+	/**
+	 * [To be extended by sub class, if needed]
+	 * Initialize context setup process
+	 **/
+	protected void initializeContext() throws Exception {
+		// Super call
+		super.initializeContext();
+		
+		// DStack setup (if needed)
+		dstack().systemSetup();
+	}
+	
 }
