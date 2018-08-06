@@ -175,10 +175,14 @@ public class BasePage extends CoreUtilPage {
 	 * Handles API based exceptions
 	 **/
 	protected void handleApiPathException(Exception e) throws Exception {
+		Throwable cause = e;
 		// Converts the stack trace to a string
-		String stackTrace = picoded.core.exception.ExceptionUtils.getStackTrace(e);
+		if (e.getCause() != null) {
+			cause = e.getCause();
+		}
+		String stackTrace = picoded.core.exception.ExceptionUtils.getStackTrace(cause);
 		
-		responseApiMap.put("ERROR_MSG", e.getMessage());
+		responseApiMap.put("ERROR_MSG", cause.getMessage());
 		responseApiMap.put("STACK_TRACE", stackTrace);
 		
 		getHttpServletResponse().setContentType("application/javascript");

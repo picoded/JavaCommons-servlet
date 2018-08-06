@@ -317,9 +317,8 @@ public class BasePage_basic_test {
 		String testUrl = "http://127.0.0.1:" + testPort + "/name/testing";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		Map<String, Object> map = response.toMap();
-		
-		assertEquals(
-			"java.lang.RuntimeException: Unsupported type in method simpleNameParam for parameter type Integer",
-			map.get("ERROR_MSG").toString());
+		System.out.println(map.get("ERROR_MSG").toString());
+		assertEquals("Unsupported type in method simpleNameParam for parameter type Integer", map
+			.get("ERROR_MSG").toString());
 	}
 }
