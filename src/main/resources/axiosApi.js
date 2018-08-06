@@ -72,166 +72,103 @@ var api = (function() {
 		}
 	}
 
-/// Function: api._core.setCookieJar
+/// Function: api._core.setCookieString
 /// @param    Takes in a cookieJar to use for the request
 ///
 /// @return  nothing
-	apicore.setCookieJar = function setCookieJar(cookieJar){
+	apicore.setCookieString = function setCookieString(cookieString){
 		if(apicore.isNodeJS()){
-			apicore.cookieJar = cookieJar;
+			apicore.cookieString = cookieString;
 		} else {
 			throw "You are not in NodeJS environment.";
 		}
 	}
 
 	/**
-	 * Function: api._core.getCookieJar
-	 * @return {cookieJar}
+	 * Function: api._core.getCookieString
+	 * @return String of cookies
 	 */
-	apicore.getCookieJar = function getCookieJar(){
+	apicore.getCookieString = function getCookieString(){
 		if(apicore.isNodeJS()){
-			return apicore.cookieJar;
+			return apicore.cookieString;
 		} else {
 			throw "You are not in NodeJS environment.";
 		}
 	}
 
+	if(apicore.isNodeJS()){
+		var axios = require('axios').default;
+	}
+
+	if(axios === undefined){
+		throw "Axios is not implemented! Please implement axios library before using.";
+	}
+
+
 //---------------------------------------------------------------------------------------
 //
-//  API rawPostRequest
+//  AXIOS GET and POST with interceptors
 //
 //---------------------------------------------------------------------------------------
 
-/// Function: api._core.rawPostRequest
-///
-/// @param   Subpath uri to call
-/// @param   Post parameter object to pass
-/// @param   Succesful callback, for good old fashion callback hell
-///
-/// @return  Promise object with the response string
-	if(apicore.isNodeJS()) {
-		// Load the node http/s libraries
-		var http = require('http');
-		var net = require('net');
-		var url = require('url');
-		var NodeFormData = require('form-data');
-		var request = require('request-promise');
-		// Set default persistency to be true
-		apicore.persistentSession = apicore.persistentSession || true;
+	apicore.baseURL("SET_SERVER_URL_HERE");
 
-		// Does the node JS implementation
-		apicore.rawPostRequest = function rawPostRequest(reqURI, paramObj, callback) {
-			// Grab existing cookieJar or initialize a cookie jar
-			var jar = apicore.cookieJar || request.jar();
+	var instance = axios.create({
+		withCredentials : true,
+		baseURL: apicore.baseURL()
+	});
 
-			// Generate the formdata object where applicable
-			var formData = new NodeFormData();
-			if( paramObj != null ) {
-				for (var name in paramObj) {
-					if (paramObj.hasOwnProperty(name)) {
-						var val = paramObj[name];
-						if( val instanceof Array || val instanceof Object ) {
-							val = JSON.stringify(val)
-						}
-						formData.append(name, val);
-					}
-				}
+	// In NodeJS environment, add interceptors to set cookies in requests
+	// as well as responses
+	if (apicore.isNodeJS()){
+		// Set cookies
+		instance.interceptors.request.use(function (config) {
+			if(apicore.getCookieString() !== undefined){
+				// Set Cookie before returning the config
+				config.headers['Cookie'] = apicore.getCookieString();
 			}
-			// Declare options for POST request
-			var options = {
-				method: 'POST',
-				uri: apicore.baseURL()+reqURI,
-				formData: paramObj,
-				jar : jar
-			};
-			// Make the request
-			var ret = request(options);
-			// Retain server's cookie response and store in jar if persistency is true
-			if(apicore.persistentSession){
-				apicore.cookieJar = jar;
+
+			return config;
+		}, function (error) {
+			// Do something with request error
+			return Promise.reject(error);
+		});
+
+		instance.interceptors.response.use(function(response){
+
+			// If there are cookies available, set the cookies
+			if (response.headers['set-cookie'] !== undefined){
+				apicore.setCookieString(response.headers['set-cookie'].join("; "));
 			}
-			apicore.setCookieJar(jar);
-			// Attach callback
-			if( callback != null ) {
-				ret.then(callback);
-			}
-			// Return the promise
-			return ret;
+
+			return response;
+		}, function(error){
+			return Promise.reject(error);
+		})
+	}
+
+	apicore.axiosGET = function(reqURI, paramObj, callback){
+		var ret = instance.get( reqURI, paramObj );
+
+		// Attach callback
+		if( callback != null ) {
+			ret.then(callback);
 		}
-	} else {
-		// Does the browser xhttprequest
-		// Cookie handling is done natively by the browser
-		apicore.rawPostRequest = function rawPostRequest(reqURI, paramObj, callback) {
 
-			// Generate the formdata object where applicable
-			var formData = new FormData();
-			if( paramObj != null ) {
-				for (var name in paramObj) {
-					if (paramObj.hasOwnProperty(name)) {
-						var val = paramObj[name];
-						if( val instanceof Array || val instanceof Object ) {
-							val = JSON.stringify(val)
-						}
-						formData.append(name, val);
-					}
-				}
-			}
+		// Return the promise
+		return ret;
+	};
 
-			// Generate XMLHttpRequest
-			var request = new XMLHttpRequest();
-			request.open("POST", apicore.baseURL()+reqURI);
+	apicore.axiosPOST = function(reqURI, paramObj, callback){
+		var ret = instance.post( reqURI, paramObj );
 
-			// Enable cookies on CORS
-			// See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials
-			request.withCredentials = true;
-
-			// Return promise object
-			var ret = new Promise(function(good,bad) {
-
-				// Function to call on a good load
-				function goodLoad(evt) {
-					try {
-						// Process the JSON object response
-						var jsonObj = JSON.parse(request.responseText);
-
-						// Error response in request
-						if( jsonObj.ERROR || jsonObj.error) {
-							// Throw error from json object
-							bad(jsonObj.ERROR || jsonObj.error);
-						} else {
-							// Request succeded, returns json result
-							good(jsonObj);
-						}
-					} catch(e) {
-						// JSON format failure
-						bad("Request failed : Invalid JSON format");
-					}
-				}
-
-				// Good load event listener
-				request.addEventListener("load", goodLoad)
-
-				// Function to call on a bad load
-				function badLoad(evt) {
-					bad("Request error / abort");
-				}
-
-				// Bad load event listener
-				request.addEventListener("error", badLoad);
-				request.addEventListener("abort", badLoad);
-
-				// Send the form data request
-				request.send(formData);
-			});
-
-			// Attach callback
-			if( callback != null ) {
-				ret.then(callback);
-			}
-
-			// Return the promise
-			return ret;
+		// Attach callback
+		if( callback != null ) {
+			ret.then(callback);
 		}
+
+		// Return the promise
+		return ret;
 	}
 
 //---------------------------------------------------------------------------------------
@@ -295,8 +232,7 @@ var api = (function() {
 		if( args == null || args.length <= 0 ) {
 			// Allow GET request since endpoint did not specify any methods
 			if( config.methods === undefined ) {
-				// @TODO: Change to rawGETRequest
-				return apicore.rawPostRequest(endpointPath);
+				return apicore.axiosGET(endpointPath);
 			}
 
 			// Check that the apimap has GET method
@@ -304,7 +240,7 @@ var api = (function() {
 				throw endpointPath + " does not support GET method."
 			}
 
-			return apicore.rawPostRequest(endpointPath);
+			return apicore.axiosGET(endpointPath);
 		}
 
 		// @TODO: Work in progress
@@ -321,12 +257,16 @@ var api = (function() {
 			if( paramType == "object" ) {
 				// Check the required variables are fulfilled
 				var requiredVar = apimap[endpointPath].required;
-				requiredVar.forEach(function(variable){
-					if(!paramObj.hasOwnProperty(variable)){
-						throw "Missing endpoint parameter:" + variable
-					}
-				});
-				return apicore.rawPostRequest(endpointPath, paramObj);
+
+				if(requiredVar !== undefined){
+					requiredVar.forEach(function(variable){
+						if(!paramObj.hasOwnProperty(variable)){
+							throw "Missing endpoint parameter:" + variable
+						}
+					});
+				}
+
+				return apicore.axiosPOST(endpointPath, paramObj);
 			}
 		}
 
@@ -366,7 +306,7 @@ var api = (function() {
 		}
 
 		// Does the parameter call
-		return apicore.rawPostRequest(endpointPath, paramObject);
+		return apicore.axiosPOST(endpointPath, paramObject);
 	}
 
 /// Function: setEndpointRaw
@@ -476,8 +416,9 @@ var api = (function() {
 			}
 		}
 	}
-	apicore.baseURL("//api.uilicious.com//v0.0/");
+
 	SET_ENDPOINT_MAP_HERE
+
 	return api;
 })();
 

@@ -623,7 +623,11 @@ public class BasePageClassMap {
 		} catch (IllegalAccessException e) {
 			throw new RuntimeException(e);
 		} catch (InvocationTargetException e) {
-			throw new RuntimeException(e);
+			Throwable cause = e;
+			if (e.getCause() != null) {
+				cause = e.getCause();
+			}
+			throw new RuntimeException(cause);
 		}
 		
 		//
