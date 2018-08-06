@@ -15,6 +15,7 @@ public class AxiosApiBuilder {
 	private BasePage corePage;
 	private Map<String, Method> scannedApiEndpoints = null;
 	private String toBeReplaced="SET_ENDPOINT_MAP_HERE";
+	private String urlToBeReplaced="SET_SERVER_URL_HERE";
 	private StringBuilder endpointCollector;
 	private String axiosApiJS = "";
 	private String endpointWrapper = "apicore.setEndpointMap({" + toBeReplaced + "});";
@@ -30,10 +31,16 @@ public class AxiosApiBuilder {
 		axiosApiJS = obtainAxiosApiTemplate();
 		String completeMap = endpointWrapper.replace(toBeReplaced, endpointCollector.toString());
 		axiosApiJS = axiosApiJS.replace(toBeReplaced, completeMap);
+		axiosApiJS = axiosApiJS.replace(urlToBeReplaced, generateUrlLink());
 	}
 
 	public String grabAxiosApiTemplate(){
 		return axiosApiJS;
+	}
+
+	public String generateUrlLink(){
+		String url = "//"+corePage.getServerName()+":"+corePage.getServerPort();
+		return url;
 	}
 
 	public String endpointMapInString(){
