@@ -187,7 +187,7 @@ public class BasePage extends CoreUtilPage {
 			cause = ExceptionUtils.getRootCause(cause);
 			
 		}
-		String stackTrace = picoded.core.exception.ExceptionUtils.getStackTrace(cause);
+		String stackTrace = ExceptionUtils.getStackTrace(cause);
 		
 		responseApiMap.put("ERROR_MSG", cause.getMessage());
 		responseApiMap.put("STACK_TRACE", stackTrace);
