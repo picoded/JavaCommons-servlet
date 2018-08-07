@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import javax.servlet.http.HttpServletResponse;
 
 import picoded.core.conv.ConvertJSON;
+import picoded.core.exception.ExceptionUtils;
 import picoded.core.struct.GenericConvertHashMap;
 import picoded.core.struct.GenericConvertMap;
 import picoded.servlet.internal.*;
@@ -180,9 +181,11 @@ public class BasePage extends CoreUtilPage {
 	 **/
 	protected void handleApiPathException(Exception e) throws Exception {
 		Throwable cause = e;
+		
 		// Converts the stack trace to a string
-		if (e.getCause() != null) {
-			cause = e.getCause();
+		if (ExceptionUtils.getRootCause(cause) != null) {
+			cause = ExceptionUtils.getRootCause(cause);
+			
 		}
 		String stackTrace = picoded.core.exception.ExceptionUtils.getStackTrace(cause);
 		
@@ -192,5 +195,4 @@ public class BasePage extends CoreUtilPage {
 		getHttpServletResponse().setContentType("application/javascript");
 		getPrintWriter().println(ConvertJSON.fromObject(responseApiMap, true));
 	}
-	
 }
