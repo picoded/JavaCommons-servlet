@@ -265,6 +265,7 @@ public class AxiosApiBuilder_test {
 			URI uri = AxiosApiBuilder_test.class.getClassLoader().getResource("expectedAxioJS.js")
 				.toURI();
 			result = new String(Files.readAllBytes(Paths.get(uri)), "utf-8");
+			result = result.replace("REPLACE_PORT_NUMBER", Integer.toString(testPort));
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

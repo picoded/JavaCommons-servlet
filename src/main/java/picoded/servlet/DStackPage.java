@@ -98,6 +98,7 @@ public class DStackPage extends BaseUtilPage {
 	 * The distinction is important, as certain parameters (such as requesrt details),
 	 * cannot be assumed to be avaliable in initializeContext, but is present for most requests
 	 **/
+	@Override
 	protected void doSharedSetup() throws Exception {
 		// Super call
 		super.doSharedSetup();
@@ -110,11 +111,16 @@ public class DStackPage extends BaseUtilPage {
 	 * [To be extended by sub class, if needed]
 	 * Initialize context setup process
 	 **/
+	@Override
 	protected void initializeContext() throws Exception {
 		// Super call
 		super.initializeContext();
 		
-		// DStack setup (if needed)
+		// DStack systemSetup
+		//
+		// as this is done AFTER doSharedSetup,
+		// any objects initialized in there will 
+		// have its own systemSetup() call performed.
 		dstack().systemSetup();
 	}
 	

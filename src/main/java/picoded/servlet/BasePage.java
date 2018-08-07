@@ -134,12 +134,16 @@ public class BasePage extends CoreUtilPage {
 	/**
 	 * Response map builder for api
 	 * NOTE: Do not use this in conjuction with PrintWriter / responseStringBuilder
+	 * 
+	 * @TODO : Refactor to protected _ equivalent with getter functions
 	 */
 	public GenericConvertMap<String, Object> responseApiMap = null;
 	
 	/**
 	 * Response string builder, to use within requests (if applicable)
 	 * NOTE: Do not use this in conjuction with PrintWriter / responseApiMap
+	 * 
+	 * @TODO : Refactor to protected _ equivalent with getter functions
 	 */
 	public StringBuilder responseStringBuilder = null;
 	
