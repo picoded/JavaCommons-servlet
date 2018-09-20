@@ -14,7 +14,7 @@ import picoded.core.common.HttpRequestType;
  * 
  * ```
  * @RequestPath("hello")
- * @RequestType(HttpRequestType.GET)
+ * @RequestType("GET")
  * public void loadWorld() {
  * 	getPrintWriter().println("world");
  * }
