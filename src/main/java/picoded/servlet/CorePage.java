@@ -7,7 +7,7 @@ import javax.servlet.*;
 
 // Exceptions used
 import java.io.IOException;
-
+import java.io.InputStream;
 // Objects used
 import java.util.HashMap;
 import java.util.Map;
@@ -139,6 +139,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		this._httpResponse = ori._httpResponse;
 		this._requestMap = ori._requestMap;
 		this._requestType = ori._requestType;
+		this._requestInputStream = ori._requestInputStream;
 		this._responseOutputStream = ori._responseOutputStream;
 		this._printWriter = ori._printWriter;
 	}
@@ -223,6 +224,11 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	protected OutputStream _responseOutputStream = null;
 	
 	/**
+	 * The actual input stream used
+	 */
+	protected InputStream _requestInputStream = null;
+	
+	/**
 	 * httpRequest used [modification of this value, is highly discouraged]
 	 **/
 	protected HttpServletRequest _httpRequest = null;
@@ -251,12 +257,9 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		_httpResponse = res;
 		
 		try {
-			// UTF-8 enforcement
+			// UTF-8 enforcement, for input 
+			// which is then used to setup output
 			_httpRequest.setCharacterEncoding("UTF-8");
-			
-			// @TODO: To use IOUtils.buffer for inputstream of httpRequest / parameterMap
-			// THIS IS CRITICAL, for the POST request in proxyServlet to work
-			_requestMap = new ServletRequestMap(_httpRequest);
 			
 			// Response output stream 
 			_responseOutputStream = _httpResponse.getOutputStream();
@@ -289,11 +292,50 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	}
 	
 	/**
+	 * Get and return the requestParameterMap, note that this function CANNOT
+	 * be used in combination of getInputStream()
+	 * 
 	 * @return the request parameters as a map
 	 **/
 	public ServletRequestMap requestParameterMap() {
+		if (_requestMap != null) {
+			return _requestMap;
+		}
+		
+		// Throw a fatal exception when used with getInputStream()
+		if (_requestInputStream != null) {
+			throw new RuntimeException("requestParameterMap() cannot be used with getInputStream()");
+		}
+		
+		// Setup the request map only when needed
+		_requestMap = new ServletRequestMap(_httpRequest);
 		return _requestMap;
 	}
+	
+	/**
+	 * gets the getInputStream, from the httpRequest.getInputStream() object and returns it
+	 * also surpresses IOException, as RuntimeException
+	 **/
+	public InputStream getInputStream() {
+		if (_requestInputStream != null) {
+			return _requestInputStream;
+		}
+		
+		// Throw a fatal exception when used with requestParameterMap()
+		if (_requestMap != null) {
+			throw new RuntimeException("getInputStream() cannot be used with requestParameterMap()");
+		}
+		
+		// Get the request input stream
+		try {
+			_requestInputStream = _httpRequest.getInputStream();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		return _requestInputStream;
+	}
+	
+	// req.getInputStream()
 	
 	///////////////////////////////////////////////////////
 	//

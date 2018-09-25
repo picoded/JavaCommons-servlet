@@ -81,7 +81,7 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 		}
 		
 		// Does specific processing for application/json
-		if (contentType.contains("application/json")) {
+		if (contentType.contains("application/json") || contentType.contains("text/plain")) {
 			// Does processing of JSON request, and return
 			processJsonParams(req);
 			return;
