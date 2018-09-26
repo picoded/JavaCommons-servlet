@@ -7,6 +7,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -84,5 +88,16 @@ public class EndpointMap_test {
 		endpoints.registerEndpointPath("hello/:variable/world", "Awesome world");
 		assertEquals(0, endpoints.findValidKeys("hello/test/notworld").size());
 		assertEquals(0, endpoints.findValidKeys("hello/anything/notworld").size());
+	}
+	
+	@Test
+	public void sortEndpointListing() {
+		String[] sample = new String[] { "*", "session", "a/b" };
+		List<String> sampleList = new ArrayList<>(Arrays.asList(sample));
+		
+		endpoints.sortEndpointList(sampleList);
+		assertEquals("a/b", sampleList.get(0));
+		assertEquals("session", sampleList.get(1));
+		assertEquals("*", sampleList.get(2));
 	}
 }

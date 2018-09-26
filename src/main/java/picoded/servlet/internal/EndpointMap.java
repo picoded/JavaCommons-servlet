@@ -182,25 +182,71 @@ public class EndpointMap<V> extends ConcurrentHashMap<String, V> {
 	 * Sort a list of endpoints, in order of 
 	 * 
 	 * + Longest path match
+	 * + More exact path match (from left)
 	 * + String comparision (final)
 	 * 
 	 * @param  list of string paths, to sort
 	 */
-	protected void sortEndpointList(List<String> list) {
+	public void sortEndpointList(List<String> list) {
 		Collections.sort(list, (a, b) -> {
 			String[] a_arr = splitUriString(a);
 			String[] b_arr = splitUriString(b);
 			
 			// Longest path match sorting
 			if (a_arr.length > b_arr.length) {
-				return 1;
-			} else if (b_arr.length > a_arr.length) {
 				return -1;
+			} else if (b_arr.length > a_arr.length) {
+				return 1;
 			}
 			
-			// @TODO "least wildcard match" is implemented
+			// At this point both arays are considered the same length
+			
+			// "least wildcard match" implementation
 			// this is so that more exact matches (starting from left)
 			// takes priority over least exact matches
+			for (int i = 0; i < a_arr.length; ++i) {
+				
+				// String part used for comparision
+				String a_part = a_arr[i];
+				String b_part = b_arr[i];
+				
+				//
+				// Type flag to use
+				//
+				// 0 - string match
+				// 1 - variable 
+				// 2 - wildcard
+				//
+				int a_type = 0;
+				int b_type = 0;
+				
+				// calculate the type flag
+				if (a_part.equalsIgnoreCase("*")) {
+					a_type = 2;
+				} else if (a_part.startsWith(":")) {
+					a_type = 1;
+				}
+				if (b_part.equalsIgnoreCase("*")) {
+					b_type = 2;
+				} else if (b_part.startsWith(":")) {
+					b_type = 1;
+				}
+				
+				// A has a more exact match then B 
+				if (a_type < b_type) {
+					return -1;
+				}
+				
+				// B has a more exact match then A 
+				if (a_type < b_type) {
+					return 1;
+				}
+				
+				// // If both parts are same type, skip to next match
+				// if( a_type == b_type ) {
+				// 	continue;
+				// }
+			}
 			
 			// String comparision
 			return a.compareTo(b);
