@@ -238,7 +238,7 @@ public class EndpointMap<V> extends ConcurrentHashMap<String, V> {
 				}
 				
 				// B has a more exact match then A 
-				if (a_type < b_type) {
+				if (b_type < a_type) {
 					return 1;
 				}
 				

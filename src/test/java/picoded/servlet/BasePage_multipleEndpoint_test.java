@@ -100,8 +100,26 @@ public class BasePage_multipleEndpoint_test {
 	public static class ExtendedEndpoints extends BaseEndpoint {
 		@RequestPath("hello")
 		@RequestType("POST")
-		public void fallback() {
+		public void goodResult() {
 			getPrintWriter().println("good");
+		}
+		
+		@RequestPath("various")
+		@RequestType("POST")
+		public void various() {
+			getPrintWriter().println("bad");
+		}
+		
+		@RequestPath("red")
+		@RequestType("POST")
+		public void red() {
+			getPrintWriter().println("bad");
+		}
+		
+		@RequestPath("hearings")
+		@RequestType("POST")
+		public void hearings() {
+			getPrintWriter().println("bad");
 		}
 	}
 	
@@ -110,13 +128,27 @@ public class BasePage_multipleEndpoint_test {
 		// Setup servlet
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new ExtendedEndpoints()));
 		
+		// Reuse variables
+		String testUrl;
+		ResponseHttp response;
+		
 		// Make a request expecting "good"
-		String testUrl = "http://127.0.0.1:" + testPort + "/hello";
-		ResponseHttp response = RequestHttp.post(testUrl, null, null, null);
+		testUrl = "http://127.0.0.1:" + testPort + "/hello";
+		response = RequestHttp.post(testUrl, null, null, null);
+		assertEquals("good", response.toString().trim());
+		
+		// Make a request expecting "good"
+		testUrl = "http://127.0.0.1:" + testPort + "/hello/";
+		response = RequestHttp.post(testUrl, null, null, null);
 		assertEquals("good", response.toString().trim());
 		
 		// Make a request expecting "bad"
 		testUrl = "http://127.0.0.1:" + testPort + "/something";
+		response = RequestHttp.post(testUrl, null, null, null);
+		assertEquals("bad", response.toString().trim());
+		
+		// Make a request expecting "bad"
+		testUrl = "http://127.0.0.1:" + testPort + "/something/else";
 		response = RequestHttp.post(testUrl, null, null, null);
 		assertEquals("bad", response.toString().trim());
 	}
