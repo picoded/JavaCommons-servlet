@@ -188,7 +188,7 @@ public class BaseUtilPage extends BasePage {
 	 * [To be extended by sub class, if needed]
 	 * The background process to execute per tick.
 	 */
-	public void backgroundProcess() {
+	protected void backgroundProcess() {
 		// Does nothing, for now
 	}
 	
