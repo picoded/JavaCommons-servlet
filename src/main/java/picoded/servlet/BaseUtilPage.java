@@ -159,4 +159,182 @@ public class BaseUtilPage extends BasePage {
 	// Memoizer for log() function
 	protected Logger logObj = null;
 	
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// background threading : public
+	//
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	
+	// The running background thread
+	private Thread backgroundThread = null;
+	
+	/**
+	 * This should only be called within "backgroundProcess"
+	 * @return true, if the process is a background thread
+	 */
+	public boolean isBackgroundThread() {
+		return backgroundThread != null && backgroundThread.getId() == Thread.currentThread().getId();
+	}
+	
+	/**
+	 * This is to be called only within "backgroundProcess"
+	 * @return true, if the process is a background thread, and not interrupted
+	 */
+	public boolean isBackgroundThreadAlive() {
+		return (backgroundThread != null && !Thread.interrupted());
+	}
+	
+	/**
+	 * [To be extended by sub class, if needed]
+	 * The background process to execute per tick.
+	 */
+	public void backgroundProcess() {
+		// Does nothing, for now
+	}
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// background threading : internal
+	// [ NOT OFFICIALLY SUPPORTED FOR EXTENSION ]
+	//
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	
+	/**
+	 * The background thread handler, isolated as a runnable.
+	 *
+	 * This allows a clean isolation of the background thread,
+	 * From the initializeContext thread. Especially for 'sleep' calls
+	 */
+	private Runnable backgroundThreadHandler = () -> {
+		// The config to use : or default value
+		GenericConvertMap<String, Object> bgConfig = configFileSet().getGenericConvertStringMap(
+			"sys.background", "{}");
+		
+		// Get the current background thread mode
+		// Expect "between" (default) or "start" mode 
+		String threadmode = bgConfig.getString("mode", "between");
+		long configInterval = bgConfig.getLong("interval", 10000);
+		
+		// The invcoation timestamp in previous call
+		long previousStartTimestamp = 0;
+		
+		// Start of background thread loop
+		while (isBackgroundThreadAlive()) {
+			// Get the new start timestamp
+			long startTimestamp = System.currentTimeMillis();
+			
+			// Does the background process
+			try {
+				backgroundProcess();
+			} catch (Exception e) {
+				log()
+					.warning(
+						"WARNING - Uncaught 'backgroundProcess' exception : "
+							+ e.getMessage()
+							+ "\n          Note that the 'backgroundProcess' should be designed to never throw an exception,"
+							+ "\n          As it will simply be ignored and diverted into the logs (with this message)"
+							+ "\n" + picoded.core.exception.ExceptionUtils.getStackTrace(e) //
+					);
+			}
+			
+			// Does the appropriate interval delay, takes interruptException as termination
+			try {
+				if (!isBackgroundThreadAlive()) {
+					// Background thread was interrupted, time to break the loop
+					break;
+				} else if (threadmode.equalsIgnoreCase("start")) {
+					// Does the calculations between the timestamp now, the previous start run
+					long runtimeLength = System.currentTimeMillis() - startTimestamp;
+					// Get the time needed to "wait"
+					long sleepRequired = configInterval - runtimeLength;
+					// Induce the sleep ONLY if its required
+					if (sleepRequired > 0) {
+						Thread.sleep(sleepRequired);
+					}
+				} else if (threadmode.equalsIgnoreCase("between")) {
+					// Default mode is "between"
+					// Note if an interrupt is called here, it is 'skipped'
+					Thread.sleep(configInterval);
+				} else {
+					throw new RuntimeException("Invalid 'sys.background.mode' thread mode ("
+						+ threadmode + ") - use either 'between' or 'start'");
+				}
+			} catch (InterruptedException e) {
+				// Log the InterruptedException
+				if (isBackgroundThreadAlive()) {
+					log()
+						.info(
+							"backgroundThreadHandler - caught InterruptedException (possible termination event)");
+				} else {
+					log()
+						.warning(
+							"backgroundThreadHandler - caught Unexpected InterruptedException (outside termination event)");
+				}
+			}
+			
+			// Update the previous start timestamp
+			previousStartTimestamp = startTimestamp;
+		}
+	};
+	
+	/**
+	 * Loads the configuration and start the background thread
+	 */
+	private void backgroundThreadHandler_start() {
+		if (configFileSet().getBoolean("sys.background.enable", true)) {
+			// Start up the background thread start process, only if its enabled
+			backgroundThread = new Thread(backgroundThreadHandler);
+			// And start it up
+			backgroundThread.start();
+		}
+	}
+	
+	/**
+	 * Loads the configuration and stop the background thread
+	 * Either gracefully, or forcefully.
+	 */
+	@SuppressWarnings("deprecation")
+	private void backgroundThreadHandler_stop() {
+		// Checks if there is relevent background thread first
+		if (backgroundThread != null) {
+			// Set the interupption flag
+			backgroundThread.interrupt();
+			// Attempts to perform a join first
+			try {
+				backgroundThread.join(configFileSet().getLong(
+					"sys.background.contextDestroyJoinTimeout", 10000));
+			} catch (InterruptedException e) {
+				log().warning(
+					"backgroundThreadHandler - Unexpected InterruptedException on Thread.join : "
+						+ e.getMessage());
+				log().warning(picoded.core.exception.ExceptionUtils.getStackTrace(e));
+			}
+			
+			// Does the actual termination if needed
+			if (backgroundThread.isAlive()) {
+				backgroundThread.stop();
+			}
+		}
+	}
+	
+	/**
+	 * [To be extended by sub class, if needed]
+	 * Initialize context setup process, with background thread
+	 **/
+	@Override
+	protected void initializeContext() throws Exception {
+		super.initializeContext();
+		backgroundThreadHandler_start();
+	}
+	
+	/**
+	 * [To be extended by sub class, if needed]
+	 * Initialize context destroy process, with background thread
+	 **/
+	@Override
+	protected void destroyContext() throws Exception {
+		backgroundThreadHandler_stop();
+		super.destroyContext();
+	}
+	
 }
