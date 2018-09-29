@@ -1,5 +1,7 @@
 package picoded.servlet;
 
+import java.util.*;
+import java.util.logging.Logger;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -133,5 +135,28 @@ public class BaseUtilPage extends BasePage {
 			return _unmodifiableConfigFileSet;
 		}
 	}
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// Reusable output logger
+	//
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	
+	/**
+	 * Servlet logging interface
+	 *
+	 * This is not a static class, so that the this object inherits
+	 * any extensions if needed
+	 **/
+	public Logger log() {
+		if (logObj != null) {
+			return logObj;
+		}
+		logObj = Logger.getLogger(this.getClass().getName());
+		return logObj;
+	}
+	
+	// Memoizer for log() function
+	protected Logger logObj = null;
 	
 }
