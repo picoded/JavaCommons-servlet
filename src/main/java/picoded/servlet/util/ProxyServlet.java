@@ -219,34 +219,41 @@ public class ProxyServlet extends BasePage {
 				+ " request type not supported");
 		}
 		
-		// get the servlet object (to return result with)
-		HttpServletResponse servletResponse = getHttpServletResponse();
-		
-		// Set the status code
-		servletResponse.setStatus(response.statusCode());
-		
-		// Pass over headers
-		Map<String, String[]> responseHeaderMap = response.headersMap();
-		for (String headerKey : responseHeaderMap.keySet()) {
-			String[] multipleValues = responseHeaderMap.get(headerKey);
-			for (String singleValue : multipleValues) {
-				servletResponse.addHeader(headerKey, singleValue);
-			}
-		}
-		
-		// Pass over proxy target header
-		// servletResponse.addHeader("__target_endpoint", target);
-		
-		// Pass over byte stream
+		// Ensure response object is closed (as its used as bytestreaming)
 		try {
-			InputStream responseInputStream = response.inputStream();
-			OutputStream servletOutputStream = getOutputStream();
-			IOUtils.copy(responseInputStream, servletOutputStream);
+			// get the servlet object (to return result with)
+			HttpServletResponse servletResponse = getHttpServletResponse();
 			
-			// Just to be safe, close response (not really needed)
-			responseInputStream.close();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+			// Set the status code
+			servletResponse.setStatus(response.statusCode());
+			
+			// Pass over headers
+			Map<String, String[]> responseHeaderMap = response.headersMap();
+			for (String headerKey : responseHeaderMap.keySet()) {
+				String[] multipleValues = responseHeaderMap.get(headerKey);
+				for (String singleValue : multipleValues) {
+					servletResponse.addHeader(headerKey, singleValue);
+				}
+			}
+			
+			// Pass over proxy target header
+			// servletResponse.addHeader("__target_endpoint", target);
+			
+			// Pass over byte stream
+			try {
+				InputStream responseInputStream = response.inputStream();
+				OutputStream servletOutputStream = getOutputStream();
+				IOUtils.copy(responseInputStream, servletOutputStream);
+				
+				// Just to be safe, close response (not really needed)
+				responseInputStream.close();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		} finally {
+			if (response != null) {
+				response.close_withRuntimeException();
+			}
 		}
 	}
 	
