@@ -267,8 +267,19 @@ public class BasePageClassMap {
 	 *
 	 * @param classObj to create an instance of
 	 * @param page to transfer existing settings from
+	 * @param rerouteField to check for existing instance
 	 */
-	protected BasePage setupRerouteClassInstance(Class<?> classObj, BasePage page) {
+	protected BasePage setupRerouteClassInstance(Class<?> classObj, BasePage page, Field rerouteField) {
+		// Lets try getting the reroute field value itself (if possible)
+		try {
+			BasePage ret = (BasePage) (Object) rerouteField.get(page);
+			ret.transferParams(page);
+			return ret;
+		} catch (Exception e) {
+			// ignore, and does the fallback
+		}
+		
+		// Initialize a new instance if able
 		try {
 			BasePage ret = (BasePage) (Object) classObj.newInstance();
 			ret.transferParams(page);
@@ -487,7 +498,7 @@ public class BasePageClassMap {
 		
 		// Execute the reroute, with the routing class
 		// @TODO: handle name parameters in routePath (e.g. :user)
-		BasePage routeClassObj = setupRerouteClassInstance(routeClass, page);
+		BasePage routeClassObj = setupRerouteClassInstance(routeClass, page, rerouteField);
 		routeClassMap.handleRequest(routeClassObj, reroutePathArr);
 		
 		// RequestAfter execution
