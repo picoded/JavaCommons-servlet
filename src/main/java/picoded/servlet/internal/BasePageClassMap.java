@@ -13,11 +13,11 @@ import picoded.servlet.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Internal utility class, used to mapped the relvent 
+ * Internal utility class, used to mapped the relvent
  * annotation routes of a given class object.
- * 
+ *
  * And perform the subsquent request/api call for it.
- * 
+ *
  * Note that this class map is designed for concurrent access by multiple threads
  **/
 public class BasePageClassMap {
@@ -37,7 +37,7 @@ public class BasePageClassMap {
 	
 	/**
 	 * Consturctor with BasePage
-	 * 
+	 *
 	 * @param  page  BasePage instance object
 	 */
 	public BasePageClassMap(BasePage page) {
@@ -47,7 +47,7 @@ public class BasePageClassMap {
 	
 	/**
 	 * Consturctor with class object
-	 * 
+	 *
 	 * @param  classObj  BasePage class object
 	 */
 	public BasePageClassMap(Class<?> classObj) {
@@ -69,7 +69,7 @@ public class BasePageClassMap {
 	/**
 	 * Given a BasePage instance, extract out the relevent BasePageClassMap information,
 	 * and cache it if possible.
-	 * 
+	 *
 	 * @param  page  BasePage instance object
 	 */
 	public static BasePageClassMap setupAndCache(BasePage page) {
@@ -79,7 +79,7 @@ public class BasePageClassMap {
 	/**
 	 * Given a BasePage class, extract out the relevent BasePageClassMap information,
 	 * and cache it if possible.
-	 * 
+	 *
 	 * @param  classObj  BasePage clas
 	 */
 	public static BasePageClassMap setupAndCache(Class<?> classObj) {
@@ -119,7 +119,7 @@ public class BasePageClassMap {
 	protected EndpointMap<Method> afterMap = new EndpointMap<>();
 	
 	/**
-	 * Import and scan the given class object for relevent 
+	 * Import and scan the given class object for relevent
 	 * annotations and map it accordingly internally to this BasePageClassMap
 	 **/
 	protected void registerClass(Class<?> classObj) {
@@ -131,7 +131,7 @@ public class BasePageClassMap {
 	}
 	
 	/**
-	 * Import and scan the given class object for relevent 
+	 * Import and scan the given class object for relevent
 	 * annotations and map its methods accordingly internally
 	 */
 	protected void registerClassMethods(Class<?> classObj) {
@@ -142,7 +142,7 @@ public class BasePageClassMap {
 		for (Method methodObj : methodList) {
 			// Get and process each type of annotation we currently support for methods
 			//
-			// Minor note : Because annotation is not extendable, we cant fully refactor 
+			// Minor note : Because annotation is not extendable, we cant fully refactor
 			// the duplicative loop into a generic function, that is reusable.
 			for (RequestBefore pathObj : methodObj.getAnnotationsByType(RequestBefore.class)) {
 				beforeMap.registerEndpointPath(pathObj.value(), methodObj);
@@ -248,9 +248,9 @@ public class BasePageClassMap {
 	/**
 	 * Given a field object, extract the BasePage class object
 	 * for reroute detection
-	 * 
+	 *
 	 * @param  field to extract from
-	 * 
+	 *
 	 * @return extracted field class
 	 */
 	protected Class<?> getRerouteClass(Field field) {
@@ -264,7 +264,7 @@ public class BasePageClassMap {
 	
 	/**
 	 * Intiailize reroute BasePage class instance
-	 * 
+	 *
 	 * @param classObj to create an instance of
 	 * @param page to transfer existing settings from
 	 */
@@ -285,13 +285,13 @@ public class BasePageClassMap {
 	/**
 	 * Extract out the reroute subpath from current requestPath
 	 * given the reroute declared endpoint.
-	 * 
+	 *
 	 * Note this does not validate if the routePath components is valid for requestPath,
 	 * and performs the needed calculation, assuming it is.
-	 * 
+	 *
 	 * @param  requestPath to extract subpath
 	 * @param  routePath to remove from requestPath
-	 * 
+	 *
 	 * @return reroute path
 	 */
 	protected String[] reroutePath(String[] requestPath, String routePath) {
@@ -310,9 +310,9 @@ public class BasePageClassMap {
 	
 	/**
 	 * Checks and return if the given routePath is supported
-	 * 
+	 *
 	 * @param  requestPath to route path using
-	 * 
+	 *
 	 * @return true if route is found
 	 */
 	public boolean supportsRequestPath(String[] requestPath) {
@@ -349,10 +349,10 @@ public class BasePageClassMap {
 	
 	/**
 	 * Takes the existing request, and perform routing logic on it respectively.
-	 * 
-	 * This is automatically called on any request, or alternatively when  
+	 *
+	 * This is automatically called on any request, or alternatively when
 	 * forwarding to another instnce request.
-	 * 
+	 *
 	 * @param  page to execute from
 	 * @param  routePath to route path using
 	 */
@@ -374,10 +374,10 @@ public class BasePageClassMap {
 	
 	/**
 	 * Attempts to route a request with a valid ApiPath if found.
-	 * 
+	 *
 	 * @param  page to execute from
 	 * @param  routePath to route path using
-	 * 
+	 *
 	 * @return true if valid execution occurs
 	 */
 	protected boolean request_api(BasePage page, String[] requestPath) {
@@ -403,7 +403,7 @@ public class BasePageClassMap {
 			// RequestAfter execution
 			executeMethodMap(afterMap, page, requestPath);
 		} catch (Exception e) {
-			throw new BasePage.ApiPathException(e);
+			throw new ApiException(e);
 		}
 		
 		// Assume valid execution
@@ -412,10 +412,10 @@ public class BasePageClassMap {
 	
 	/**
 	 * Attempts to route a request with a valid ApiPath if found.
-	 * 
+	 *
 	 * @param  page to execute from
 	 * @param  routePath to route path using
-	 * 
+	 *
 	 * @return true if valid execution occurs
 	 */
 	protected boolean request_path(BasePage page, String[] requestPath) {
@@ -446,10 +446,10 @@ public class BasePageClassMap {
 	
 	/**
 	 * Attempts to route a request with a valid ApiPath if found.
-	 * 
+	 *
 	 * @param  page to execute from
 	 * @param  requestPath to route path using
-	 * 
+	 *
 	 * @return true if valid execution occurs
 	 */
 	protected boolean request_reroute(BasePage page, String[] requestPath) {
@@ -505,7 +505,7 @@ public class BasePageClassMap {
 	
 	/**
 	 * Execute all relevent request methods, found in an endpointMap for a routePath
-	 * 
+	 *
 	 * @param  methodMap to execute from
 	 * @param  page to execute from
 	 * @param  routePath to route path using
@@ -522,7 +522,7 @@ public class BasePageClassMap {
 	}
 	
 	/**
-	 * From the annotationPath, extract any name parameters that contains ":" and grab the exact value from 
+	 * From the annotationPath, extract any name parameters that contains ":" and grab the exact value from
 	 * requestPath and put them into the paramMap with parameter as key and the requestPath's value as value
 	 */
 	protected void processNameParameters(ServletRequestMap paramMap, String[] annotationPath,
@@ -539,35 +539,35 @@ public class BasePageClassMap {
 	/**
 	 * Execute the given method in the context of the current class object (this)
 	 * Adapting the given parameters according to the expected parameter types.
-	 * 
+	 *
 	 * Also does the relevent output processing based on the output types
-	 * 
+	 *
 	 * Map / List - JSON output
 	 * String / StringBuilder - println output
 	 * File - binary file output
 	 * byte[] - binary output
 	 * void - does nothing
-	 * 
+	 *
 	 * Similarly, it passes in the following values, according to the parameter type
-	 * 
+	 *
 	 * StringBuilder - previously StringBuilder output
-	 * 
+	 *
 	 * PrintWriter / OutputStream - respective output objects
 	 * HttpServletRequest / Response - respective request / response specific objects
 	 * ServletRequestMap / Map - ServletRequestMap
-	 * 
+	 *
 	 * ```
 	 * @RequestPath("hello")
 	 * public void hello(PrintWriter writer) {
 	 * 	writer.println("hello");
 	 * }
-	 * 
+	 *
 	 * @RequestPath("hello/:name")
 	 * public void hello(PrintWriter writer, ServletRequestMap param) {
 	 * 	writer.println("hello "+param.getString("name", "stranger"));
 	 * }
 	 * ```
-	 * 
+	 *
 	 * @param  page to execute from
 	 * @param  toExecute method to execute
 	 */
