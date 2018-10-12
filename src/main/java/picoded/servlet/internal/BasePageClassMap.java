@@ -113,7 +113,7 @@ public class BasePageClassMap {
 	/** List of methods used for API execution */
 	protected EndpointMap<Method> apiMap = new EndpointMap<>();
 	/** Lisf of fields used for path rerouting */
-	protected EndpointMap<Field> rerouteMap = new EndpointMap<>();
+	protected EndpointMap<Field> rerouteFieldMap = new EndpointMap<>();
 	
 	/** List of methods used in after filters */
 	protected EndpointMap<Method> afterMap = new EndpointMap<>();
@@ -172,7 +172,7 @@ public class BasePageClassMap {
 		for (Field field : fieldList) {
 			// Get and process each type of annotation we currently support for fields
 			for (RequestPath path : field.getAnnotationsByType(RequestPath.class)) {
-				rerouteMap.registerEndpointPath(path.value(), field);
+				rerouteFieldMap.registerEndpointPath(path.value(), field);
 			}
 		}
 	}
@@ -196,7 +196,7 @@ public class BasePageClassMap {
 	 * @return
 	 */
 	public EndpointMap<Field> reroutePaths() {
-		return rerouteMap;
+		return rerouteFieldMap;
 	}
 	
 	/**
@@ -307,7 +307,7 @@ public class BasePageClassMap {
 	 */
 	protected String[] reroutePath(String[] requestPath, String routePath) {
 		// Get the routePath parts count
-		String[] splitRoutePath = rerouteMap.splitUriString(routePath);
+		String[] splitRoutePath = rerouteFieldMap.splitUriString(routePath);
 		int partsCount = splitRoutePath.length;
 		
 		// Remove the trailing '/*' in the parts count
@@ -333,7 +333,7 @@ public class BasePageClassMap {
 			return true;
 		}
 		// Get list a reroute path
-		List<String> pathList = rerouteMap.findValidKeys(requestPath);
+		List<String> pathList = rerouteFieldMap.findValidKeys(requestPath);
 		
 		// Return false (if no endpoint found)
 		if (pathList == null || pathList.size() <= 0) {
@@ -342,7 +342,7 @@ public class BasePageClassMap {
 		
 		// Get a possibly valid endpoint reroute class
 		String endpoint = pathList.get(0);
-		Field fieldObj = rerouteMap.get(endpoint);
+		Field fieldObj = rerouteFieldMap.get(endpoint);
 		Class<?> routeClass = getRerouteClass(fieldObj);
 		
 		// Lets get the routeClass BasePageClassMap
@@ -375,7 +375,7 @@ public class BasePageClassMap {
 		if (request_path(page, routePath)) {
 			return;
 		}
-		if (request_reroute(page, routePath)) {
+		if (request_fieldReroute(page, routePath)) {
 			return;
 		}
 		
@@ -463,9 +463,9 @@ public class BasePageClassMap {
 	 *
 	 * @return true if valid execution occurs
 	 */
-	protected boolean request_reroute(BasePage page, String[] requestPath) {
+	protected boolean request_fieldReroute(BasePage page, String[] requestPath) {
 		// Get list of valid paths
-		List<String> pathList = rerouteMap.findValidKeys(requestPath);
+		List<String> pathList = rerouteFieldMap.findValidKeys(requestPath);
 		
 		// Return false (if no endpoint found)
 		if (pathList == null || pathList.size() <= 0) {
@@ -481,7 +481,7 @@ public class BasePageClassMap {
 		}
 		
 		// Return the Field associated with a valid endpoint
-		Field rerouteField = rerouteMap.get(endpoint);
+		Field rerouteField = rerouteFieldMap.get(endpoint);
 		
 		// Get the reroute target
 		Class<?> routeClass = getRerouteClass(rerouteField);
@@ -647,6 +647,10 @@ public class BasePageClassMap {
 		
 		if (executionResponse == null) {
 			return;
+		}
+
+		if( executionResponse instanceof BasePage ) {
+			// @TODO : relay request
 		}
 		
 		if (executionResponse instanceof Map) {
