@@ -185,6 +185,7 @@ public class BasePageClassMap {
 			for (ApiPath pathObj : methodObj.getAnnotationsByType(ApiPath.class)) {
 				rerouteMethodMap.registerEndpointPath(pathObj.value(), methodObj);
 			}
+			return;
 		}
 
 		//
@@ -559,7 +560,7 @@ public class BasePageClassMap {
 	 */
 	protected boolean request_methodReroute(BasePage page, String[] requestPath) {
 		// Get list of valid paths
-		List<String> pathList = rerouteFieldMap.findValidKeys(requestPath);
+		List<String> pathList = rerouteMethodMap.findValidKeys(requestPath);
 		
 		// Return false (if no endpoint found)
 		if (pathList == null || pathList.size() <= 0) {
@@ -580,6 +581,9 @@ public class BasePageClassMap {
 		// Return the method associated with a valid endpoint
 		Method rerouteMethod = rerouteMethodMap.get(endpoint);
 
+		if (rerouteMethod == null) {
+			return false;
+		}
 		//
 		// I should instead, execute the method, get its expected object
 		// which will be extended from BasePage
@@ -592,6 +596,40 @@ public class BasePageClassMap {
 		// followed by the appropriate `handleRequest` sub call
 		//
 
+		try {
+			
+			Object returnObj = rerouteMethod.invoke(page, new Object[0]);
+			if (returnObj == null) {
+				page.handleMissingRouteFailure();
+			}
+			if (returnObj instanceof BasePage) {
+				
+				BasePage nextPage = (BasePage) returnObj;
+				
+				// Setup the route mapping
+				BasePageClassMap routeClassMap = BasePageClassMap.setupAndCache(nextPage);
+				
+				// Return false if the nextPage does not contain the path for this request
+				String[] reroutePathArr = reroutePath(requestPath, endpoint);
+				if (!routeClassMap.supportsRequestPath(reroutePathArr)) {
+					return false;
+				}
+				
+				// Transfer page's settings to the nextPage
+				nextPage.transferParams(page);
+				routeClassMap.handleRequest(nextPage, reroutePathArr);
+				
+				executeMethodMap(afterMap, page, requestPath);
+				
+			} else {
+				page.handleMissingRouteFailure();
+			}
+			
+		} catch (IllegalAccessException iae) {
+			throw new RuntimeException(iae);
+		} catch (InvocationTargetException ite) {
+			throw new RuntimeException(ite);
+		}
 		// // Get the reroute target
 		// Class<?> routeClass = getRerouteClass(rerouteField);
 		// BasePageClassMap routeClassMap = BasePageClassMap.setupAndCache(routeClass);
