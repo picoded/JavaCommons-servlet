@@ -308,14 +308,14 @@ public class BasePageClassMap {
 	 * @param rerouteField to check for existing instance
 	 */
 	protected BasePage setupRerouteClassInstance(Class<?> classObj, BasePage page, Field rerouteField) {
-		// Lets try getting the reroute field value itself (if possible)
-		try {
-			BasePage ret = (BasePage) (Object) rerouteField.get(page);
-			ret.transferParams(page);
-			return ret;
-		} catch (Exception e) {
-			// ignore, and does the fallback
-		}
+		// // Lets try getting the reroute field value itself (if possible)
+		// try {
+		// 	BasePage ret = (BasePage) (Object) rerouteField.get(page);
+		// 	ret.transferParams(page);
+		// 	return ret;
+		// } catch (Exception e) {
+		// 	// ignore, and does the fallback
+		// }
 		
 		// Initialize a new instance if able
 		try {
@@ -411,6 +411,9 @@ public class BasePageClassMap {
 			return;
 		}
 		if (request_path(page, routePath)) {
+			return;
+		}
+		if (request_methodReroute(page, routePath) ) {
 			return;
 		}
 		if (request_fieldReroute(page, routePath)) {
@@ -538,6 +541,71 @@ public class BasePageClassMap {
 		// @TODO: handle name parameters in routePath (e.g. :user)
 		BasePage routeClassObj = setupRerouteClassInstance(routeClass, page, rerouteField);
 		routeClassMap.handleRequest(routeClassObj, reroutePathArr);
+		
+		// RequestAfter execution
+		executeMethodMap(afterMap, routeClassObj, requestPath);
+		
+		// Assume valid execution
+		return true;
+	}
+	
+	/**
+	 * Attempts to route a request with a valid ApiPath if found.
+	 *
+	 * @param  page to execute from
+	 * @param  requestPath to route path using
+	 *
+	 * @return true if valid execution occurs
+	 */
+	protected boolean request_methodReroute(BasePage page, String[] requestPath) {
+		// Get list of valid paths
+		List<String> pathList = rerouteFieldMap.findValidKeys(requestPath);
+		
+		// Return false (if no endpoint found)
+		if (pathList == null || pathList.size() <= 0) {
+			return false;
+		}
+		
+		// Get the valid endpoint
+		String endpoint = pathList.get(0);
+		
+		// Validate reroute endpoint ends with /*
+		if (!endpoint.endsWith("/*")) {
+			throw new RuntimeException("Reroute paths are suppose to end with '/*'");
+		}
+		
+		// RequestBefore execution
+		executeMethodMap(beforeMap, page, requestPath);
+		
+		// Return the method associated with a valid endpoint
+		Method rerouteMethod = rerouteMethodMap.get(endpoint);
+
+		//
+		// I should instead, execute the method, get its expected object
+		// which will be extended from BasePage
+		//
+		// I will then check the return object, throws equivalent of 404 if null
+		// else I will subsequently get its class, and perform the "setupAndCache"
+		// for the route mapping
+		//
+		// Then using the return object, I will do a `transferParams` on the instance
+		// followed by the appropriate `handleRequest` sub call
+		//
+
+		// // Get the reroute target
+		// Class<?> routeClass = getRerouteClass(rerouteField);
+		// BasePageClassMap routeClassMap = BasePageClassMap.setupAndCache(routeClass);
+		
+		// // Check if it supports rerouting
+		// String[] reroutePathArr = reroutePath(requestPath, endpoint);
+		// if (!routeClassMap.supportsRequestPath(reroutePathArr)) {
+		// 	return false;
+		// }
+		
+		// // Execute the reroute, with the routing class
+		// // @TODO: handle name parameters in routePath (e.g. :user)
+		// BasePage routeClassObj = setupRerouteClassInstance(routeClass, page, rerouteField);
+		// routeClassMap.handleRequest(routeClassObj, reroutePathArr);
 		
 		// RequestAfter execution
 		executeMethodMap(afterMap, routeClassObj, requestPath);
