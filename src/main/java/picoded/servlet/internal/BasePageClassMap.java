@@ -112,8 +112,10 @@ public class BasePageClassMap {
 	protected EndpointMap<Method> pathMap = new EndpointMap<>();
 	/** List of methods used for API execution */
 	protected EndpointMap<Method> apiMap = new EndpointMap<>();
-	/** Lisf of fields used for path rerouting */
+	/** List of fields used for path rerouting */
 	protected EndpointMap<Field> rerouteFieldMap = new EndpointMap<>();
+	/** List of methods used for path rerouting */
+	protected EndpointMap<Method> rerouteMethodMap = new EndpointMap<>();
 	
 	/** List of methods used in after filters */
 	protected EndpointMap<Method> afterMap = new EndpointMap<>();
@@ -133,6 +135,8 @@ public class BasePageClassMap {
 	/**
 	 * Import and scan the given class object for relevent
 	 * annotations and map its methods accordingly internally
+	 * 
+	 * @param  classObj to scan and import for methods
 	 */
 	protected void registerClassMethods(Class<?> classObj) {
 		// Lets get the list of methods
@@ -140,24 +144,58 @@ public class BasePageClassMap {
 		
 		// Map the method list with annotation class
 		for (Method methodObj : methodList) {
-			// Get and process each type of annotation we currently support for methods
-			//
-			// Minor note : Because annotation is not extendable, we cant fully refactor
-			// the duplicative loop into a generic function, that is reusable.
-			for (RequestBefore pathObj : methodObj.getAnnotationsByType(RequestBefore.class)) {
-				beforeMap.registerEndpointPath(pathObj.value(), methodObj);
-			}
-			for (RequestPath pathObj : methodObj.getAnnotationsByType(RequestPath.class)) {
-				pathMap.registerEndpointPath(pathObj.value(), methodObj);
-			}
-			for (ApiPath pathObj : methodObj.getAnnotationsByType(ApiPath.class)) {
-				apiMap.registerEndpointPath(pathObj.value(), methodObj);
-			}
-			for (RequestAfter pathObj : methodObj.getAnnotationsByType(RequestAfter.class)) {
-				afterMap.registerEndpointPath(pathObj.value(), methodObj);
-			}
+			// Register the method accordingly
+			registerMethod(classObj, methodObj);
+		}
+	}
+
+	/**
+	 * Scans a single method for valid enpoint registrations 
+	 * 
+	 * @param classObj
+	 * @param methodObj
+	 */
+	protected void registerMethod(Class<?> classObj, Method methodObj) {
+		// Get and process each type of annotation we currently support for methods
+		//
+		// Minor note : Because annotation is not extendable, we cant fully refactor
+		// the duplicative loop into a generic function, that is reusable.
+		for (RequestBefore pathObj : methodObj.getAnnotationsByType(RequestBefore.class)) {
+			beforeMap.registerEndpointPath(pathObj.value(), methodObj);
+		}
+		for (RequestAfter pathObj : methodObj.getAnnotationsByType(RequestAfter.class)) {
+			afterMap.registerEndpointPath(pathObj.value(), methodObj);
 		}
 		
+		//
+		// Checks for a return type,
+		// if its extended from BasePage - assuming its a redirect method
+		//
+
+		Class<?> retMethod = methodObj.getReturnType();
+
+		//
+		// if its extended from BasePage - assuming its a redirect method
+		// and ends the process
+		//
+		if( retMethod != null && BasePage.class.isAssignableFrom(retMethod) ) {
+			for (RequestPath pathObj : methodObj.getAnnotationsByType(RequestPath.class)) {
+				rerouteMethodMap.registerEndpointPath(pathObj.value(), methodObj);
+			}
+			for (ApiPath pathObj : methodObj.getAnnotationsByType(ApiPath.class)) {
+				rerouteMethodMap.registerEndpointPath(pathObj.value(), methodObj);
+			}
+		}
+
+		//
+		// Assumes its a standard request method from here onwards
+		//
+		for (RequestPath pathObj : methodObj.getAnnotationsByType(RequestPath.class)) {
+			pathMap.registerEndpointPath(pathObj.value(), methodObj);
+		}
+		for (ApiPath pathObj : methodObj.getAnnotationsByType(ApiPath.class)) {
+			apiMap.registerEndpointPath(pathObj.value(), methodObj);
+		}
 	}
 	
 	/**
