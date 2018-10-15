@@ -402,6 +402,8 @@ public class BasePageClassMap {
 			
 			// RequestAfter execution
 			executeMethodMap(afterMap, page, requestPath);
+		} catch (ApiException ae) {
+			throw new ApiException(ae.getHttpStatus(), ae.getErrorType(), ae.getErrorMessage());
 		} catch (Exception e) {
 			throw new ApiException(e);
 		}
