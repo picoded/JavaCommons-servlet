@@ -68,9 +68,72 @@ The other main takeaway is the `doSharedSetup`. This particular method will be i
 
 ## DStackPage
 
-BasePageClassMap
+## BasePageClassMap
+BasePageClassMap is an utility class that developers can use to map Annotations to endpoints of a given class object. After which, it can be used to handle request/api calls.
+ 
+#### Parameter
+- `BasePage` class or any other classes
 
-EndpointMap
+#### How to use BasePageClassMap
+BasePageClassMap is the main class that can help facilitate the matching of requests to the endpoints as well as registering endpoints of a Class.
+
+In all cases, the `setupAndCache` method will be called first to generate a BasePageClassMap itself with all its paths that existed in the class extracted.
+
+It is true that you can immediately initialize BasePageClassMap with `new BasePageClassMap(<Your class>)`. However, the purpose of using `setupAndCache` method is that it can return existing objects rather than constantly creating a new `BasePageClassMap`.
+
+```java
+	
+	// Generate a BasePageClassMap
+	BasePageClassMap basePageClassMap = BasePageClassMap.setupAndCache(this);
+``` 
+
+In the constructor method of `BasePageClassMap`, 
+1. It will call upon `registerClass` method that will retrieve all the methods and fields in the class, 
+2. Register those with Annotations and populate the relevant `EndpointMaps` (Look at `EndpointMap` for its definitions and what is it for).
+
+The list of `EndpointMap` consists of
+- beforeMap - contains all paths to process before executing the main endpoint.
+- pathMap   - contains all paths that is not returning a JSON response.
+- apiMap    - contains all paths that returns a JSON response.
+- rerouteFieldMap - contains all rerouting paths that is derived from variables.
+- rerouteMethodMap - contains all rerouting paths that required some initialization steps and return a BasePage class 
+- afterMap  - contains all paths to process after the execution of the main endpoint.
+
+#### How does BasePageClassMap handle requests 
+Once the set up is completed, the `handleRequest` method will be called to process the requests. 
+
+```java
+	// Try to use the various routing options
+	if (request_api(page, routePath)) {
+		return;
+	}
+	
+	if (request_path(page, routePath)) {
+		return;
+	}
+	
+	if (request_methodReroute(page, routePath)) {
+		return;
+	}
+	
+	if (request_fieldReroute(page, routePath)) {
+		return;
+	}
+```
+
+It will follow this specific order and upon matching at any point, it will stop the subsequent processing and return back to the caller.
+
+Within each request handling method, it follows a general structure of
+1. Find and execute any matched before EndpointMap
+2. Find and execute any matched main EndpointMap
+3. Find and execute any matched after EndpointMap  
+
+
+#### How does BasePageClassMap set up reroute paths
+The BasePageClassMap does not explicitly set up reroute paths. It will only attempt to find the relevant reroute paths during handling of requests.
+
+
+## EndpointMap
 
 
 private methods do not get recognized by `BasePageClassMap.registerClassMethods` method
