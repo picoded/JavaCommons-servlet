@@ -629,17 +629,21 @@ public class BasePageClassMap {
 			if (e.getCause() != null) {
 				cause = e.getCause();
 			}
+			if (cause instanceof ApiException) {
+				ApiException ae = (ApiException) cause;
+				throw new ApiException(ae.getHttpStatus(), ae.getErrorType(), ae.getErrorMessage());
+			}
 			throw new RuntimeException(cause);
 		}
-		
+
 		//
 		// Output handling
 		//
-		
+
 		if (executionResponse == null) {
 			return;
 		}
-		
+
 		if (executionResponse instanceof Map) {
 			Map<String, Object> executionMap = (Map<String, Object>) executionResponse;
 			if (!executionMap.equals(page.responseApiMap)) {
