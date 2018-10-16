@@ -56,6 +56,8 @@ The other main takeaway is the `doSharedSetup`. This particular method will be i
 
 #### Other useful methods
 
+@TOOD: Add more details to these methods
+
 - getHttpServletRequest()
 - getHttpServletResponse()
 - requestParameterMap()
@@ -65,10 +67,58 @@ The other main takeaway is the `doSharedSetup`. This particular method will be i
 - requestWildcardUriArray()
 
 ## CoreUtilPage
+`CoreUtilPage` is an extended from `CorePage`. This class contains additional utility functions to provide the bare minimum to serve static pages.
+
+`outputFileServlet` is the method that `CoreUtilPage` uses to process any requests to get static pages.
+
+@TODO: To have a wrapper function that accepts a parameter to dictate the location of the files to be served.
 
 ## BasePage
+`BasePage` is an extension class from `CoreUtilPage`. Its main purpose is to override the `doRequest` method from CorePage so that it will utilize `BasePageClassMap`. 
+
+Apart from that, `BasePage` is the layer where it will intercept any `ApiException` from the endpoints and return a standardized error format.
+
+The error format is
+```javascript
+	{
+		"ERROR" : {
+			"code" : "MISSING_PARAM",
+			"message": "Missing `name` parameter."
+			"stack": "<a stacktrace of the exception>"
+		}
+	}
+``` 
 
 ## BaseUtilPage
+`BaseUtilPage` is extended from `BasePage`. `BaseUtilPage` contains more utility functions such as getting specific file paths.
+- getWebInfPath()
+- getClassesPath()
+- getLibraryPath()
+- getConfigPath() 
+
+A most commonly used function in this class will be the `configFileSet()`. This function returns the configuration folder with all the setting files as a `GenericConvertMap`. All the file settings are in `.json` files. 
+```
+File Directory
+config/
+	- sys/
+		account.json
+		dstack.json
+	- site/
+		email.json
+```
+
+The file directory is then convert to `GenericConvertMap` where you can retrieve the settings as such:
+
+
+```java
+// Getting the dstack as a GenericConvertStringMap
+configFileSet().getGenericConvertStringMap("sys.dstack", null);
+	
+// Getting a single string
+// Given that you have an attribute `name` in account.json
+configFileSet().getString("sys.account.name", "");
+```
+
 
 ## DStackPage
 
@@ -152,9 +202,6 @@ If it does support, `request_methodReroute` will then transfer all the params fr
 After the execution of the `before` paths, it will obtain the data type of the variable, which is the `reroute class`.
 
 Next, it will construct a `BasePageClassMap` based on the `reroute class` and find the relevant paths through the use of `supportRequestPath` method. Once the `reroute class` supports the path, the request will be passed over to the `reroute class` and the same process occurs again.  
-
-
-
 
 ## EndpointMap
 
