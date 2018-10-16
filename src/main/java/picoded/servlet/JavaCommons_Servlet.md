@@ -3,6 +3,10 @@ Matching the correct endpoint
 
 DStackPage -> BaseUtilPage -> BasePage -> CoreUtilPage -> CorePage
 
+
+# Summary
+After reading through this documentation (or just skip to the class that you want to know more about), you should be able to implement classes that extends from the JavaCommons-servlet classes as well as understanding the functions of the utility classes.
+
 ## CorePage
 CorePage is the lowest level of implementation that interacts with the native Java Servlet class. Its main purpose is to alter the flow of the how requests are being processed.
 
@@ -123,17 +127,35 @@ Once the set up is completed, the `handleRequest` method will be called to proce
 
 It will follow this specific order and upon matching at any point, it will stop the subsequent processing and return back to the caller.
 
-Within each request handling method, it follows a general structure of
-1. Find and execute any matched before EndpointMap
-2. Find and execute any matched main EndpointMap
-3. Find and execute any matched after EndpointMap  
+> Within each request handling method, it follows a general structure of
+> 1. Find the main endpoints (If more than 1 is return, it will always get the first in the list)
+> 2. Find and execute any matched before EndpointMap
+> 3. Execute the main Endpoint
+> 4. Find and execute any matched after EndpointMap  
 
+`request_api` and `request_path` is fairly straightforward whereby upon finding match endpoints, it will just execute them.
 
+`request_methodReroute` and `request_fieldReroute` methods are more tricky, see the next section on `How does BasePageClassMap set up reroute paths` for more information.
+ 
 #### How does BasePageClassMap set up reroute paths
-The BasePageClassMap does not explicitly set up reroute paths. It will only attempt to find the relevant reroute paths during handling of requests.
+The BasePageClassMap does not explicitly set up reroute paths. It will only attempt to find the relevant reroute paths during handling of requests. 
+ 
+`request_methodReroute` and `request_filedReroute` methods are suppose to contain endpoint paths that end with `/*`, if not it will throw an error. Once the path is valid, it will find and execute all relevant `before` endpoint paths.
+
+##### request_methodReroute
+After the execution of the `before` paths, it will invoke the main method. The object that is returned from this method should be of a `BasePage` class. It will then performs the `setupAndCache` of this returned object and checks if it supports the request path.
+
+If it does support, `request_methodReroute` will then transfer all the params from itself to the `BasePage` class and execute the `handleRequest` method. 
+
+##### request_fieldReroute 
+
+After the execution of the `before` paths, it will obtain the data type of the variable, which is the `reroute class`.
+
+Next, it will construct a `BasePageClassMap` based on the `reroute class` and find the relevant paths through the use of `supportRequestPath` method. Once the `reroute class` supports the path, the request will be passed over to the `reroute class` and the same process occurs again.  
+
+
 
 
 ## EndpointMap
-
 
 private methods do not get recognized by `BasePageClassMap.registerClassMethods` method
