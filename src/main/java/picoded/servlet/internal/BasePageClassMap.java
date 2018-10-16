@@ -575,15 +575,15 @@ public class BasePageClassMap {
 			throw new RuntimeException("Reroute paths are suppose to end with '/*'");
 		}
 		
-		// RequestBefore execution
-		executeMethodMap(beforeMap, page, requestPath);
-		
 		// Return the method associated with a valid endpoint
 		Method rerouteMethod = rerouteMethodMap.get(endpoint);
-
 		if (rerouteMethod == null) {
 			return false;
 		}
+		
+		// RequestBefore execution
+		executeMethodMap(beforeMap, page, requestPath);
+		
 		//
 		// I should instead, execute the method, get its expected object
 		// which will be extended from BasePage
