@@ -1,0 +1,18 @@
+{
+	"provider" : [
+		{
+			"name" : "db_main",
+			"type" : "jsql",
+			"db" : {
+				"type" : "sqlite"
+			}
+		}
+	],
+
+	"namespace" : [
+		{
+			"regex" : ".*",
+			"providers" : [ "db_main" ]
+		}
+	]  
+}

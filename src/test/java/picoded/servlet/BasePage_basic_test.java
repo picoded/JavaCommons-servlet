@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import picoded.core.conv.ConvertJSON;
+import picoded.core.conv.GenericConvert;
 import picoded.core.struct.GenericConvertMap;
 import picoded.core.struct.GenericConvertHashMap;
 import picoded.core.struct.GenericConvertMap;
@@ -28,7 +29,7 @@ import javax.servlet.ServletRequest;
 public class BasePage_basic_test {
 	
 	//
-	// The test folders to use 
+	// The test folders to use
 	//
 	
 	int testPort = 0;
@@ -302,9 +303,9 @@ public class BasePage_basic_test {
 	}
 	
 	/**
-	 * Methods that explicitly throw ApiPathException
+	 * Methods that explicitly throw ApiException
 	 */
-	public static class ApiPathExceptionServlet extends BasePage {
+	public static class ApiExceptionServlet extends BasePage {
 		@ApiPath("name/testing")
 		public void simpleNameParam(Integer wrongParam) {
 			// intentionally leave blank
@@ -312,13 +313,15 @@ public class BasePage_basic_test {
 	}
 	
 	@Test
-	public void test_apiPathException() {
-		assertNotNull(testServlet = new EmbeddedServlet(testPort, new ApiPathExceptionServlet()));
+	public void test_apiException() {
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new ApiExceptionServlet()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/name/testing";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		Map<String, Object> map = response.toMap();
-		System.out.println(map.get("ERROR_MSG").toString());
-		assertEquals("Unsupported type in method simpleNameParam for parameter type Integer", map
-			.get("ERROR_MSG").toString());
+		GenericConvertMap<String, Object> genericConvertMap = GenericConvert
+			.toGenericConvertStringMap(map);
+		System.out.println(map.get("ERROR").toString());
+		assertEquals("Unsupported type in method simpleNameParam for parameter type Integer",
+			genericConvertMap.getGenericConvertStringMap("ERROR").getString("message").toString());
 	}
 }

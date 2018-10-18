@@ -1,8 +1,6 @@
 package picoded.servlet;
 
 import java.io.PrintWriter;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -13,7 +11,7 @@ import picoded.core.struct.GenericConvertMap;
 import picoded.servlet.internal.*;
 
 /**
- * BasePage builds ontop of CorePage, and completely overwrites 
+ * BasePage builds ontop of CorePage, and completely overwrites
  * doRequest behaviour to depend on annotations routing for paths
  */
 public class BasePage extends CoreUtilPage {
@@ -34,7 +32,7 @@ public class BasePage extends CoreUtilPage {
 	}
 	
 	/**
-	 * Clone constructor, this is used to copy over 
+	 * Clone constructor, this is used to copy over
 	 * all values from original instance
 	 */
 	public BasePage(CorePage ori) {
@@ -44,7 +42,7 @@ public class BasePage extends CoreUtilPage {
 	
 	/**
 	 * Import CorePage/BasePage instance parameters over to another instance
-	 * 
+	 *
 	 * @param  ori original CorePage to copy from
 	 */
 	public void transferParamsProcess(CorePage ori) {
@@ -105,8 +103,8 @@ public class BasePage extends CoreUtilPage {
 			
 			// Process the response objects, and output them
 			doRequestOutput(writer);
-		} catch (ApiPathException ape) {
-			handleApiPathException(ape);
+		} catch (ApiException ae) {
+			handleApiException(ae);
 		} catch (HaltException he) {
 			handleHaltException(he);
 		}
@@ -123,7 +121,7 @@ public class BasePage extends CoreUtilPage {
 			// Does the string based response accordingly
 			writer.println(responseStringBuilder.toString());
 		} else if (responseApiMap.size() > 0) {
-			// Setting the response to be JSON output 
+			// Setting the response to be JSON output
 			if (getHttpServletResponse().getContentType() == null) {
 				getHttpServletResponse().setContentType("application/javascript");
 			}
@@ -134,7 +132,7 @@ public class BasePage extends CoreUtilPage {
 	/**
 	 * Response map builder for api
 	 * NOTE: Do not use this in conjuction with PrintWriter / responseStringBuilder
-	 * 
+	 *
 	 * @TODO : Refactor to protected _ equivalent with getter functions
 	 */
 	public GenericConvertMap<String, Object> responseApiMap = null;
@@ -142,7 +140,7 @@ public class BasePage extends CoreUtilPage {
 	/**
 	 * Response string builder, to use within requests (if applicable)
 	 * NOTE: Do not use this in conjuction with PrintWriter / responseApiMap
-	 * 
+	 *
 	 * @TODO : Refactor to protected _ equivalent with getter functions
 	 */
 	public StringBuilder responseStringBuilder = null;
@@ -160,37 +158,19 @@ public class BasePage extends CoreUtilPage {
 		throw new HaltException();
 	}
 	
-	static class HaltException extends RuntimeException {
-	}
-	
-	public static class ApiPathException extends RuntimeException {
-		public ApiPathException(Exception e) {
-			super(e);
-		}
-	}
-	
 	/**
 	 * Handles HALT exception
 	 **/
-	protected void handleHaltException(Exception e) throws Exception {
+	protected void handleHaltException(HaltException e) throws Exception {
 		//intentionally does nothing
 	}
 	
 	/**
 	 * Handles API based exceptions
 	 **/
-	protected void handleApiPathException(Exception e) throws Exception {
-		Throwable cause = e;
+	protected void handleApiException(ApiException e) throws Exception {
 		
-		// Converts the stack trace to a string
-		if (ExceptionUtils.getRootCause(cause) != null) {
-			cause = ExceptionUtils.getRootCause(cause);
-			
-		}
-		String stackTrace = ExceptionUtils.getStackTrace(cause);
-		
-		responseApiMap.put("ERROR_MSG", cause.getMessage());
-		responseApiMap.put("STACK_TRACE", stackTrace);
+		responseApiMap.put("ERROR", e.getErrorMap());
 		
 		getHttpServletResponse().setContentType("application/javascript");
 		getPrintWriter().println(ConvertJSON.fromObject(responseApiMap, true));
