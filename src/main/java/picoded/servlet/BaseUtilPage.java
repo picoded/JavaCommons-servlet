@@ -22,13 +22,13 @@ import picoded.servlet.internal.*;
  * for config files, and various other components.
  */
 public class BaseUtilPage extends BasePage {
-
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// Parameters transfer handling
 	//
 	/////////////////////////////////////////////////////////////////////////////////////////////
-
+	
 	/**
 	 * Import CorePage/BasePage instance parameters over to another instance
 	 *
@@ -37,73 +37,73 @@ public class BaseUtilPage extends BasePage {
 	public void transferParamsProcess(CorePage ori) {
 		// Does original transfer
 		super.transferParamsProcess(ori);
-
+		
 		// Abort if instance is not extended from BasePage
 		if (!(ori instanceof BaseUtilPage)) {
 			return;
 		}
-
+		
 		// Get the BasePage instance
 		BaseUtilPage oriPage = (BaseUtilPage) ori;
-
+		
 		// Does additional transfer for BaseUtilPage
 		this._webInfPath = oriPage._webInfPath;
 		this._classesPath = oriPage._classesPath;
 		this._libraryPath = oriPage._libraryPath;
 		this._configsPath = oriPage._configsPath;
 	}
-
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// Path handling
 	//
 	/////////////////////////////////////////////////////////////////////////////////////////////
-
+	
 	protected String _webInfPath = null;
 	protected String _classesPath = null;
 	protected String _libraryPath = null;
 	protected String _configsPath = null;
-
+	
 	/**
 	 * @return WEB-INF folder path
 	 **/
 	public String getWebInfPath() {
 		return (_webInfPath != null) ? _webInfPath : (_webInfPath = getContextPath() + "WEB-INF/");
 	}
-
+	
 	/**
 	 * @return classes folder path
 	 **/
 	public String getClassesPath() {
 		return (_classesPath != null) ? _classesPath : (_classesPath = getWebInfPath() + "classes/");
 	}
-
+	
 	/**
 	 * @return library folder path
 	 **/
 	public String getLibraryPath() {
 		return (_libraryPath != null) ? _libraryPath : (_libraryPath = getWebInfPath() + "lib/");
 	}
-
+	
 	/**
 	 * @return config files path
 	 **/
 	public String getConfigPath() {
 		return (_configsPath != null) ? _configsPath : (_configsPath = getWebInfPath() + "config/");
 	}
-
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// Configuration handling
 	//
 	/////////////////////////////////////////////////////////////////////////////////////////////
-
+	
 	// Internal static representation of the config file
 	private static GenericConvertMap<String, Object> _unmodifiableConfigFileSet = null;
-
+	
 	// Global cache for the configFileSet
 	private static ConcurrentHashMap<String, GenericConvertMap<String, Object>> configFileSetGlobalCache = new ConcurrentHashMap<>();
-
+	
 	/**
 	 * Get the configuration file set from the WEB-INF/config/ folder
 	 * And returns its unmodifiableMap object.
@@ -115,45 +115,45 @@ public class BaseUtilPage extends BasePage {
 	public GenericConvertMap<String, Object> configFileSet() {
 		// Get the full configuration path
 		String fullConfigPath = getConfigPath();
-
+		
 		// Return loaded config file set, if found
-		GenericConvertMap<String,Object> ret = configFileSetGlobalCache.get(fullConfigPath);
-		if( ret != null ) {
+		GenericConvertMap<String, Object> ret = configFileSetGlobalCache.get(fullConfigPath);
+		if (ret != null) {
 			return ret;
 		}
-
+		
 		// Performing a syncronized lock on the static class
 		// before initializing the BaseUtilPage
 		synchronized (BaseUtilPage.class) {
-
+			
 			// Return the config file set if it was
 			// intitialized in a race condition
 			ret = configFileSetGlobalCache.get(fullConfigPath);
-			if( ret != null ) {
+			if (ret != null) {
 				return ret;
 			}
-
+			
 			// Load the config file set
 			ConfigFileSet configSet = new ConfigFileSet();
 			configSet.addConfigSet(fullConfigPath);
-
+			
 			// Get and return the unmodifiable copy
 			ret = configSet.unmodifiableMap();
-
+			
 			// Caches it
 			configFileSetGlobalCache.put(fullConfigPath, ret);
-
+			
 			// and return it
 			return ret;
 		}
 	}
-
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// Reusable output logger
 	//
 	/////////////////////////////////////////////////////////////////////////////////////////////
-
+	
 	/**
 	 * Servlet logging interface
 	 *
@@ -167,19 +167,19 @@ public class BaseUtilPage extends BasePage {
 		logObj = Logger.getLogger(this.getClass().getName());
 		return logObj;
 	}
-
+	
 	// Memoizer for log() function
 	protected Logger logObj = null;
-
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// background threading : public
 	//
 	/////////////////////////////////////////////////////////////////////////////////////////////
-
+	
 	// The running background thread
 	private Thread backgroundThread = null;
-
+	
 	/**
 	 * This should only be called within "backgroundProcess"
 	 * @return true, if the process is a background thread
@@ -187,7 +187,7 @@ public class BaseUtilPage extends BasePage {
 	public boolean isBackgroundThread() {
 		return backgroundThread != null && backgroundThread.getId() == Thread.currentThread().getId();
 	}
-
+	
 	/**
 	 * This is to be called only within "backgroundProcess"
 	 * @return true, if the process is a background thread, and not interrupted
@@ -195,7 +195,7 @@ public class BaseUtilPage extends BasePage {
 	public boolean isBackgroundThreadAlive() {
 		return (backgroundThread != null && !Thread.interrupted());
 	}
-
+	
 	/**
 	 * [To be extended by sub class, if needed]
 	 * The background process to execute per tick.
@@ -203,14 +203,14 @@ public class BaseUtilPage extends BasePage {
 	protected void backgroundProcess() {
 		// Does nothing, for now
 	}
-
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// background threading : internal
 	// [ NOT OFFICIALLY SUPPORTED FOR EXTENSION ]
 	//
 	/////////////////////////////////////////////////////////////////////////////////////////////
-
+	
 	/**
 	 * The background thread handler, isolated as a runnable.
 	 *
@@ -221,20 +221,20 @@ public class BaseUtilPage extends BasePage {
 		// The config to use : or default value
 		GenericConvertMap<String, Object> bgConfig = configFileSet().getGenericConvertStringMap(
 			"sys.background", "{}");
-
+		
 		// Get the current background thread mode
 		// Expect "between" (default) or "start" mode
 		String threadmode = bgConfig.getString("mode", "between");
 		long configInterval = bgConfig.getLong("interval", 10000);
-
+		
 		// The invcoation timestamp in previous call
 		long previousStartTimestamp = 0;
-
+		
 		// Start of background thread loop
 		while (isBackgroundThreadAlive()) {
 			// Get the new start timestamp
 			long startTimestamp = System.currentTimeMillis();
-
+			
 			// Does the background process
 			try {
 				backgroundProcess();
@@ -248,7 +248,7 @@ public class BaseUtilPage extends BasePage {
 							+ "\n" + picoded.core.exception.ExceptionUtils.getStackTrace(e) //
 					);
 			}
-
+			
 			// Does the appropriate interval delay, takes interruptException as termination
 			try {
 				if (!isBackgroundThreadAlive()) {
@@ -283,12 +283,12 @@ public class BaseUtilPage extends BasePage {
 							"backgroundThreadHandler - caught Unexpected InterruptedException (outside termination event)");
 				}
 			}
-
+			
 			// Update the previous start timestamp
 			previousStartTimestamp = startTimestamp;
 		}
 	};
-
+	
 	/**
 	 * Loads the configuration and start the background thread
 	 */
@@ -300,7 +300,7 @@ public class BaseUtilPage extends BasePage {
 			backgroundThread.start();
 		}
 	}
-
+	
 	/**
 	 * Loads the configuration and stop the background thread
 	 * Either gracefully, or forcefully.
@@ -321,14 +321,14 @@ public class BaseUtilPage extends BasePage {
 						+ e.getMessage());
 				log().warning(picoded.core.exception.ExceptionUtils.getStackTrace(e));
 			}
-
+			
 			// Does the actual termination if needed
 			if (backgroundThread.isAlive()) {
 				backgroundThread.stop();
 			}
 		}
 	}
-
+	
 	/**
 	 * [To be extended by sub class, if needed]
 	 * Initialize context setup process, with background thread
@@ -338,7 +338,7 @@ public class BaseUtilPage extends BasePage {
 		super.initializeContext();
 		backgroundThreadHandler_start();
 	}
-
+	
 	/**
 	 * [To be extended by sub class, if needed]
 	 * Initialize context destroy process, with background thread
@@ -348,5 +348,5 @@ public class BaseUtilPage extends BasePage {
 		backgroundThreadHandler_stop();
 		super.destroyContext();
 	}
-
+	
 }

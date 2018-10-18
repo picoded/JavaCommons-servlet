@@ -17,7 +17,7 @@ public class DStackPage extends BaseUtilPage {
 	
 	/**
 	 * Import CorePage/BasePage instance parameters over to another instance
-	 * 
+	 *
 	 * @param  ori original CorePage to copy from
 	 */
 	public void transferParamsProcess(CorePage ori) {
@@ -48,7 +48,7 @@ public class DStackPage extends BaseUtilPage {
 	/**
 	 * Get and return the DStack config from the configuration file / folder
 	 * if applicable, returns null if no valid config found.
-	 * 
+	 *
 	 * @return  the dstack config map, to initialize the stack object
 	 */
 	public GenericConvertMap<String, Object> dstackConfig() {
@@ -57,7 +57,7 @@ public class DStackPage extends BaseUtilPage {
 	
 	/**
 	 * DStack instance object, used to represent the backend data structure
-	 * 
+	 *
 	 * @return  dstack object, initialized using the dstackConfig if valid
 	 */
 	public DStack dstack() {
@@ -69,10 +69,10 @@ public class DStackPage extends BaseUtilPage {
 	
 	/**
 	 * DStack instance object, used to represent the backend data structure
-	 * 
+	 *
 	 * This forcefully reinitialize the DStack object, so that L0-1 cache
 	 * (eg. stackSimple) could be resetted between background background cycles.
-	 * 
+	 *
 	 * @return  dstack object, initialized using the dstackConfig if valid
 	 */
 	protected DStack dstack_forceInitialize() {
@@ -119,7 +119,7 @@ public class DStackPage extends BaseUtilPage {
 		// DStack systemSetup
 		//
 		// as this is done AFTER doSharedSetup,
-		// any objects initialized in there will 
+		// any objects initialized in there will
 		// have its own systemSetup() call performed.
 		dstack().systemSetup();
 	}
