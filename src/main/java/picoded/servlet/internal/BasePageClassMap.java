@@ -21,20 +21,20 @@ import javax.servlet.http.HttpServletRequest;
  * Note that this class map is designed for concurrent access by multiple threads
  **/
 public class BasePageClassMap {
-
+	
 	///////////////////////////////////////////////////////
 	//
 	// Consturctor and method list init
 	//
 	///////////////////////////////////////////////////////
-
+	
 	/**
 	 * Blank constructor
 	 */
 	public BasePageClassMap() {
 		super();
 	}
-
+	
 	/**
 	 * Consturctor with BasePage
 	 *
@@ -44,7 +44,7 @@ public class BasePageClassMap {
 		super();
 		this.registerClass(AnnotationUtil.extractClass(page));
 	}
-
+	
 	/**
 	 * Consturctor with class object
 	 *
@@ -54,18 +54,18 @@ public class BasePageClassMap {
 		super();
 		this.registerClass(classObj);
 	}
-
+	
 	///////////////////////////////////////////////////////
 	//
 	// Static caching of initialized BasePageClassMap
 	//
 	///////////////////////////////////////////////////////
-
+	
 	/**
 	 * Using a local static concurrent hash map, for caching of path tree data
 	 */
 	private static final Map<Class<?>, BasePageClassMap> instanceCache = new ConcurrentHashMap<>();
-
+	
 	/**
 	 * Given a BasePage instance, extract out the relevent BasePageClassMap information,
 	 * and cache it if possible.
@@ -75,7 +75,7 @@ public class BasePageClassMap {
 	public static BasePageClassMap setupAndCache(BasePage page) {
 		return setupAndCache(page.getClass());
 	}
-
+	
 	/**
 	 * Given a BasePage class, extract out the relevent BasePageClassMap information,
 	 * and cache it if possible.
@@ -88,26 +88,26 @@ public class BasePageClassMap {
 		if (ret != null) {
 			return ret;
 		}
-
+		
 		// Cache not found, lets recreate this
 		ret = new BasePageClassMap(classObj);
-
+		
 		// And store in cache, + return it
 		instanceCache.put(classObj, ret);
 		return ret;
 	}
-
+	
 	///////////////////////////////////////////////////////
 	//
 	// Class mapping
 	//
 	///////////////////////////////////////////////////////
-
+	
 	/** Class object representation of BasePage instance used in BasePageClassMap */
 	protected Class<?> pageClass = null;
 	/** List of methods used in before filters */
 	protected EndpointMap<Method> beforeMap = new EndpointMap<>();
-
+	
 	/** List of methods used for pathing execution */
 	protected EndpointMap<Method> pathMap = new EndpointMap<>();
 	/** List of methods used for API execution */
@@ -116,10 +116,10 @@ public class BasePageClassMap {
 	protected EndpointMap<Field> rerouteFieldMap = new EndpointMap<>();
 	/** List of methods used for path rerouting */
 	protected EndpointMap<Method> rerouteMethodMap = new EndpointMap<>();
-
+	
 	/** List of methods used in after filters */
 	protected EndpointMap<Method> afterMap = new EndpointMap<>();
-
+	
 	/**
 	 * Import and scan the given class object for relevent
 	 * annotations and map it accordingly internally to this BasePageClassMap
@@ -131,7 +131,7 @@ public class BasePageClassMap {
 		registerClassMethods(classObj);
 		registerClassFields(classObj);
 	}
-
+	
 	/**
 	 * Import and scan the given class object for relevent
 	 * annotations and map its methods accordingly internally
@@ -141,14 +141,14 @@ public class BasePageClassMap {
 	protected void registerClassMethods(Class<?> classObj) {
 		// Lets get the list of methods
 		List<Method> methodList = AnnotationUtil.fetchMethodList(classObj);
-
+		
 		// Map the method list with annotation class
 		for (Method methodObj : methodList) {
 			// Register the method accordingly
 			registerMethod(classObj, methodObj);
 		}
 	}
-
+	
 	/**
 	 * Scans a single method for valid enpoint registrations
 	 *
@@ -166,14 +166,14 @@ public class BasePageClassMap {
 		for (RequestAfter pathObj : methodObj.getAnnotationsByType(RequestAfter.class)) {
 			afterMap.registerEndpointPath(pathObj.value(), methodObj);
 		}
-
+		
 		//
 		// Checks for a return type,
 		// if its extended from BasePage - assuming its a redirect method
 		//
-
+		
 		Class<?> retMethod = methodObj.getReturnType();
-
+		
 		//
 		// if its extended from BasePage - assuming its a redirect method
 		// and ends the process
@@ -187,7 +187,7 @@ public class BasePageClassMap {
 			}
 			return;
 		}
-
+		
 		//
 		// Assumes its a standard request method from here onwards
 		//
@@ -198,7 +198,7 @@ public class BasePageClassMap {
 			apiMap.registerEndpointPath(pathObj.value(), methodObj);
 		}
 	}
-
+	
 	/**
 	 * Import and scan the given class object for relevent,
 	 * annotations and map its fields accordingly internally.
@@ -206,7 +206,7 @@ public class BasePageClassMap {
 	protected void registerClassFields(Class<?> classObj) {
 		// Get the list of fields (for potential rerouting), filter it, and map it
 		List<Field> fieldList = AnnotationUtil.fetchFieldList(classObj);
-
+		
 		// Map the field list with relevent annotation class
 		for (Field field : fieldList) {
 			// Get and process each type of annotation we currently support for fields
@@ -215,13 +215,13 @@ public class BasePageClassMap {
 			}
 		}
 	}
-
+	
 	///////////////////////////////////////////////////////
 	//
 	// Endpoint getter functions
 	//
 	///////////////////////////////////////////////////////
-
+	
 	/**
 	 * Retrieves the api endpoints of this class
 	 * @return
@@ -229,7 +229,7 @@ public class BasePageClassMap {
 	public EndpointMap<Method> apiEndpoints() {
 		return apiMap;
 	}
-
+	
 	/**
 	 * Retrieves the rerouting fields of this class
 	 * @return
@@ -237,7 +237,7 @@ public class BasePageClassMap {
 	public EndpointMap<Field> reroutePaths() {
 		return rerouteFieldMap;
 	}
-
+	
 	/**
 	 * From the given class, performs a recursive loop to generate the list of endpoints that appends the rerouting
 	 * path to the internal class's @ApiPath and store it into the Map<String, Method>.
@@ -255,10 +255,10 @@ public class BasePageClassMap {
 		if (currentPath.endsWith("/*")) {
 			currentPath = currentPath.replaceAll("\\*$", "");
 		}
-
+		
 		// Obtain the ClassMap so that we can retrieve the api endpoints as well as its rerouting paths
 		BasePageClassMap basePageClassMap = BasePageClassMap.setupAndCache(clazz);
-
+		
 		EndpointMap<Method> apis = basePageClassMap.apiEndpoints();
 		for (String key : apis.keySet()) {
 			// NOTE: The first implementation will be taken! Future implementation will be ignored
@@ -268,7 +268,7 @@ public class BasePageClassMap {
 			endpoints.putIfAbsent(currentPath + key, apis.get(key));
 			endpoints.putIfAbsent(key, apis.get(key));
 		}
-
+		
 		// Recursively call through the reroute fields to retrieve the other api endpoints
 		EndpointMap<Field> reroutePaths = basePageClassMap.reroutePaths();
 		for (String key : reroutePaths.keySet()) {
@@ -277,13 +277,13 @@ public class BasePageClassMap {
 			getApiEndpointsFromClass(key, getRerouteClass(reroutePaths.get(key)), endpoints);
 		}
 	}
-
+	
 	///////////////////////////////////////////////////////
 	//
 	// route handling
 	//
 	///////////////////////////////////////////////////////
-
+	
 	/**
 	 * Given a field object, extract the BasePage class object
 	 * for reroute detection
@@ -300,7 +300,7 @@ public class BasePageClassMap {
 		}
 		return ret;
 	}
-
+	
 	/**
 	 * Intiailize reroute BasePage class instance
 	 *
@@ -317,7 +317,7 @@ public class BasePageClassMap {
 		// } catch (Exception e) {
 		// 	// ignore, and does the fallback
 		// }
-
+		
 		// Initialize a new instance if able
 		try {
 			BasePage ret = (BasePage) (Object) classObj.newInstance();
@@ -331,7 +331,7 @@ public class BasePageClassMap {
 			throw new RuntimeException(e);
 		}
 	}
-
+	
 	/**
 	 * Extract out the reroute subpath from current requestPath
 	 * given the reroute declared endpoint.
@@ -348,16 +348,16 @@ public class BasePageClassMap {
 		// Get the routePath parts count
 		String[] splitRoutePath = rerouteFieldMap.splitUriString(routePath);
 		int partsCount = splitRoutePath.length;
-
+		
 		// Remove the trailing '/*' in the parts count
 		if (routePath.endsWith("/*")) {
 			--partsCount;
 		}
-
+		
 		// Get the reroute path
 		return Arrays.copyOfRange(requestPath, partsCount, requestPath.length);
 	}
-
+	
 	/**
 	 * Checks and return if the given routePath is supported
 	 *
@@ -373,30 +373,30 @@ public class BasePageClassMap {
 		}
 		// Get list a reroute path
 		List<String> pathList = rerouteFieldMap.findValidKeys(requestPath);
-
+		
 		// Return false (if no endpoint found)
 		if (pathList == null || pathList.size() <= 0) {
 			return false;
 		}
-
+		
 		// Get a possibly valid endpoint reroute class
 		String endpoint = pathList.get(0);
 		Field fieldObj = rerouteFieldMap.get(endpoint);
 		Class<?> routeClass = getRerouteClass(fieldObj);
-
+		
 		// Lets get the routeClass BasePageClassMap
 		BasePageClassMap routeClassMap = BasePageClassMap.setupAndCache(routeClass);
-
+		
 		// And finally check if the route class can support the endpoint
 		return routeClassMap.supportsRequestPath(reroutePath(requestPath, endpoint));
 	}
-
+	
 	///////////////////////////////////////////////////////
 	//
 	// request handling
 	//
 	///////////////////////////////////////////////////////
-
+	
 	/**
 	 * Takes the existing request, and perform routing logic on it respectively.
 	 *
@@ -420,11 +420,11 @@ public class BasePageClassMap {
 		if (request_fieldReroute(page, routePath)) {
 			return;
 		}
-
+		
 		// If none is found throws a 404 =(
 		page.handleMissingRouteFailure();
 	}
-
+	
 	/**
 	 * Attempts to route a request with a valid ApiPath if found.
 	 *
@@ -437,22 +437,22 @@ public class BasePageClassMap {
 		try {
 			// Get list of valid paths
 			List<String> pathList = apiMap.findValidKeys(requestPath);
-
+			
 			// Return false (if no endpoint found)
 			if (pathList == null || pathList.size() <= 0) {
 				return false;
 			}
-
+			
 			// Return the Method associated with a valid endpoint
 			String annotationPath = pathList.get(0);
 			Method toExecute = apiMap.get(annotationPath);
-
+			
 			// RequestBefore execution
 			executeMethodMap(beforeMap, page, requestPath);
-
+			
 			// Execute the method
 			executeMethod(page, toExecute, apiMap.splitUriString(annotationPath), requestPath);
-
+			
 			// RequestAfter execution
 			executeMethodMap(afterMap, page, requestPath);
 		} catch (ApiException ae) {
@@ -460,11 +460,11 @@ public class BasePageClassMap {
 		} catch (Exception e) {
 			throw new ApiException(e);
 		}
-
+		
 		// Assume valid execution
 		return true;
 	}
-
+	
 	/**
 	 * Attempts to route a request with a valid ApiPath if found.
 	 *
@@ -476,29 +476,29 @@ public class BasePageClassMap {
 	protected boolean request_path(BasePage page, String[] requestPath) {
 		// Get list of valid paths
 		List<String> pathList = pathMap.findValidKeys(requestPath, page.requestType());
-
+		
 		// Return false (if no endpoint found)
 		if (pathList == null || pathList.size() <= 0) {
 			return false;
 		}
-
+		
 		// Return the Method associated with a valid endpoint
 		String annotationPath = pathList.get(0);
 		Method toExecute = pathMap.get(annotationPath);
-
+		
 		// RequestBefore execution
 		executeMethodMap(beforeMap, page, requestPath);
-
+		
 		// Execute the method
 		executeMethod(page, toExecute, pathMap.splitUriString(annotationPath), requestPath);
-
+		
 		// RequestAfter execution
 		executeMethodMap(afterMap, page, requestPath);
-
+		
 		// Assume valid execution
 		return true;
 	}
-
+	
 	/**
 	 * Attempts to route a request with a valid ApiPath if found.
 	 *
@@ -510,48 +510,48 @@ public class BasePageClassMap {
 	protected boolean request_fieldReroute(BasePage page, String[] requestPath) {
 		// Get list of valid paths
 		List<String> pathList = rerouteFieldMap.findValidKeys(requestPath);
-
+		
 		// Return false (if no endpoint found)
 		if (pathList == null || pathList.size() <= 0) {
 			return false;
 		}
-
+		
 		// Get the valid endpoint
 		String endpoint = pathList.get(0);
-
+		
 		// Validate reroute endpoint ends with /*
 		if (!endpoint.endsWith("/*")) {
 			throw new RuntimeException("Reroute paths are suppose to end with '/*'");
 		}
-
+		
 		// Return the Field associated with a valid endpoint
 		Field rerouteField = rerouteFieldMap.get(endpoint);
-
+		
 		// Get the reroute target
 		Class<?> routeClass = getRerouteClass(rerouteField);
 		BasePageClassMap routeClassMap = BasePageClassMap.setupAndCache(routeClass);
-
+		
 		// Check if it supports rerouting
 		String[] reroutePathArr = reroutePath(requestPath, endpoint);
 		if (!routeClassMap.supportsRequestPath(reroutePathArr)) {
 			return false;
 		}
-
+		
 		// RequestBefore execution
 		executeMethodMap(beforeMap, page, requestPath);
-
+		
 		// Execute the reroute, with the routing class
 		// @TODO: handle name parameters in routePath (e.g. :user)
 		BasePage routeClassObj = setupRerouteClassInstance(routeClass, page, rerouteField);
 		routeClassMap.handleRequest(routeClassObj, reroutePathArr);
-
+		
 		// RequestAfter execution
 		executeMethodMap(afterMap, routeClassObj, requestPath);
-
+		
 		// Assume valid execution
 		return true;
 	}
-
+	
 	/**
 	 * Attempts to route a request with a valid ApiPath if found.
 	 *
@@ -563,29 +563,29 @@ public class BasePageClassMap {
 	protected boolean request_methodReroute(BasePage page, String[] requestPath) {
 		// Get list of valid paths
 		List<String> pathList = rerouteMethodMap.findValidKeys(requestPath);
-
+		
 		// Return false (if no endpoint found)
 		if (pathList == null || pathList.size() <= 0) {
 			return false;
 		}
-
+		
 		// Get the valid endpoint
 		String endpoint = pathList.get(0);
-
+		
 		// Validate reroute endpoint ends with /*
 		if (!endpoint.endsWith("/*")) {
 			throw new RuntimeException("Reroute paths are suppose to end with '/*'");
 		}
-
+		
 		// Return the method associated with a valid endpoint
 		Method rerouteMethod = rerouteMethodMap.get(endpoint);
 		if (rerouteMethod == null) {
 			return false;
 		}
-
+		
 		// RequestBefore execution
 		executeMethodMap(beforeMap, page, requestPath);
-
+		
 		//
 		// I should instead, execute the method, get its expected object
 		// which will be extended from BasePage
@@ -597,36 +597,36 @@ public class BasePageClassMap {
 		// Then using the return object, I will do a `transferParams` on the instance
 		// followed by the appropriate `handleRequest` sub call
 		//
-
+		
 		try {
-
+			
 			Object returnObj = rerouteMethod.invoke(page, new Object[0]);
 			if (returnObj == null) {
 				page.handleMissingRouteFailure();
 			}
 			if (returnObj instanceof BasePage) {
-
+				
 				BasePage nextPage = (BasePage) returnObj;
-
+				
 				// Setup the route mapping
 				BasePageClassMap routeClassMap = BasePageClassMap.setupAndCache(nextPage);
-
+				
 				// Return false if the nextPage does not contain the path for this request
 				String[] reroutePathArr = reroutePath(requestPath, endpoint);
 				if (!routeClassMap.supportsRequestPath(reroutePathArr)) {
 					return false;
 				}
-
+				
 				// Transfer page's settings to the nextPage
 				nextPage.transferParams(page);
 				routeClassMap.handleRequest(nextPage, reroutePathArr);
-
+				
 				executeMethodMap(afterMap, page, requestPath);
-
+				
 			} else {
 				page.handleMissingRouteFailure();
 			}
-
+			
 		} catch (IllegalAccessException iae) {
 			throw new RuntimeException(iae);
 		} catch (InvocationTargetException ite) {
@@ -635,31 +635,31 @@ public class BasePageClassMap {
 		// // Get the reroute target
 		// Class<?> routeClass = getRerouteClass(rerouteField);
 		// BasePageClassMap routeClassMap = BasePageClassMap.setupAndCache(routeClass);
-
+		
 		// // Check if it supports rerouting
 		// String[] reroutePathArr = reroutePath(requestPath, endpoint);
 		// if (!routeClassMap.supportsRequestPath(reroutePathArr)) {
 		// 	return false;
 		// }
-
+		
 		// // Execute the reroute, with the routing class
 		// // @TODO: handle name parameters in routePath (e.g. :user)
 		// BasePage routeClassObj = setupRerouteClassInstance(routeClass, page, rerouteField);
 		// routeClassMap.handleRequest(routeClassObj, reroutePathArr);
-
+		
 		// RequestAfter execution
 		//		executeMethodMap(afterMap, routeClassObj, requestPath);
-
+		
 		// Assume valid execution
 		return true;
 	}
-
+	
 	///////////////////////////////////////////////////////
 	//
 	// Method execution handling
 	//
 	///////////////////////////////////////////////////////
-
+	
 	/**
 	 * Execute all relevent request methods, found in an endpointMap for a routePath
 	 *
@@ -670,14 +670,14 @@ public class BasePageClassMap {
 	protected void executeMethodMap(EndpointMap<Method> methodMap, BasePage page, String[] routePath) {
 		// Get list of valid paths
 		List<String> pathList = methodMap.findValidKeys(routePath);
-
+		
 		// and execute all its relevent method
 		for (String annotationPath : pathList) {
 			Method toExecute = methodMap.get(annotationPath);
 			executeMethod(page, toExecute, methodMap.splitUriString(annotationPath), routePath);
 		}
 	}
-
+	
 	/**
 	 * From the annotationPath, extract any name parameters that contains ":" and grab the exact value from
 	 * requestPath and put them into the paramMap with parameter as key and the requestPath's value as value
@@ -692,7 +692,7 @@ public class BasePageClassMap {
 			}
 		}
 	}
-
+	
 	/**
 	 * Execute the given method in the context of the current class object (this)
 	 * Adapting the given parameters according to the expected parameter types.
@@ -730,15 +730,15 @@ public class BasePageClassMap {
 	 */
 	protected void executeMethod(BasePage page, Method toExecute, String[] annotationPath,
 		String[] requestPath) {
-
+		
 		// Using the list of parameters that the method requires, detect the appropriate
 		// variables to pass to the method
 		Class<?>[] parameterTypes = toExecute.getParameterTypes();
 		List<Object> arguments = new ArrayList<>();
-
+		
 		// Process name parameters in annotationPath
 		processNameParameters(page.requestParameterMap(), annotationPath, requestPath);
-
+		
 		//
 		// Input handling
 		//
@@ -747,32 +747,32 @@ public class BasePageClassMap {
 			// Map.class.isAssignableFrom(ServletRequestMap) translate to
 			// Map<String, Object> map = new ServletRequestMap(page.getHttpServletRequest());
 			// Map is the parent class and ServletRequestMap is the child class
-
+			
 			if (PrintWriter.class.isAssignableFrom(type)) {
 				arguments.add(page.getPrintWriter());
-
+				
 			} else if (ServletRequestMap.class.isAssignableFrom(type)) {
 				arguments.add(page.requestParameterMap());
-
+				
 			} else if (Map.class.isAssignableFrom(type)) {
 				arguments.add(page.requestParameterMap());
-
+				
 			} else if (HttpServletRequest.class.isAssignableFrom(type)) {
 				arguments.add(page.getHttpServletRequest());
-
+				
 			} else if (StringBuilder.class.isAssignableFrom(type)) {
 				arguments.add(page.responseStringBuilder);
-
+				
 			} else {
 				throw new RuntimeException("Unsupported type in method " + toExecute.getName()
 					+ " for parameter type " + type.getSimpleName());
 			}
 		}
-
+		
 		//
 		// Execution handling
 		//
-
+		
 		Object executionResponse = null;
 		try {
 			// Invoke the method
@@ -790,19 +790,19 @@ public class BasePageClassMap {
 			}
 			throw new RuntimeException(cause);
 		}
-
+		
 		//
 		// Output handling
 		//
-
+		
 		if (executionResponse == null) {
 			return;
 		}
-
+		
 		if (executionResponse instanceof BasePage) {
 			// @TODO : relay request
 		}
-
+		
 		if (executionResponse instanceof Map) {
 			Map<String, Object> executionMap = (Map<String, Object>) executionResponse;
 			if (!executionMap.equals(page.responseApiMap)) {
@@ -811,7 +811,7 @@ public class BasePageClassMap {
 			}
 			return;
 		}
-
+		
 		if (executionResponse instanceof StringBuilder) {
 			StringBuilder executionStringBuilder = (StringBuilder) executionResponse;
 			if (!executionStringBuilder.equals(page.responseStringBuilder)) {
@@ -819,12 +819,12 @@ public class BasePageClassMap {
 			}
 			return;
 		}
-
+		
 		if (executionResponse instanceof String) {
 			page.responseStringBuilder.append(executionResponse.toString());
 			return;
 		}
-
+		
 	}
-
+	
 }

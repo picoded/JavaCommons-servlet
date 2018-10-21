@@ -78,9 +78,9 @@ public class DStackPage extends BaseUtilPage {
 	protected DStack dstack_forceInitialize() {
 		GenericConvertMap<String, Object> configObj = dstackConfig();
 		if (configObj != null) {
-			_dstackObj = new DStack(dstackConfig());
+			_dstackObj = new DStack(configObj);
 		} else {
-			_dstackObj = null;
+			throw new IllegalArgumentException("Missing valid configuration : sys.dstack = null");
 		}
 		return _dstackObj;
 	}
