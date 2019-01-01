@@ -43,7 +43,7 @@ public class DStackPage extends BaseUtilPage {
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	
 	/// The internal DStack object, that was initialized
-	protected DStack _dstackObj = null;
+	protected static volatile DStack _dstackObj = null;
 	
 	/**
 	 * Get and return the DStack config from the configuration file / folder
@@ -61,10 +61,19 @@ public class DStackPage extends BaseUtilPage {
 	 * @return  dstack object, initialized using the dstackConfig if valid
 	 */
 	public DStack dstack() {
+		// Quickly return the initialized dstack, without locking
 		if (_dstackObj != null) {
 			return _dstackObj;
 		}
-		return dstack_forceInitialize();
+		
+		// Performs a lock, and return an initialized dstack
+		// or initializes the stack if needed.
+		synchronized (DStackPage.class) {
+			if (_dstackObj != null) {
+				return _dstackObj;
+			}
+			return dstack_forceInitialize();
+		}
 	}
 	
 	/**
