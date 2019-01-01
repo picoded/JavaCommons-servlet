@@ -1,6 +1,7 @@
 package picoded.servlet;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
@@ -16,7 +17,7 @@ import picoded.servlet.internal.*;
 
 /**
  * Extension of BasePage, with common preconfigured components
- * 
+ *
  * BaseUtilPage onwards assume a standard servlet deployment setup, with WEB-INF folder
  * for config files, and various other components.
  */
@@ -30,7 +31,7 @@ public class BaseUtilPage extends BasePage {
 	
 	/**
 	 * Import CorePage/BasePage instance parameters over to another instance
-	 * 
+	 *
 	 * @param  ori original CorePage to copy from
 	 */
 	public void transferParamsProcess(CorePage ori) {
@@ -98,21 +99,27 @@ public class BaseUtilPage extends BasePage {
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	
 	// Internal static representation of the config file
-	private static ConfigFileSet _configSet = null;
 	private static GenericConvertMap<String, Object> _unmodifiableConfigFileSet = null;
+	
+	// Global cache for the configFileSet
+	private static ConcurrentHashMap<String, GenericConvertMap<String, Object>> configFileSetGlobalCache = new ConcurrentHashMap<>();
 	
 	/**
 	 * Get the configuration file set from the WEB-INF/config/ folder
 	 * And returns its unmodifiableMap object.
-	 * 
+	 *
 	 * PS : You do not need to optimize or cache this object, its already done.
-	 * 
+	 *
 	 * @return  config file set map
 	 */
 	public GenericConvertMap<String, Object> configFileSet() {
-		// If static variable is initialized : use it
-		if (_unmodifiableConfigFileSet != null) {
-			return _unmodifiableConfigFileSet;
+		// Get the full configuration path
+		String fullConfigPath = getConfigPath();
+		
+		// Return loaded config file set, if found
+		GenericConvertMap<String, Object> ret = configFileSetGlobalCache.get(fullConfigPath);
+		if (ret != null) {
+			return ret;
 		}
 		
 		// Performing a syncronized lock on the static class
@@ -121,18 +128,23 @@ public class BaseUtilPage extends BasePage {
 			
 			// Return the config file set if it was
 			// intitialized in a race condition
-			if (_unmodifiableConfigFileSet != null) {
-				return _unmodifiableConfigFileSet;
+			ret = configFileSetGlobalCache.get(fullConfigPath);
+			if (ret != null) {
+				return ret;
 			}
 			
 			// Load the config file set
-			_configSet = new ConfigFileSet();
-			_configSet.addConfigSet(getConfigPath());
+			ConfigFileSet configSet = new ConfigFileSet();
+			configSet.addConfigSet(fullConfigPath);
 			
 			// Get and return the unmodifiable copy
+			ret = configSet.unmodifiableMap();
+			
+			// Caches it
+			configFileSetGlobalCache.put(fullConfigPath, ret);
+			
 			// and return it
-			_unmodifiableConfigFileSet = _configSet.unmodifiableMap();
-			return _unmodifiableConfigFileSet;
+			return ret;
 		}
 	}
 	
@@ -166,7 +178,7 @@ public class BaseUtilPage extends BasePage {
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	
 	// The running background thread
-	private Thread backgroundThread = null;
+	protected Thread backgroundThread = null;
 	
 	/**
 	 * This should only be called within "backgroundProcess"
@@ -205,13 +217,13 @@ public class BaseUtilPage extends BasePage {
 	 * This allows a clean isolation of the background thread,
 	 * From the initializeContext thread. Especially for 'sleep' calls
 	 */
-	private Runnable backgroundThreadHandler = () -> {
+	protected Runnable backgroundThreadHandler = () -> {
 		// The config to use : or default value
 		GenericConvertMap<String, Object> bgConfig = configFileSet().getGenericConvertStringMap(
 			"sys.background", "{}");
 		
 		// Get the current background thread mode
-		// Expect "between" (default) or "start" mode 
+		// Expect "between" (default) or "start" mode
 		String threadmode = bgConfig.getString("mode", "between");
 		long configInterval = bgConfig.getLong("interval", 10000);
 		
@@ -280,7 +292,7 @@ public class BaseUtilPage extends BasePage {
 	/**
 	 * Loads the configuration and start the background thread
 	 */
-	private void backgroundThreadHandler_start() {
+	protected void backgroundThreadHandler_start() {
 		if (configFileSet().getBoolean("sys.background.enable", true)) {
 			// Start up the background thread start process, only if its enabled
 			backgroundThread = new Thread(backgroundThreadHandler);
@@ -294,7 +306,7 @@ public class BaseUtilPage extends BasePage {
 	 * Either gracefully, or forcefully.
 	 */
 	@SuppressWarnings("deprecation")
-	private void backgroundThreadHandler_stop() {
+	protected void backgroundThreadHandler_stop() {
 		// Checks if there is relevent background thread first
 		if (backgroundThread != null) {
 			// Set the interupption flag

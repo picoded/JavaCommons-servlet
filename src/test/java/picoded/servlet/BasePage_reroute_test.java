@@ -18,7 +18,7 @@ import picoded.servlet.annotation.*;
 public class BasePage_reroute_test {
 	
 	//
-	// The test folders to use 
+	// The test folders to use
 	//
 	
 	int testPort = 0;
@@ -81,6 +81,31 @@ public class BasePage_reroute_test {
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("<h1>404 Error</h1>\n" + "The requested resource is not avaliable Q.Q\n" + "\n"
 			+ "Request URI : /gone/invalid", response.toString().trim());
+	}
+	
+	public static class TestInternalWorld extends DStackPage {
+		
+		@RequestPath("last/moments")
+		public void moments() {
+			getPrintWriter().println("what");
+		}
+	}
+	
+	public static class RerouteWithMethod extends BasePage {
+		
+		@RequestPath("anything/*")
+		public TestInternalWorld rerouting() {
+			TestInternalWorld testInternalWorld = new TestInternalWorld();
+			return testInternalWorld;
+		}
+	}
+	
+	@Test
+	public void test_methodReroute() throws Exception {
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new RerouteWithMethod()));
+		String testUrl = "http://127.0.0.1:" + testPort + "/anything/last/moments";
+		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		assertEquals("what", response.toString().trim());
 	}
 	
 }
