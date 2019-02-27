@@ -33,7 +33,7 @@ public class DStackPage extends BaseUtilPage {
 		DStackPage oriPage = (DStackPage) ori;
 		
 		// Does additional transfer for DStackObj if needed
-		if( this._dstackObj == null ) {
+		if (this._dstackObj == null) {
 			this._dstackObj = oriPage._dstackObj;
 		}
 	}
