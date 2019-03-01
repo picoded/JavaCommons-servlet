@@ -755,7 +755,7 @@ public class BasePageClassMap {
 				arguments.add(page.requestParameterMap());
 				
 			} else if (ApiResponseMap.class.isAssignableFrom(type)) {
-				arguments.add(page.responseApiMap);
+				arguments.add(page.getApiResponseMap());
 				
 			} else if (Map.class.isAssignableFrom(type)) {
 				arguments.add(page.requestParameterMap());
@@ -764,7 +764,8 @@ public class BasePageClassMap {
 				arguments.add(page.getHttpServletRequest());
 				
 			} else if (StringBuilder.class.isAssignableFrom(type)) {
-				arguments.add(page.responseStringBuilder);
+				arguments.add(page.getResponseStringBuilder());
+				
 			} else {
 				throw new RuntimeException("Unsupported type in method " + toExecute.getName()
 					+ " for parameter type " + type.getSimpleName());
@@ -807,23 +808,23 @@ public class BasePageClassMap {
 		
 		if (executionResponse instanceof Map) {
 			Map<String, Object> executionMap = (Map<String, Object>) executionResponse;
-			if (!executionMap.equals(page.responseApiMap)) {
+			if (!executionMap.equals(page.getApiResponseMap())) {
 				// @TODO: Recursive merge instead of replacing the entire variable
-				page.responseApiMap.putAll(executionMap);
+				page.getApiResponseMap().putAll(executionMap);
 			}
 			return;
 		}
 		
 		if (executionResponse instanceof StringBuilder) {
 			StringBuilder executionStringBuilder = (StringBuilder) executionResponse;
-			if (!executionStringBuilder.equals(page.responseStringBuilder)) {
-				page.responseStringBuilder.append(executionStringBuilder);
+			if (!executionStringBuilder.equals(page.getResponseStringBuilder())) {
+				page.getResponseStringBuilder().append(executionStringBuilder);
 			}
 			return;
 		}
 		
 		if (executionResponse instanceof String) {
-			page.responseStringBuilder.append(executionResponse.toString());
+			page.getResponseStringBuilder().append(executionResponse.toString());
 			return;
 		}
 		
