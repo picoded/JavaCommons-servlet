@@ -132,19 +132,29 @@ public class BasePage extends CoreUtilPage {
 	/**
 	 * Response map builder for api
 	 * NOTE: Do not use this in conjuction with PrintWriter / responseStringBuilder
-	 *
-	 * @TODO : Refactor to protected _ equivalent with getter functions
 	 */
-	public ApiResponseMap responseApiMap = null;
+	protected ApiResponseMap responseApiMap = null;
 	
 	/**
 	 * Response string builder, to use within requests (if applicable)
 	 * NOTE: Do not use this in conjuction with PrintWriter / responseApiMap
-	 *
-	 * @TODO : Refactor to protected _ equivalent with getter functions
 	 */
-	public StringBuilder responseStringBuilder = null;
+	protected StringBuilder responseStringBuilder = null;
 	
+	/**
+	 * @return ApiResponseMap to be used for output
+	 */
+	public ApiResponseMap getApiResponseMap() {
+		return responseApiMap;
+	}  
+
+	/**
+	 * @return StringBuilder response to be used for output
+	 */
+	public StringBuilder getResponseStringBuilder() {
+		return responseStringBuilder;
+	}  
+
 	///////////////////////////////////////////////////////
 	//
 	// Exception handling
@@ -169,9 +179,7 @@ public class BasePage extends CoreUtilPage {
 	 * Handles API based exceptions
 	 **/
 	protected void handleApiException(ApiException e) throws Exception {
-		
 		responseApiMap.put("ERROR", e.getErrorMap());
-		
 		getHttpServletResponse().setContentType("application/javascript");
 		getPrintWriter().println(ConvertJSON.fromObject(responseApiMap, true));
 	}
