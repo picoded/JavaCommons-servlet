@@ -146,15 +146,15 @@ public class BasePage extends CoreUtilPage {
 	 */
 	public ApiResponseMap getApiResponseMap() {
 		return responseApiMap;
-	}  
-
+	}
+	
 	/**
 	 * @return StringBuilder response to be used for output
 	 */
 	public StringBuilder getResponseStringBuilder() {
 		return responseStringBuilder;
-	}  
-
+	}
+	
 	///////////////////////////////////////////////////////
 	//
 	// Exception handling
