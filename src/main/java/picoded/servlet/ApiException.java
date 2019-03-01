@@ -6,7 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ApiException extends RuntimeException {
-	private int httpStatus = 500;
+
+	private int httpStatus = 200;
 	private String errorType = "INTERNAL_SERVER_ERROR";
 	private String errorMessage = null;
 	
