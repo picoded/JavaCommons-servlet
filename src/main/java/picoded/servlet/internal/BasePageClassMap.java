@@ -754,6 +754,9 @@ public class BasePageClassMap {
 			} else if (ServletRequestMap.class.isAssignableFrom(type)) {
 				arguments.add(page.requestParameterMap());
 				
+			} else if (ApiResponseMap.class.isAssignableFrom(type)) {
+				arguments.add(page.responseApiMap);
+				
 			} else if (Map.class.isAssignableFrom(type)) {
 				arguments.add(page.requestParameterMap());
 				
@@ -762,7 +765,6 @@ public class BasePageClassMap {
 				
 			} else if (StringBuilder.class.isAssignableFrom(type)) {
 				arguments.add(page.responseStringBuilder);
-				
 			} else {
 				throw new RuntimeException("Unsupported type in method " + toExecute.getName()
 					+ " for parameter type " + type.getSimpleName());

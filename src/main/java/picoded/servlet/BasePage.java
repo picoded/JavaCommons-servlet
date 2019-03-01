@@ -94,7 +94,7 @@ public class BasePage extends CoreUtilPage {
 	protected void doRequest(PrintWriter writer) throws Exception {
 		// Response builder, to use within requests (if applicable)
 		responseStringBuilder = new StringBuilder();
-		responseApiMap = new GenericConvertHashMap<String, Object>();
+		responseApiMap = new ApiResponseMap();
 		
 		try {
 			// Get the current class map
@@ -135,7 +135,7 @@ public class BasePage extends CoreUtilPage {
 	 *
 	 * @TODO : Refactor to protected _ equivalent with getter functions
 	 */
-	public GenericConvertMap<String, Object> responseApiMap = null;
+	public ApiResponseMap responseApiMap = null;
 	
 	/**
 	 * Response string builder, to use within requests (if applicable)
