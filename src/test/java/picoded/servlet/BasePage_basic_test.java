@@ -320,7 +320,6 @@ public class BasePage_basic_test {
 		Map<String, Object> map = response.toMap();
 		GenericConvertMap<String, Object> genericConvertMap = GenericConvert
 			.toGenericConvertStringMap(map);
-		System.out.println(map.get("ERROR").toString());
 		assertEquals("Unsupported type in method simpleNameParam for parameter type Integer",
 			genericConvertMap.getGenericConvertStringMap("ERROR").getString("message").toString());
 	}

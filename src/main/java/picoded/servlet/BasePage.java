@@ -104,13 +104,13 @@ public class BasePage extends CoreUtilPage {
 			// Process the response objects, and output them
 			doRequestOutput(writer);
 		} catch (ApiException ae) {
-			handleApiException(ae);
+			this.handleApiException(ae);
 		} catch (HaltException he) {
-			handleHaltException(he);
+			this.handleHaltException(he);
 		}
 	}
 	
-	protected void doRequestOutput(PrintWriter writer) throws Exception {
+	public void doRequestOutput(PrintWriter writer) throws Exception {
 		// Assert that either response API map or stringbuilder can be safely used (not both)
 		if (responseStringBuilder.length() > 0 && responseApiMap.size() > 0) {
 			throw new RuntimeException(
@@ -171,16 +171,15 @@ public class BasePage extends CoreUtilPage {
 	/**
 	 * Handles HALT exception
 	 **/
-	protected void handleHaltException(HaltException e) throws Exception {
+	public void handleHaltException(HaltException e) {
 		//intentionally does nothing
 	}
 	
 	/**
 	 * Handles API based exceptions
 	 **/
-	protected void handleApiException(ApiException e) throws Exception {
-		responseApiMap.put("ERROR", e.getErrorMap());
+	public void handleApiException(ApiException e) {
+		this.responseApiMap.put("ERROR", e.getErrorMap());
 		getHttpServletResponse().setContentType("application/javascript");
-		getPrintWriter().println(ConvertJSON.fromObject(responseApiMap, true));
 	}
 }

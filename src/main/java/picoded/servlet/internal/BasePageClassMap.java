@@ -742,34 +742,41 @@ public class BasePageClassMap {
 		//
 		// Input handling
 		//
-		for (Class<?> type : parameterTypes) {
-			// How isAssignableFrom works:
-			// Map.class.isAssignableFrom(ServletRequestMap) translate to
-			// Map<String, Object> map = new ServletRequestMap(page.getHttpServletRequest());
-			// Map is the parent class and ServletRequestMap is the child class
-			
-			if (PrintWriter.class.isAssignableFrom(type)) {
-				arguments.add(page.getPrintWriter());
+		
+		try {
+			for (Class<?> type : parameterTypes) {
+				// How isAssignableFrom works:
+				// Map.class.isAssignableFrom(ServletRequestMap) translate to
+				// Map<String, Object> map = new ServletRequestMap(page.getHttpServletRequest());
+				// Map is the parent class and ServletRequestMap is the child class
 				
-			} else if (ServletRequestMap.class.isAssignableFrom(type)) {
-				arguments.add(page.requestParameterMap());
-				
-			} else if (ApiResponseMap.class.isAssignableFrom(type)) {
-				arguments.add(page.getApiResponseMap());
-				
-			} else if (Map.class.isAssignableFrom(type)) {
-				arguments.add(page.requestParameterMap());
-				
-			} else if (HttpServletRequest.class.isAssignableFrom(type)) {
-				arguments.add(page.getHttpServletRequest());
-				
-			} else if (StringBuilder.class.isAssignableFrom(type)) {
-				arguments.add(page.getResponseStringBuilder());
-				
-			} else {
-				throw new RuntimeException("Unsupported type in method " + toExecute.getName()
-					+ " for parameter type " + type.getSimpleName());
+				if (PrintWriter.class.isAssignableFrom(type)) {
+					arguments.add(page.getPrintWriter());
+					
+				} else if (ServletRequestMap.class.isAssignableFrom(type)) {
+					arguments.add(page.requestParameterMap());
+					
+				} else if (ApiResponseMap.class.isAssignableFrom(type)) {
+					arguments.add(page.getApiResponseMap());
+					
+				} else if (Map.class.isAssignableFrom(type)) {
+					arguments.add(page.requestParameterMap());
+					
+				} else if (HttpServletRequest.class.isAssignableFrom(type)) {
+					arguments.add(page.getHttpServletRequest());
+					
+				} else if (StringBuilder.class.isAssignableFrom(type)) {
+					arguments.add(page.getResponseStringBuilder());
+					
+				} else {
+					throw new RuntimeException("Unsupported type in method " + toExecute.getName()
+						+ " for parameter type " + type.getSimpleName());
+				}
 			}
+		} catch (RuntimeException e) {
+			ApiException ae = new ApiException(e);
+			page.handleApiException(ae);
+			return;
 		}
 		
 		//
@@ -789,8 +796,16 @@ public class BasePageClassMap {
 			}
 			if (cause instanceof ApiException) {
 				ApiException ae = (ApiException) cause;
-				throw new ApiException(ae.getHttpStatus(), ae.getErrorType(), ae.getErrorMessage());
+				page.handleApiException(ae);
+				return;
 			}
+			
+			if (cause instanceof HaltException) {
+				HaltException he = (HaltException) cause;
+				page.handleHaltException(he);
+				return;
+			}
+			
 			throw new RuntimeException(cause);
 		}
 		
