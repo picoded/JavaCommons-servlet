@@ -127,12 +127,30 @@ public class DStackPage extends BaseUtilPage {
 		// Super call
 		super.initializeContext();
 		
+		// Chain up initializeDStackObjects
+		initializeDStackObjects();
+		
 		// DStack systemSetup
 		//
 		// as this is done AFTER doSharedSetup,
 		// any objects initialized in there will
 		// have its own systemSetup() call performed.
+		//
+		// note that systemSetup() maybe a redudant call 
+		// if already done inside initializeDStackModules =|
+		//
+		// Performed here for reliability reasons
+		// Basically just to be safe
 		dstack().systemSetup();
+	}
+	
+	/**
+	 * [To be extended by sub class, if needed]
+	 * Standardised function space to extend, 
+	 * And initialize all of various dstack objects / modules for onetime setup
+	 */
+	protected void initializeDStackObjects() {
+		
 	}
 	
 }
