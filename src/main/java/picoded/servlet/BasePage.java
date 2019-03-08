@@ -105,6 +105,7 @@ public class BasePage extends CoreUtilPage {
 			doRequestOutput(writer);
 		} catch (ApiException ae) {
 			this.handleApiException(ae);
+			this.outputApiException();
 		} catch (HaltException he) {
 			this.handleHaltException(he);
 		}
@@ -127,6 +128,15 @@ public class BasePage extends CoreUtilPage {
 			}
 			writer.println(ConvertJSON.fromObject(responseApiMap, true));
 		}
+	}
+	
+	/**
+	 * The main purpose of this function is to write out the response body.
+	 * This does not handle any exception objects.
+	 */
+	protected void outputApiException() {
+		getHttpServletResponse().setContentType("application/javascript");
+		getPrintWriter().println(ConvertJSON.fromObject(responseApiMap, true));
 	}
 	
 	/**
@@ -180,6 +190,5 @@ public class BasePage extends CoreUtilPage {
 	 **/
 	public void handleApiException(ApiException e) {
 		this.responseApiMap.put("ERROR", e.getErrorMap());
-		getHttpServletResponse().setContentType("application/javascript");
 	}
 }
