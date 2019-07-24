@@ -189,6 +189,7 @@ public class BasePage extends CoreUtilPage {
 	 * Handles API based exceptions
 	 **/
 	public void handleApiException(ApiException e) {
+		getHttpServletResponse().setStatus(e.getHttpStatus());
 		this.responseApiMap.put("ERROR", e.getErrorMap());
 	}
 }
