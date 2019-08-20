@@ -30,6 +30,8 @@ import picoded.core.conv.ConvertJSON;
  *
  * If a request were to include multiple parameters of the same name,
  * it would be converted into a List<Object>
+ * 
+ * DO NOT INITIALIZE ServletRequestMap!! Obtain it via the BasePage.requestParameterMap()
  *
  * @TODO: Optimize the class to do the conversion between String[] to String only ON DEMAND, and to cache the result
  **/
