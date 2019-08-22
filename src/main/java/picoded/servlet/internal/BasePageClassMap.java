@@ -806,7 +806,11 @@ public class BasePageClassMap {
 			if (cause instanceof HaltException) {
 				HaltException he = (HaltException) cause;
 				page.handleHaltException(he);
-				return;
+				
+				// Throw the HaltException upwards
+				// Main idea is that as long as one of the methods throw a HaltException
+				// it will just stop processing
+				throw he;
 			}
 			
 			throw new RuntimeException(cause);
