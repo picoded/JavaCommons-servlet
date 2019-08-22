@@ -701,6 +701,10 @@ public class BasePageClassMap {
 	 * Adapting the given parameters according to the expected parameter types.
 	 *
 	 * Also does the relevent output processing based on the output types
+	 * 
+	 * However, this method will not handle the output for exceptions and it will be thrown to
+	 * the caller of this method. Basically, at the very end, the BasePage will be the one that is handling
+	 * the output for such exception
 	 *
 	 * Map / List - JSON output
 	 * String / StringBuilder - println output
@@ -793,20 +797,18 @@ public class BasePageClassMap {
 		} catch (IllegalAccessException e) {
 			throw new RuntimeException(e);
 		} catch (InvocationTargetException e) {
+			// Any exception will be thrown back to BasePage for handling
 			Throwable cause = e;
 			if (e.getCause() != null) {
 				cause = e.getCause();
 			}
 			if (cause instanceof ApiException) {
 				ApiException ae = (ApiException) cause;
-				page.handleApiException(ae);
-				return;
+				throw ae;
 			}
 			
 			if (cause instanceof HaltException) {
 				HaltException he = (HaltException) cause;
-				page.handleHaltException(he);
-				
 				// Throw the HaltException upwards
 				// Main idea is that as long as one of the methods throw a HaltException
 				// it will just stop processing
