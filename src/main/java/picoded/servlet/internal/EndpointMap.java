@@ -86,6 +86,19 @@ public class EndpointMap<V> extends ConcurrentHashMap<String, V> {
 	}
 	
 	/**
+	 * Register a method endpoint, with an arrays of paths
+	 *
+	 * @param  pathArr of the method endpoint
+	 * @param  obj  to register
+	 */
+	public void registerEndpointPath(String[] pathArr, V obj) {
+		// And register the endpoint & cache its split path
+		for (String path : pathArr) {
+			registerEndpointPath(path, obj);
+		}
+	}
+	
+	/**
 	 * Validate endpoint path arrays
 	 *
 	 * For example the following request path "hello/good/world"

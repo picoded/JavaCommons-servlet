@@ -22,5 +22,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.FIELD })
 public @interface RequestPath {
-	public String value();
+	public String[] value();
 }

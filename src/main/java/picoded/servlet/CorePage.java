@@ -306,14 +306,14 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		_requestMap = new ServletRequestMap(_httpRequest);
 		return _requestMap;
 	}
-
+	
 	/**
 	 * Alias to `getRequestParameterMap()`
 	 **/
 	public ServletRequestMap requestParameterMap() {
 		return getRequestParameterMap();
 	}
-
+	
 	/**
 	 * gets the getInputStream, from the httpRequest.getInputStream() object and returns it
 	 * also surpresses IOException, as RuntimeException
