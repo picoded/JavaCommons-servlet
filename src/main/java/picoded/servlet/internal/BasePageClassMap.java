@@ -531,6 +531,9 @@ public class BasePageClassMap {
 		Class<?> routeClass = getRerouteClass(rerouteField);
 		BasePageClassMap routeClassMap = BasePageClassMap.setupAndCache(routeClass);
 		
+		// To process the name parameters before it is removed
+		processNameParameters(page.requestParameterMap(), apiMap.splitUriString(endpoint), requestPath);
+		
 		// Check if it supports rerouting
 		String[] reroutePathArr = reroutePath(requestPath, endpoint);
 		if (!routeClassMap.supportsRequestPath(reroutePathArr)) {
