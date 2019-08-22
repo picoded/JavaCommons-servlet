@@ -107,6 +107,8 @@ public class BasePage extends CoreUtilPage {
 			this.handleApiException(ae);
 			this.outputApiException();
 		} catch (HaltException he) {
+			// If the developer wants to print anything out to the front end
+			// override the handleHaltException and use the writer to output it
 			this.handleHaltException(he);
 		}
 	}
