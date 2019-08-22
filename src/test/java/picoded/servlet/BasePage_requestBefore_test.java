@@ -2,6 +2,7 @@ package picoded.servlet;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
@@ -112,7 +113,12 @@ public class BasePage_requestBefore_test {
 	}
 	
 	@Test
-	public void 
-	
+	public void test_noRouteFound() throws Exception {
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new LandingPage()));
+		String testUrl = "http://127.0.0.1:" + testPort + "/project/info/unknown";
+		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		
+		assertTrue(response.toString().trim().contains("The requested resource is not avaliable Q.Q"));
+	}
 	
 }
