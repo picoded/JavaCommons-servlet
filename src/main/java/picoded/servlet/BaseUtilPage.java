@@ -89,7 +89,21 @@ public class BaseUtilPage extends BasePage {
 	 * @return config files path
 	 **/
 	public String getConfigPath() {
-		return (_configsPath != null) ? _configsPath : (_configsPath = getWebInfPath() + "config/");
+		// Get locally cached config
+		if(_configsPath != null) {
+			return _classesPath;
+		} 
+		
+		// Get the config path from the env variables
+		//
+		// note we are intentionally not setting up _configsPath, to avoid race condition
+		String configPath = System.getenv("APP_CONFIG_PATH");
+		if( configPath == null || configPath.length() <= 0 ) {
+			configPath = getWebInfPath() + "config/";
+		}
+
+		// Cache it, and return
+		return _configsPath = configPath;
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////
