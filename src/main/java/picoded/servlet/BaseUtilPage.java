@@ -47,10 +47,10 @@ public class BaseUtilPage extends BasePage {
 		BaseUtilPage oriPage = (BaseUtilPage) ori;
 		
 		// Does additional transfer for BaseUtilPage
-		this._webInfPath = oriPage._webInfPath;
-		this._classesPath = oriPage._classesPath;
-		this._libraryPath = oriPage._libraryPath;
-		this._configsPath = oriPage._configsPath;
+		this._webInfPath = oriPage.getWebInfPath();
+		this._classesPath = oriPage.getClassesPath();
+		this._libraryPath = oriPage.getLibraryPath();
+		this._configsPath = oriPage.getConfigPath();
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////
