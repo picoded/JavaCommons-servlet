@@ -91,7 +91,7 @@ public class BaseUtilPage extends BasePage {
 	public String getConfigPath() {
 		// Get locally cached config
 		if(_configsPath != null) {
-			return _classesPath;
+			return _configsPath;
 		} 
 		
 		// Get the config path from the env variables
