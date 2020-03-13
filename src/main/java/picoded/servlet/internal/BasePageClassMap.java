@@ -1,6 +1,7 @@
 package picoded.servlet.internal;
 
 import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -796,7 +797,33 @@ public class BasePageClassMap {
 			page.handleApiException(ae);
 			return;
 		}
-		
+
+		//
+		// Page type safety handling
+		//
+		Class<?> pageClass = toExecute.getDeclaringClass();
+		if( !pageClass.isInstance( page ) ) {
+			/*
+			// Get the original page
+			BasePage oriPage = page;
+
+			// Initialize the replacement page
+			// @TODO - to potentially cache this instance
+			try {
+				Constructor<?> constructor = pageClass.getConstructor();
+				page = (BasePage)(constructor.newInstance());
+			} catch(Exception e) {
+				throw new RuntimeException(e);
+			}
+
+			// Perform the transfer of params
+			page.transferParams(oriPage);
+			*/
+
+			// @TODO - resolve doAfter issue for multiple nested classes
+			return;
+		}
+
 		//
 		// Execution handling
 		//
