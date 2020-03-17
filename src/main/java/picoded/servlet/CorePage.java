@@ -605,7 +605,18 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		}
 		return null;
 	}
-	
+
+	/**
+	 * Get the request body
+	 * @return
+	 */
+	public String getRequestBody(){
+		if(_httpRequest != null){
+			return requestParameterMap().getRequestBodyString(_httpRequest);
+		}
+		return null;
+	}
+
 	///////////////////////////////////////////////////////
 	//
 	// Request type config getters (convinence function)

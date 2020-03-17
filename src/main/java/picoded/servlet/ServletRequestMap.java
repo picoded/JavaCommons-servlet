@@ -176,7 +176,9 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 	 */
 	private void setInputStreamToByteArray(InputStream input) throws IOException {
 		// Save the request body as a byte array
-		this.reqBodyByteArray = IOUtils.toByteArray(input);
+		if(this.reqBodyByteArray == null){
+			this.reqBodyByteArray = IOUtils.toByteArray(input);
+		}
 	}
 	
 	/**
@@ -184,6 +186,33 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 	 */
 	protected byte[] getRequestBodyByteArray() {
 		return reqBodyByteArray;
+	}
+
+	//-------------------------------------------------
+	// stringify the request body
+	//-------------------------------------------------
+
+	/**
+	 * Get request body as a string
+	 * @param req
+	 * @return
+	 */
+	public String getRequestBodyString(HttpServletRequest req){
+		try {
+
+			// get the request body / input stream
+			setInputStreamToByteArray(req.getInputStream());
+
+			// Detect request encoding format, by default set to UTF-8
+			String encoding = (req.getCharacterEncoding() != null) ? req.getCharacterEncoding()
+					: "UTF-8";
+
+			// stringify the request body
+			return new String(getRequestBodyByteArray(), encoding);
+
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	//-------------------------------------------------
@@ -195,25 +224,14 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 	 * @param  req servlet parameter
 	 */
 	private void processJsonParams(HttpServletRequest req) {
-		try {
-			// get the request body / input stream
-			setInputStreamToByteArray(req.getInputStream());
-			
-			// Detect request encoding format, by default set to UTF-8
-			String encoding = (req.getCharacterEncoding() != null) ? req.getCharacterEncoding()
-				: "UTF-8";
-			
-			// get the JSON string from the body
-			String requestJSON = new String(getRequestBodyByteArray(), encoding);
-			
-			// Convert into jsonMap : currently we only support top level maps
-			Map<String, Object> jsonMap = ConvertJSON.toMap(requestJSON);
-			
-			// Store the data, and return
-			this.putAll(jsonMap);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		// get the JSON string from the body
+		String requestJSON = getRequestBodyString(req);
+
+		// Convert into jsonMap : currently we only support top level maps
+		Map<String, Object> jsonMap = ConvertJSON.toMap(requestJSON);
+
+		// Store the data, and return
+		this.putAll(jsonMap);
 	}
 	
 	//-------------------------------------------------
