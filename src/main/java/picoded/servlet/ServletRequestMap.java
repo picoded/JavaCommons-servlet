@@ -36,7 +36,12 @@ import picoded.core.conv.ConvertJSON;
  * @TODO: Optimize the class to do the conversion between String[] to String only ON DEMAND, and to cache the result
  **/
 public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
-	
+
+	/**
+	 * Internal HttpServletRequest, initialized by constructor
+	 */
+	private HttpServletRequest req = null;
+
 	//------------------------------------------------------------------------------
 	//
 	// Constructor
@@ -53,11 +58,12 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 	/**
 	 * Takes in a httpServletRequest, and process it for its respective parameters
 	 **/
-	public ServletRequestMap(HttpServletRequest req) {
+	public ServletRequestMap(HttpServletRequest inReq) {
 		super();
-		processHttpServletRequest(req);
+		req = inReq;
+		processHttpServletRequest();
 	}
-	
+
 	//------------------------------------------------------------------------------
 	//
 	// Parameter handling (the whole point of this class)
@@ -66,10 +72,8 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 	
 	/**
 	 * Processes a HttpServletRequest, and extract its various possible parameters
-	 *
-	 * @param  req servlet parameter
 	 */
-	private void processHttpServletRequest(HttpServletRequest req) {
+	private void processHttpServletRequest() {
 		// This covers GET request,
 		// and/or form POST request
 		super.putAll(formParameterConversion(req.getParameterMap()));
@@ -83,15 +87,34 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 		}
 		
 		// Does specific processing for application/json
-		if (contentType.contains("application/json") || contentType.contains("text/plain")) {
+		if (contentType.contains("application/json") ) {
 			// Does processing of JSON request, and return
-			processJsonParams(req);
+			setByteArrayFromHttpServletRequest(req);
+			processJsonParams();
+			return;
+		}
+
+		// Attempt to do JSON processing for text/plain
+		if( contentType.contains("text/plain") ) {
+			setByteArrayFromHttpServletRequest(req);
+			try {
+				processJsonParams();
+			} catch (Exception e) {
+				// Surpress invalid JSON handling for text/plain request (as it may not be JSON)
+			}
+			return;
+		}
+
+		// Multipart processing, this covers file uploads
+		// Used in the other post types when its needed
+		boolean isMultipartContent = handleMultipartProcessing(req);
+		if( isMultipartContent ) {
 			return;
 		}
 		
-		// Multipart processing, this covers file uploads
-		// Used in the other post types
-		multipartProcessing(req);
+		// Neither JSON nor multipart processing worked,
+		// fallback to byte array processing
+		setByteArrayFromHttpServletRequest(req);
 	}
 	
 	//-------------------------------------------------
@@ -171,12 +194,26 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 	private byte[] reqBodyByteArray = null;
 	
 	/**
-	 * @param input of the request
+	 * @param input extracted from the request
 	 * @throws IOException
 	 */
-	private void setInputStreamToByteArray(InputStream input) throws IOException {
+	private void setByteArrayFromInputStream(InputStream input) throws IOException {
 		// Save the request body as a byte array
-		this.reqBodyByteArray = IOUtils.toByteArray(input);
+		if(this.reqBodyByteArray == null){
+			this.reqBodyByteArray = IOUtils.toByteArray(input);
+		}
+	}
+
+	/**
+	 * @param inReq to extract the input stream from
+	 */
+	private void setByteArrayFromHttpServletRequest(HttpServletRequest inReq) {
+		try {
+			// get the request body / input stream
+			setByteArrayFromInputStream(inReq.getInputStream());
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	/**
@@ -185,6 +222,27 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 	protected byte[] getRequestBodyByteArray() {
 		return reqBodyByteArray;
 	}
+
+	//-------------------------------------------------
+	// stringify the request body
+	//-------------------------------------------------
+
+	/**
+	 * Get request body as a string
+	 * @return
+	 */
+	private String getRequestBodyString(){
+		try {
+			// Detect request encoding format, by default set to UTF-8
+			String encoding = (req.getCharacterEncoding() != null) ? req.getCharacterEncoding()
+					: "UTF-8";
+
+			// stringify the request body
+			return new String(getRequestBodyByteArray(), encoding);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
 	
 	//-------------------------------------------------
 	// JSON request handling
@@ -192,28 +250,16 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 	
 	/**
 	 * Extract the JSON data from the input stream and converts it into parameters
-	 * @param  req servlet parameter
 	 */
-	private void processJsonParams(HttpServletRequest req) {
-		try {
-			// get the request body / input stream
-			setInputStreamToByteArray(req.getInputStream());
-			
-			// Detect request encoding format, by default set to UTF-8
-			String encoding = (req.getCharacterEncoding() != null) ? req.getCharacterEncoding()
-				: "UTF-8";
-			
-			// get the JSON string from the body
-			String requestJSON = new String(getRequestBodyByteArray(), encoding);
-			
-			// Convert into jsonMap : currently we only support top level maps
-			Map<String, Object> jsonMap = ConvertJSON.toMap(requestJSON);
-			
-			// Store the data, and return
-			this.putAll(jsonMap);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+	private void processJsonParams() {
+		// get the JSON string from the body
+		String requestJSON = getRequestBodyString();
+
+		// Convert into jsonMap : currently we only support top level maps
+		Map<String, Object> jsonMap = ConvertJSON.toMap(requestJSON);
+
+		// Store the data, and return
+		this.putAll(jsonMap);
 	}
 	
 	//-------------------------------------------------
@@ -270,9 +316,11 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 	/**
 	 * Processes the multipart request parameters
 	 *
-	 * @param  req servlet parameter
+	 * @param  request servlet parameter
+	 *             
+	 * @return false if its not a multipart upload, else true
 	 **/
-	private boolean multipartProcessing(HttpServletRequest request) {
+	private boolean handleMultipartProcessing(HttpServletRequest request) {
 		
 		// Only work when there is multi part
 		if (!ServletFileUpload.isMultipartContent(request)) {
