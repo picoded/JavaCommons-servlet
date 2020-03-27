@@ -231,7 +231,7 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 	 * Get request body as a string
 	 * @return
 	 */
-	private String getRequestBodyString(){
+	public String getRequestBodyString(){
 		try {
 			// Detect request encoding format, by default set to UTF-8
 			String encoding = (req.getCharacterEncoding() != null) ? req.getCharacterEncoding()
