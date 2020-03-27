@@ -10,6 +10,7 @@ public class ApiException extends RuntimeException {
 	private int httpStatus = 200;
 	private String errorType = "INTERNAL_SERVER_ERROR";
 	private String errorMessage = null;
+	private Map<String, Object> errorMap = null;
 	
 	public ApiException(int httpStatus, String errorType, String errorMessage) {
 		this.httpStatus = httpStatus;
@@ -63,10 +64,13 @@ public class ApiException extends RuntimeException {
 	}
 	
 	public Map<String, Object> getErrorMap() {
-		Map<String, Object> errorMap = new HashMap<>();
-		errorMap.put("code", getErrorType());
-		errorMap.put("message", getErrorMessage());
-		errorMap.put("stack", getStackTraceString());
+		if(errorMap == null){
+			errorMap = new HashMap<>();
+			errorMap.put("code", getErrorType());
+			errorMap.put("message", getErrorMessage());
+			errorMap.put("stack", getStackTraceString());
+		}
 		return errorMap;
 	}
+
 }
