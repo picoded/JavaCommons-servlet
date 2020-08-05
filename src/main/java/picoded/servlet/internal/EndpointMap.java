@@ -193,31 +193,34 @@ public class EndpointMap<V> extends ConcurrentHashMap<String, V> {
 	
 	/**
 	 * Sort a list of endpoints, in order of 
-	 * 
-	 * + Longest path match
+	 *
 	 * + More exact path match (from left)
-	 * + String comparision (final)
+	 * + Longest path match
+	 * + Raw string component comparision (from right)
+	 * + Raw string comparision (final)
 	 * 
 	 * @param  list of string paths, to sort
 	 */
 	public void sortEndpointList(List<String> list) {
+
+		// Example:
+		// If the request URI is "/job/testrunset/list"
+		// These should be the order of matched routes:
+		// 1. /job/testrunset/list
+		// 2. /job/testrunset/*
+		// 3. /job/:jobId/*
+		// 4. /job/*
+		// 5. /:projectId/testrunset/list
+		// From most exact to least exact from left to right
+		
 		Collections.sort(list, (a, b) -> {
 			String[] a_arr = splitUriString(a);
 			String[] b_arr = splitUriString(b);
-			
-			// Longest path match sorting
-			if (a_arr.length > b_arr.length) {
-				return -1;
-			} else if (b_arr.length > a_arr.length) {
-				return 1;
-			}
-			
-			// At this point both arays are considered the same length
-			
+
 			// "least wildcard match" implementation
 			// this is so that more exact matches (starting from left)
 			// takes priority over least exact matches
-			for (int i = 0; i < a_arr.length; ++i) {
+			for (int i = 0; i < a_arr.length && i < b_arr.length; ++i) {
 				
 				// String part used for comparision
 				String a_part = a_arr[i];
@@ -260,8 +263,31 @@ public class EndpointMap<V> extends ConcurrentHashMap<String, V> {
 				// 	continue;
 				// }
 			}
-			
-			// String comparision
+
+			// Longest path match sorting
+			if (a_arr.length > b_arr.length) {
+				return -1;
+			} else if (b_arr.length > a_arr.length) {
+				return 1;
+			}
+			// At this point both arays are considered the same length
+
+			// Raw string comparision from the right
+			for (int i = Math.min(a_arr.length, b_arr.length)-1; i >= 0; --i) {
+				// String part used for comparision
+				String a_part = a_arr[i];
+				String b_part = b_arr[i];
+
+				// Compare result of the part
+				int compareRes = a_part.compareTo(b_part);
+
+				// Return non zero result, else check the next segment
+				if( compareRes != 0 ) {
+					return compareRes;
+				}
+			}
+
+			// Final Raw String comparision
 			return a.compareTo(b);
 		});
 	}
