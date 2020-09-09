@@ -130,6 +130,26 @@ public class DStackPage extends BaseUtilPage {
 		// Chain up initializeDStackObjects
 		initializeDStackObjects();
 		
+		// Perform systemSetup call
+		initializeDStackSetup();
+		
+	}
+	
+	/**
+	 * [To be extended by sub class, if needed]
+	 * Standardised function space to extend, 
+	 * And initialize all of various dstack objects / modules for onetime setup
+	 */
+	protected void initializeDStackObjects() {
+		
+	}
+	
+	/**
+	 * [To be extended by sub class, if needed]
+	 * Standardised function where dstack().systemSetup() is called after `initializeDStackObjects`
+	 * This can be over-written for a more custom behaviour if needed
+	 */
+	protected void initializeDStackSetup() {
 		// DStack systemSetup
 		//
 		// as this is done AFTER doSharedSetup,
@@ -141,16 +161,21 @@ public class DStackPage extends BaseUtilPage {
 		//
 		// Performed here for reliability reasons
 		// Basically just to be safe
-		dstack().systemSetup();
-	}
-	
-	/**
-	 * [To be extended by sub class, if needed]
-	 * Standardised function space to extend, 
-	 * And initialize all of various dstack objects / modules for onetime setup
-	 */
-	protected void initializeDStackObjects() {
-		
+		//
+		// This can be skipped by passing `skipSystemSetup`
+		try {
+			if (dstackConfig().getBoolean("skipSystemSetup", false) == false) {
+				dstack().systemSetup();
+			}
+		} catch (Exception e) {
+			log()
+				.log(
+					//
+					java.util.logging.Level.WARNING, //
+					"Skipping `dstack().systemSetup()` due to a setup error - this may cause unintended runtime issues", //
+					e //
+				); //
+		}
 	}
 	
 }
