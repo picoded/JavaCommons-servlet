@@ -66,7 +66,13 @@ public class ApiException extends RuntimeException {
 	public Map<String, Object> getErrorMap() {
 		if(errorMap == null){
 			errorMap = new HashMap<>();
+
+			// @TODO - to do a breaking change of renaming "code" to "type"
+			//         because this can and will have breaking change impact 
+			//         its change should be coordinated with all library consumers
 			errorMap.put("code", getErrorType());
+
+			// Message and stack is ok
 			errorMap.put("message", getErrorMessage());
 			errorMap.put("stack", getStackTraceString());
 		}
