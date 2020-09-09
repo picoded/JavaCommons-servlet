@@ -207,7 +207,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	// public static <V extends CorePage> V getThreadLocalPage() {
 	// 	return (V)(Object)(getCorePage());
 	// }
-
+	
 	///////////////////////////////////////////////////////
 	//
 	// setupInstance with its respective variables
@@ -605,7 +605,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		}
 		return null;
 	}
-
+	
 	///////////////////////////////////////////////////////
 	//
 	// Request type config getters (convinence function)

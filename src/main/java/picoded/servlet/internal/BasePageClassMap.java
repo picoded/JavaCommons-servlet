@@ -544,7 +544,8 @@ public class BasePageClassMap {
 		BasePageClassMap routeClassMap = BasePageClassMap.setupAndCache(routeClass);
 		
 		// To process the name parameters before it is removed
-		processNameParameters(page.requestParameterMap(), apiMap.splitUriString(endpoint), requestPath);
+		processNameParameters(page.requestParameterMap(), apiMap.splitUriString(endpoint),
+			requestPath);
 		
 		// Check if it supports rerouting
 		String[] reroutePathArr = reroutePath(requestPath, endpoint);
@@ -797,12 +798,12 @@ public class BasePageClassMap {
 			page.handleApiException(ae);
 			return;
 		}
-
+		
 		//
 		// Page type safety handling
 		//
 		Class<?> pageClass = toExecute.getDeclaringClass();
-		if( !pageClass.isInstance( page ) ) {
+		if (!pageClass.isInstance(page)) {
 			/*
 			// Get the original page
 			BasePage oriPage = page;
@@ -818,12 +819,12 @@ public class BasePageClassMap {
 
 			// Perform the transfer of params
 			page.transferParams(oriPage);
-			*/
-
+			 */
+			
 			// @TODO - resolve doAfter issue for multiple nested classes
 			return;
 		}
-
+		
 		//
 		// Execution handling
 		//

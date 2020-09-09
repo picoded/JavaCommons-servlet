@@ -202,7 +202,7 @@ public class EndpointMap<V> extends ConcurrentHashMap<String, V> {
 	 * @param  list of string paths, to sort
 	 */
 	public void sortEndpointList(List<String> list) {
-
+		
 		// Example:
 		// If the request URI is "/job/testrunset/list"
 		// These should be the order of matched routes:
@@ -216,7 +216,7 @@ public class EndpointMap<V> extends ConcurrentHashMap<String, V> {
 		Collections.sort(list, (a, b) -> {
 			String[] a_arr = splitUriString(a);
 			String[] b_arr = splitUriString(b);
-
+			
 			// "least wildcard match" implementation
 			// this is so that more exact matches (starting from left)
 			// takes priority over least exact matches
@@ -263,7 +263,7 @@ public class EndpointMap<V> extends ConcurrentHashMap<String, V> {
 				// 	continue;
 				// }
 			}
-
+			
 			// Longest path match sorting
 			if (a_arr.length > b_arr.length) {
 				return -1;
@@ -271,22 +271,22 @@ public class EndpointMap<V> extends ConcurrentHashMap<String, V> {
 				return 1;
 			}
 			// At this point both arays are considered the same length
-
+			
 			// Raw string comparision from the right
-			for (int i = Math.min(a_arr.length, b_arr.length)-1; i >= 0; --i) {
+			for (int i = Math.min(a_arr.length, b_arr.length) - 1; i >= 0; --i) {
 				// String part used for comparision
 				String a_part = a_arr[i];
 				String b_part = b_arr[i];
-
+				
 				// Compare result of the part
 				int compareRes = a_part.compareTo(b_part);
-
+				
 				// Return non zero result, else check the next segment
-				if( compareRes != 0 ) {
+				if (compareRes != 0) {
 					return compareRes;
 				}
 			}
-
+			
 			// Final Raw String comparision
 			return a.compareTo(b);
 		});

@@ -88,7 +88,7 @@ public class BasePage_requestBefore_test {
 		@Override
 		public void handleHaltException(HaltException e) {
 			// This is an example of if you want halt exception to print something out
-			if(e.getMessage() != null) {
+			if (e.getMessage() != null) {
 				getPrintWriter().println(e.getMessage());
 			}
 		}

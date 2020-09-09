@@ -87,7 +87,8 @@ public class BasePage_reroute_parameter_test {
 	@Test
 	public void test_withGetParams() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new LandingPage()));
-		String testUrl = "http://127.0.0.1:" + testPort + "/pass/testing/internal/nested/param?getParam=answer";
+		String testUrl = "http://127.0.0.1:" + testPort
+			+ "/pass/testing/internal/nested/param?getParam=answer";
 		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
 		assertEquals("answer", response.toMap().getString("getParam").trim());
 	}

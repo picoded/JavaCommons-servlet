@@ -37,11 +37,11 @@ public class RequestPathDetection_test {
 		
 		// Check for only 1 annotation, that is "hello"
 		assertEquals(1, annotations.length);
-
+		
 		// Get the value in a string array
-		assertNotNull( annotations[0].value() );
-		String[] valArr = (String[])(annotations[0].value());
-
+		assertNotNull(annotations[0].value());
+		String[] valArr = (String[]) (annotations[0].value());
+		
 		// And validate it
 		assertEquals("hello", valArr[0]);
 	}

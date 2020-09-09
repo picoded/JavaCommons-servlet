@@ -36,12 +36,12 @@ import picoded.core.conv.ConvertJSON;
  * @TODO: Optimize the class to do the conversion between String[] to String only ON DEMAND, and to cache the result
  **/
 public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
-
+	
 	/**
 	 * Internal HttpServletRequest, initialized by constructor
 	 */
 	private HttpServletRequest req = null;
-
+	
 	//------------------------------------------------------------------------------
 	//
 	// Constructor
@@ -63,7 +63,7 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 		req = inReq;
 		processHttpServletRequest();
 	}
-
+	
 	//------------------------------------------------------------------------------
 	//
 	// Parameter handling (the whole point of this class)
@@ -87,15 +87,15 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 		}
 		
 		// Does specific processing for application/json
-		if (contentType.contains("application/json") ) {
+		if (contentType.contains("application/json")) {
 			// Does processing of JSON request, and return
 			setByteArrayFromHttpServletRequest(req);
 			processJsonParams();
 			return;
 		}
-
+		
 		// Attempt to do JSON processing for text/plain
-		if( contentType.contains("text/plain") ) {
+		if (contentType.contains("text/plain")) {
 			setByteArrayFromHttpServletRequest(req);
 			try {
 				processJsonParams();
@@ -104,11 +104,11 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 			}
 			return;
 		}
-
+		
 		// Multipart processing, this covers file uploads
 		// Used in the other post types when its needed
 		boolean isMultipartContent = handleMultipartProcessing(req);
-		if( isMultipartContent ) {
+		if (isMultipartContent) {
 			return;
 		}
 		
@@ -199,11 +199,11 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 	 */
 	private void setByteArrayFromInputStream(InputStream input) throws IOException {
 		// Save the request body as a byte array
-		if(this.reqBodyByteArray == null){
+		if (this.reqBodyByteArray == null) {
 			this.reqBodyByteArray = IOUtils.toByteArray(input);
 		}
 	}
-
+	
 	/**
 	 * @param inReq to extract the input stream from
 	 */
@@ -222,21 +222,21 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 	protected byte[] getRequestBodyByteArray() {
 		return reqBodyByteArray;
 	}
-
+	
 	//-------------------------------------------------
 	// stringify the request body
 	//-------------------------------------------------
-
+	
 	/**
 	 * Get request body as a string
 	 * @return
 	 */
-	public String getRequestBodyString(){
+	public String getRequestBodyString() {
 		try {
 			// Detect request encoding format, by default set to UTF-8
 			String encoding = (req.getCharacterEncoding() != null) ? req.getCharacterEncoding()
-					: "UTF-8";
-
+				: "UTF-8";
+			
 			// stringify the request body
 			return new String(getRequestBodyByteArray(), encoding);
 		} catch (IOException e) {
@@ -254,10 +254,10 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 	private void processJsonParams() {
 		// get the JSON string from the body
 		String requestJSON = getRequestBodyString();
-
+		
 		// Convert into jsonMap : currently we only support top level maps
 		Map<String, Object> jsonMap = ConvertJSON.toMap(requestJSON);
-
+		
 		// Store the data, and return
 		this.putAll(jsonMap);
 	}
