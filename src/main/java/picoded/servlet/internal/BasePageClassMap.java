@@ -1,6 +1,7 @@
 package picoded.servlet.internal;
 
 import java.io.PrintWriter;
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -861,6 +862,21 @@ public class BasePageClassMap {
 		// Output handling
 		//
 		
+		// Get the return type
+		Class<?> returnType = toExecute.getReturnType();
+		
+		// Does File based processing
+		if (returnType == File.class) {
+			if (executionResponse != null) {
+				// This will handle multipart handling
+				page.sendFile((File) executionResponse);
+			} else {
+				// This will automatically do 404
+				page.sendFile(null);
+			}
+			return;
+		}
+		
 		if (executionResponse == null) {
 			return;
 		}
@@ -891,6 +907,7 @@ public class BasePageClassMap {
 			return;
 		}
 		
+		// @TODO - consider output failure for unknown non null value ??
 	}
 	
 }

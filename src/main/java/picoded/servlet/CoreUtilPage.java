@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Enumeration;
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.OutputStream;
 import java.net.URLDecoder;
@@ -90,6 +91,21 @@ public class CoreUtilPage extends CorePage {
 			return _outputFileServlet;
 		}
 		return (_outputFileServlet = new FileServlet(getContextPath()));
+	}
+	
+	/**
+	 * Send file as an output - use this to automatically provide optimized file transfers.
+	 * Note that for this to work, no additional output should be done after this command (or before) it
+	 * 
+	 * @param file data to send
+	 */
+	public void sendFile(File data) {
+		try {
+			outputFileServlet().processRequest(getHttpServletRequest(), getHttpServletResponse(),
+				false, data);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	///////////////////////////////////////////////////////
