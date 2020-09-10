@@ -126,7 +126,7 @@ public class BasePage extends CoreUtilPage {
 		} else if (responseApiMap.size() > 0) {
 			// Setting the response to be JSON output
 			if (getHttpServletResponse().getContentType() == null) {
-				getHttpServletResponse().setContentType("application/javascript");
+				getHttpServletResponse().setContentType("application/json");
 			}
 			writer.println(ConvertJSON.fromObject(responseApiMap, true));
 		}
@@ -137,7 +137,7 @@ public class BasePage extends CoreUtilPage {
 	 * This does not handle any exception objects.
 	 */
 	protected void outputApiException() {
-		getHttpServletResponse().setContentType("application/javascript");
+		getHttpServletResponse().setContentType("application/json");
 		getPrintWriter().println(ConvertJSON.fromObject(responseApiMap, true));
 	}
 	

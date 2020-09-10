@@ -374,9 +374,14 @@ public class FileServlet extends HttpServlet {
 			// Else, expect for images, determine content disposition. If content type is supported by
 			// the browser, then set to inline, else attachment which will pop a 'save as' dialogue.
 			//
+			// If no disposition is set, defaults to inline for images
+			//
 			String accept = servletRequest.getHeader("Accept");
-			disposition = accept != null && headerAccept(accept, contentType) ? "inline"
-				: "attachment";
+			if (accept != null) {
+				disposition = headerAccept(accept, contentType) ? "inline" : "attachment";
+			} else {
+				disposition = "inline";
+			}
 		}
 		
 		// Return headers
