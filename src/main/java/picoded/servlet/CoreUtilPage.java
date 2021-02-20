@@ -232,10 +232,11 @@ public class CoreUtilPage extends CorePage {
 		String originServer = _httpRequest.getHeader("Referer");
 		if (originServer == null || originServer.isEmpty()) {
 			// Unable to process CORS as no referer was sent
-			_httpResponse.addHeader("Access-Control-Warning",
+			_httpResponse.setHeader("Access-Control-Warning",
 				"Missing Referer header, Unable to process CORS");
 			return;
 		}
+		
 		// @TODO : Validate originServer against accepted list as a parameter?
 		
 		// Sanatize origin server to be strictly
@@ -251,9 +252,9 @@ public class CoreUtilPage extends CorePage {
 		// @TODO : Validate originServer against accepted list?
 		
 		// By default CORS is enabled for all API requests
-		_httpResponse.addHeader("Access-Control-Allow-Origin", originServer);
-		_httpResponse.addHeader("Access-Control-Allow-Credentials", "true");
-		_httpResponse.addHeader("Access-Control-Allow-Methods",
+		_httpResponse.setHeader("Access-Control-Allow-Origin", originServer);
+		_httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
+		_httpResponse.setHeader("Access-Control-Allow-Methods",
 			"POST, GET, OPTIONS, PUT, DELETE, HEAD");
 	}
 	
