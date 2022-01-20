@@ -244,6 +244,9 @@ public class CoreUtilPage extends CorePage {
 		// Get origin server, from either the referer, or origin itself
 		String originServer = req.getHeader("Referer"); 
 		if (originServer == null || originServer.isEmpty()) {
+			originServer = req.getHeader("Origin");
+		}
+		if (originServer == null || originServer.isEmpty()) {
 			String protocall = req.getHeader("x-forwarded-proto");
 			if( protocall == null || protocall.isEmpty() ) {
 				protocall = req.getScheme();
@@ -255,20 +258,21 @@ public class CoreUtilPage extends CorePage {
 		if (originServer == null || originServer.isEmpty()) {
 			// Unable to process CORS as no referer was sent
 			res.setHeader("Access-Control-Warning",
-				"Missing Referer header, Unable to process CORS");
-			return;
+				"Missing Referer/Origin header, Unable to process CORS accurately");
 		}
 		
-		// @TODO : Validate originServer against accepted list as a parameter?
-		
-		// Sanatize origin server to be strictly
-		// http(s)://originServer.com, without additional "/" nor URI path
-		// boolean refererHttps = false;
-		if (originServer.startsWith("https://")) {
-			// refererHttps = true;
-			originServer = "https://" + originServer.substring("https://".length()).split("/")[0];
+		// Normalize the origin server
+		if( originServer == null || originServer.isEmpty() ) {
+			// Handle requests, which lacked the origin server source, and respond with "*"
+			originServer = "*";
 		} else {
-			originServer = "http://" + originServer.substring("http://".length()).split("/")[0];
+			// Sanatize origin server to be strictly
+			// http(s)://originServer.com, without additional "/" nor URI path
+			if (originServer.startsWith("https://")) {
+				originServer = "https://" + originServer.substring("https://".length()).split("/")[0];
+			} else {
+				originServer = "http://" + originServer.substring("http://".length()).split("/")[0];
+			}
 		}
 		
 		// @TODO : Validate originServer against accepted list?
