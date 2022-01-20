@@ -279,6 +279,8 @@ public class CoreUtilPage extends CorePage {
 		
 		// By default CORS is enabled for all API requests
 		res.setHeader("Access-Control-Allow-Origin", originServer);
+
+		res.setHeader("Access-Control-Allow-Headers", "Accept, Accept-Language, Content-Language, Content-Type, Content-Encoding, Range");
 		res.setHeader("Access-Control-Allow-Credentials", "true");
 		res.setHeader("Access-Control-Allow-Methods",
 			"POST, GET, OPTIONS, PUT, DELETE, HEAD");
