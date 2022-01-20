@@ -235,16 +235,20 @@ public class CoreUtilPage extends CorePage {
 			return;
 		}
 		
-		// Get origin server, from either the referer, or origin itself
-		String originServer = req.getHeader("Referer"); 
-		if (originServer == null || originServer.isEmpty()) {
-			originServer = req.getHeader("Origin");
-		}
-
 		// Check if CORS is already configured, if so skip
 		String existingCors = res.getHeader("Access-Control-Allow-Origin");
 		if( existingCors != null && existingCors.length() > 0 ) {
 			return;
+		}
+
+		// Get origin server, from either the referer, or origin itself
+		String originServer = req.getHeader("Referer"); 
+		if (originServer == null || originServer.isEmpty()) {
+			String protocall = req.getHeader("x-forwarded-proto");
+			if( protocall == null || protocall.isEmpty() ) {
+				protocall = req.getScheme();
+			}
+			originServer = protocall+"://"+req.getServerName();
 		}
 
 		// Perform a warning if cors origin cannot be detirmined
