@@ -937,7 +937,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * [Do not extend] Diverts the native doX to spawnInstance().setupInstance(TYPE,Req,Res).processChain()
 	 **/
 	@Override
-	public final void doGet(HttpServletRequest request, HttpServletResponse response)
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
 		throws ServletException {
 		spawnInstance().setupInstance(HttpRequestType.GET, request, response).processChain();
 	}
@@ -946,7 +946,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * [Do not extend] Diverts the native doX to spawnInstance().setupInstance(TYPE,Req,Res).processChain()
 	 **/
 	@Override
-	public final void doPost(HttpServletRequest request, HttpServletResponse response)
+	public void doPost(HttpServletRequest request, HttpServletResponse response)
 		throws ServletException {
 		spawnInstance().setupInstance(HttpRequestType.POST, request, response).processChain();
 	}
@@ -955,7 +955,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * [Do not extend] Diverts the native doX to spawnInstance().setupInstance(TYPE,Req,Res).processChain()
 	 **/
 	@Override
-	public final void doPut(HttpServletRequest request, HttpServletResponse response)
+	public void doPut(HttpServletRequest request, HttpServletResponse response)
 		throws ServletException {
 		spawnInstance().setupInstance(HttpRequestType.PUT, request, response).processChain();
 	}
@@ -964,7 +964,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * [Do not extend] Diverts the native doX to spawnInstance().setupInstance(TYPE,Req,Res).processChain()
 	 **/
 	@Override
-	public final void doDelete(HttpServletRequest request, HttpServletResponse response)
+	public void doDelete(HttpServletRequest request, HttpServletResponse response)
 		throws ServletException {
 		spawnInstance().setupInstance(HttpRequestType.DELETE, request, response).processChain();
 	}
@@ -973,7 +973,7 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 	 * [Do not extend] Diverts the native doX to spawnInstance().setupInstance(TYPE,Req,Res).processChain()
 	 **/
 	@Override
-	public final void doOptions(HttpServletRequest request, HttpServletResponse response)
+	public void doOptions(HttpServletRequest request, HttpServletResponse response)
 		throws ServletException {
 		spawnInstance().setupInstance(HttpRequestType.OPTION, request, response).processChain();
 		// try {
