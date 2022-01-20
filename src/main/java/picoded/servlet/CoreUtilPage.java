@@ -223,16 +223,34 @@ public class CoreUtilPage extends CorePage {
 	 * Add the necessery headers to allow the current request to be processed with CORS
 	 */
 	protected void enableCORS() {
+		CoreUtilPage.enableCORS(_httpRequest, _httpResponse);
+	}
+	
+	/**
+	 * Add the necessery headers to allow the current request to be processed with CORS
+	 */
+	static public void enableCORS(HttpServletResponse req, HttpServletResponse res) {
 		// If _httpResponse isnt set, there is nothing to CORS
-		if (_httpResponse == null) {
+		if (res == null) {
 			return;
 		}
 		
-		// Get origin server
-		String originServer = _httpRequest.getHeader("Referer");
+		// Get origin server, from either the referer, or origin itself
+		String originServer = req.getHeader("Referer"); 
+		if (originServer == null || originServer.isEmpty()) {
+			originServer.getHeader("Origin");
+		}
+
+		// Check if CORS is already configured, if so skip
+		String existingCors = res.getHeader("Access-Control-Allow-Origin");
+		if( existingCors != null && existingCors.length() > 0 ) {
+			return;
+		}
+
+		// Perform a warning if cors origin cannot be detirmined
 		if (originServer == null || originServer.isEmpty()) {
 			// Unable to process CORS as no referer was sent
-			_httpResponse.setHeader("Access-Control-Warning",
+			res.setHeader("Access-Control-Warning",
 				"Missing Referer header, Unable to process CORS");
 			return;
 		}
@@ -241,9 +259,9 @@ public class CoreUtilPage extends CorePage {
 		
 		// Sanatize origin server to be strictly
 		// http(s)://originServer.com, without additional "/" nor URI path
-		boolean refererHttps = false;
+		// boolean refererHttps = false;
 		if (originServer.startsWith("https://")) {
-			refererHttps = true;
+			// refererHttps = true;
 			originServer = "https://" + originServer.substring("https://".length()).split("/")[0];
 		} else {
 			originServer = "http://" + originServer.substring("http://".length()).split("/")[0];
@@ -252,9 +270,9 @@ public class CoreUtilPage extends CorePage {
 		// @TODO : Validate originServer against accepted list?
 		
 		// By default CORS is enabled for all API requests
-		_httpResponse.setHeader("Access-Control-Allow-Origin", originServer);
-		_httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
-		_httpResponse.setHeader("Access-Control-Allow-Methods",
+		res.setHeader("Access-Control-Allow-Origin", originServer);
+		res.setHeader("Access-Control-Allow-Credentials", "true");
+		res.setHeader("Access-Control-Allow-Methods",
 			"POST, GET, OPTIONS, PUT, DELETE, HEAD");
 	}
 	

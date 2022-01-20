@@ -969,19 +969,19 @@ public class CorePage extends javax.servlet.http.HttpServlet implements ServletC
 		spawnInstance().setupInstance(HttpRequestType.DELETE, request, response).processChain();
 	}
 	
-	// /**
-	//  * [Do not extend] Diverts the native doX to spawnInstance().setupInstance(TYPE,Req,Res).processChain()
-	//  **/
-	// @Override
-	// public final void doOptions(HttpServletRequest request, HttpServletResponse response)
-	// 	throws ServletException {
-	// 	spawnInstance().setupInstance(HttpRequestType.OPTION, request, response).processChain();
-	// 	try {
-	// 		super.doOptions(request, response);
-	// 	} catch (Exception e) {
-	// 		throw new ServletException(e);
-	// 	}
-	// }
+	/**
+	 * [Do not extend] Diverts the native doX to spawnInstance().setupInstance(TYPE,Req,Res).processChain()
+	 **/
+	@Override
+	public final void doOptions(HttpServletRequest request, HttpServletResponse response)
+		throws ServletException {
+		spawnInstance().setupInstance(HttpRequestType.OPTION, request, response).processChain();
+		// try {
+		// 	super.doOptions(request, response);
+		// } catch (Exception e) {
+		// 	throw new ServletException(e);
+		// }
+	}
 	
 	/**
 	 * [Do not extend] Servlet context initializer handling.
