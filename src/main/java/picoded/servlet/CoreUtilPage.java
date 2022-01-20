@@ -223,13 +223,13 @@ public class CoreUtilPage extends CorePage {
 	 * Add the necessery headers to allow the current request to be processed with CORS
 	 */
 	protected void enableCORS() {
-		CoreUtilPage.enableCORS(_httpRequest, _httpResponse);
+		CoreUtilPage.enableCORS(this._httpRequest, this._httpResponse);
 	}
 	
 	/**
 	 * Add the necessery headers to allow the current request to be processed with CORS
 	 */
-	static public void enableCORS(HttpServletResponse req, HttpServletResponse res) {
+	static public void enableCORS(HttpServletRequest req, HttpServletResponse res) {
 		// If _httpResponse isnt set, there is nothing to CORS
 		if (res == null) {
 			return;
@@ -238,7 +238,7 @@ public class CoreUtilPage extends CorePage {
 		// Get origin server, from either the referer, or origin itself
 		String originServer = req.getHeader("Referer"); 
 		if (originServer == null || originServer.isEmpty()) {
-			originServer.getHeader("Origin");
+			originServer = req.getHeader("Origin");
 		}
 
 		// Check if CORS is already configured, if so skip
