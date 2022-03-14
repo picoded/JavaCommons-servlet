@@ -86,6 +86,13 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 			return;
 		}
 		
+		// Multipart processing, this covers file uploads
+		// Used in the other post types when its needed
+		boolean isMultipartContent = handleMultipartProcessing(req);
+		if (isMultipartContent) {
+			return;
+		}
+		
 		// Does specific processing for application/json
 		if (contentType.contains("application/json")) {
 			// Does processing of JSON request, and return
@@ -102,13 +109,6 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 			} catch (Exception e) {
 				// Surpress invalid JSON handling for text/plain request (as it may not be JSON)
 			}
-			return;
-		}
-		
-		// Multipart processing, this covers file uploads
-		// Used in the other post types when its needed
-		boolean isMultipartContent = handleMultipartProcessing(req);
-		if (isMultipartContent) {
 			return;
 		}
 		
@@ -321,9 +321,17 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 	 * @return false if its not a multipart upload, else true
 	 **/
 	private boolean handleMultipartProcessing(HttpServletRequest request) {
+
+		// Content type header
+		String contentType = request.getContentType();
 		
 		// Only work when there is multi part
-		if (!ServletFileUpload.isMultipartContent(request)) {
+		if (
+			ServletFileUpload.isMultipartContent(request) ||
+			(contentType != null && contentType.contains("multipart/form-data"))
+		) {
+			// does nothing - proceed with handling multipart
+		} else {
 			return false;
 		}
 		
