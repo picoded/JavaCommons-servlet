@@ -86,6 +86,12 @@ public class ServletRequestMap extends GenericConvertHashMap<String, Object> {
 			return;
 		}
 		
+		// Skip byte[] payload processing for GET/HEAD/OPTION requests
+		String reqMethod = req.getMethod();
+		if( !(reqMethod.equalsIgnoreCase("PUT") || reqMethod.equalsIgnoreCase("POST")) ) {
+			return;
+		}
+
 		// Multipart processing, this covers file uploads
 		// Used in the other post types when its needed
 		boolean isMultipartContent = handleMultipartProcessing(req);
