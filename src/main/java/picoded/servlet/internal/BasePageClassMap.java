@@ -458,7 +458,7 @@ public class BasePageClassMap {
 			// RequestAfter execution
 			executeMethodMap(afterMap, page, requestPath);
 		} catch (ApiException ae) {
-			throw new ApiException(ae.getHttpStatus(), ae.getErrorType(), ae.getErrorMessage());
+			throw ae;
 		} catch (Exception e) {
 			// Any exception will be thrown back to BasePage for handling
 			Throwable cause = e;
