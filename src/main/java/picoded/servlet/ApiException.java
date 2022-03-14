@@ -18,6 +18,13 @@ public class ApiException extends RuntimeException {
 		this.errorMessage = errorMessage;
 	}
 	
+	public ApiException(int httpStatus, String errorType, String errorMessage, Exception e) {
+		super(errorMessage, e);
+		this.httpStatus = httpStatus;
+		this.errorType = errorType;
+		this.errorMessage = errorMessage;
+	}
+	
 	public ApiException(int httpStatus, String errorType) {
 		this.httpStatus = httpStatus;
 		this.errorType = errorType;
