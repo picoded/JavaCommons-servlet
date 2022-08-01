@@ -9,6 +9,8 @@ import javax.servlet.*;
 import java.io.IOException;
 
 // Objects used
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Enumeration;
@@ -38,27 +40,27 @@ import picoded.core.common.HttpRequestType;
  * Extension of CorePage with various utility functionalities
  */
 public class CoreUtilPage extends CorePage {
-	
+
 	///////////////////////////////////////////////////////
 	//
 	// Constructor extending
 	//
 	///////////////////////////////////////////////////////
-	
+
 	/**
 	 * Blank constructor, used for template building, unit testing, etc
 	 **/
 	public CoreUtilPage() {
 		super();
 	}
-	
+
 	/**
 	 * Clone constructor, this is used to copy over all values from original instance
 	 */
 	public CoreUtilPage(CorePage ori) {
 		super(ori);
 	}
-	
+
 	// /**
 	//  * Gets and return the thread local CorePage used in current servlet request
 	//  */
@@ -71,18 +73,18 @@ public class CoreUtilPage extends CorePage {
 	// 	}
 	// 	return null;
 	// }
-	
+
 	///////////////////////////////////////////////////////
 	//
 	// [Utility] Native FileServlet and path handling
 	//
 	///////////////////////////////////////////////////////
-	
+
 	/**
 	 * Cached FileServlet (for reuse)
 	 **/
 	protected FileServlet _outputFileServlet = null;
-	
+
 	/**
 	 * Returns the File servlet
 	 **/
@@ -92,11 +94,11 @@ public class CoreUtilPage extends CorePage {
 		}
 		return (_outputFileServlet = new FileServlet(getContextPath()));
 	}
-	
+
 	/**
 	 * Send file as an output - use this to automatically provide optimized file transfers.
 	 * Note that for this to work, no additional output should be done after this command (or before) it
-	 * 
+	 *
 	 * @param file data to send
 	 */
 	public void sendFile(File data) {
@@ -107,13 +109,13 @@ public class CoreUtilPage extends CorePage {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	///////////////////////////////////////////////////////
 	//
 	// [Utility] Webpath rerouting
 	//
 	///////////////////////////////////////////////////////
-	
+
 	/**
 	 * Checks and forces a redirection with closing slash on index page requests.
 	 * If needed (returns false, on validation failure)
@@ -133,18 +135,18 @@ public class CoreUtilPage extends CorePage {
 	 * | host/subpath/index.html  | host/subpath/index.html  |
 	 *
 	 * As a result of the ambiguity in redirect for html index pages loaded
-	 * in "host/subpath". This function was created, so that the index page is 
+	 * in "host/subpath". This function was created, so that the index page is
 	 * enforced to be loaded with proper file or "/" index page loading
 	 *
 	 * The reason for standardising to "host/subpath/" is that this will be consistent with
 	 * offline page loads (such as through cordova). Where the index.html will be loaded
 	 * in full file path instead.
-	 * 
+	 *
 	 * The redirection only triggers with the following conditions
 	 *
 	 * 1) Request is a GET request
-	 * 
-	 * 2) A request path without the "/" ending 
+	 *
+	 * 2) A request path without the "/" ending
 	 *
 	 * 3) Is not a file request, a file request is assumed if there was a "." in the last name
 	 *    Example: host/subpath/file.js
@@ -163,26 +165,26 @@ public class CoreUtilPage extends CorePage {
 	protected boolean enforceProperRequestPathEnding() throws IOException {
 		if (_httpRequest != null) {
 			String fullURI = _httpRequest.getRequestURI();
-			
+
 			// Check request type, ignore if not a get request
 			if (!isGET()) {
 				return true;
 			}
-			
+
 			// This does not validate blank / root requests
 			//
 			// Should we? : To fix if this is required (as of now no)
 			if (fullURI == null || fullURI.equalsIgnoreCase("/")) {
 				return true;
 			}
-			
+
 			//
 			// Already ends with a "/" ? : If so its considered valid
 			//
 			if (fullURI.endsWith("/")) {
 				return true;
 			}
-			
+
 			//
 			// Checks if its a file request. Ends check if it is
 			//
@@ -191,7 +193,7 @@ public class CoreUtilPage extends CorePage {
 				// There is a file extension. so we shall assume it is a file
 				return true; // And end it
 			}
-			
+
 			//
 			// Get the query string to append (if needed)
 			//
@@ -201,31 +203,31 @@ public class CoreUtilPage extends CorePage {
 			} else if (!queryString.startsWith("?")) {
 				queryString = "?" + queryString;
 			}
-			
+
 			//
 			// Enforce proper URL handling
 			//
 			_httpResponse.sendRedirect(fullURI + "/" + queryString);
 			return false;
 		}
-		
+
 		// Validation is valid.
 		return true;
 	}
-	
+
 	///////////////////////////////////////////////////////
 	//
 	// [Utility] CORS Handling
 	//
 	///////////////////////////////////////////////////////
-	
+
 	/**
 	 * Add the necessery headers to allow the current request to be processed with CORS
 	 */
 	protected void enableCORS() {
 		CoreUtilPage.enableCORS(this._httpRequest, this._httpResponse);
 	}
-	
+
 	/**
 	 * Add the necessery headers to allow the current request to be processed with CORS
 	 */
@@ -234,7 +236,7 @@ public class CoreUtilPage extends CorePage {
 		if (res == null) {
 			return;
 		}
-		
+
 		// Check if CORS is already configured, if so skip
 		String existingCors = res.getHeader("Access-Control-Allow-Origin");
 		if( existingCors != null && existingCors.length() > 0 ) {
@@ -242,7 +244,7 @@ public class CoreUtilPage extends CorePage {
 		}
 
 		// Get origin server, from either the referer, or origin itself
-		String originServer = req.getHeader("Referer"); 
+		String originServer = req.getHeader("Referer");
 		if (originServer == null || originServer.isEmpty()) {
 			originServer = req.getHeader("Origin");
 		}
@@ -260,23 +262,25 @@ public class CoreUtilPage extends CorePage {
 			res.setHeader("Access-Control-Warning",
 				"Missing Referer/Origin header, Unable to process CORS accurately");
 		}
-		
+
 		// Normalize the origin server
 		if( originServer == null || originServer.isEmpty() ) {
 			// Handle requests, which lacked the origin server source, and respond with "*"
 			originServer = "*";
 		} else {
-			// Sanatize origin server to be strictly
-			// http(s)://originServer.com, without additional "/" nor URI path
-			if (originServer.startsWith("https://")) {
-				originServer = "https://" + originServer.substring("https://".length()).split("/")[0];
-			} else {
-				originServer = "http://" + originServer.substring("http://".length()).split("/")[0];
+			try {
+				// Sanatize origin server to be strictly
+				// http(s)://originServer.com, without additional "/" nor URI path
+				URL url = new URL(originServer);
+
+				originServer = url.getProtocol() + "//" + url.getAuthority();
+			} catch (MalformedURLException e) {
+				res.setHeader("Access-Control-Warning", "Unable to process CORS accurately because origin header is invalid");
 			}
 		}
-		
+
 		// @TODO : Validate originServer against accepted list?
-		
+
 		// By default CORS is enabled for all API requests
 		res.setHeader("Access-Control-Allow-Origin", originServer);
 
@@ -285,13 +289,13 @@ public class CoreUtilPage extends CorePage {
 		res.setHeader("Access-Control-Allow-Methods",
 			"POST, GET, OPTIONS, PUT, DELETE, HEAD");
 	}
-	
+
 	///////////////////////////////////////////////////////
 	//
 	// doRequest extension
 	//
 	///////////////////////////////////////////////////////
-	
+
 	/**
 	 * Extends `doRequest` to perform `enforceProperRequestPathEnding` and `outputFileServlet`
 	 * only when processing GET requests
@@ -299,7 +303,7 @@ public class CoreUtilPage extends CorePage {
 	protected void doRequest(PrintWriter writer) throws Exception {
 		// Extends original behaviour (if any)
 		super.doRequest(writer);
-		
+
 		// Only does file serving with GET request
 		// and valid file path handling
 		if (isGET() && enforceProperRequestPathEnding()) {
@@ -313,13 +317,13 @@ public class CoreUtilPage extends CorePage {
 				requestWildcardUri());
 		}
 	}
-	
+
 	///////////////////////////////////////////////////////
 	//
 	// Some legacy stuff
 	//
 	///////////////////////////////////////////////////////
-	
+
 	// /**
 	//  * The process chain part specific to a normal request
 	//  **/
@@ -332,18 +336,18 @@ public class CoreUtilPage extends CorePage {
 	// 		if (requestType == _httpRequestType.GET && !enforceProperRequestPathEnding()) {
 	// 			return false;
 	// 		}
-	
+
 	// 		// Does authentication check
 	// 		if (!doAuth(templateDataObj)) {
 	// 			return false;
 	// 		}
-	
+
 	// 		// Does for all requests
 	// 		if (!doRequest(templateDataObj)) {
 	// 			return false;
 	// 		}
 	// 		boolean ret = true;
-	
+
 	// 		// Switch is used over if,else for slight compiler optimization
 	// 		// http://stackoverflow.com/questions/6705955/why-switch-is-faster-than-if
 	// 		//
@@ -362,21 +366,21 @@ public class CoreUtilPage extends CorePage {
 	// 			ret = doDeleteRequest(templateDataObj);
 	// 			break;
 	// 		}
-	
+
 	// 		if (ret) {
 	// 			outputRequest(templateDataObj, getWriter());
 	// 		}
-	
+
 	// 		// // Flush the output stream
 	// 		// getWriter().flush();
 	// 		// getOutputStream().flush();
-	
+
 	// 		return ret;
 	// 	} catch (Exception e) {
 	// 		return outputRequestException(templateDataObj, getWriter(), e);
 	// 	}
 	// }
-	
+
 	// /**
 	//  * The process chain part specific to JSON request
 	//  **/
@@ -387,14 +391,14 @@ public class CoreUtilPage extends CorePage {
 	// 		if (!doAuth(templateDataObj)) {
 	// 			return false;
 	// 		}
-	
+
 	// 		// Does for all JSON
 	// 		if (!doJSON(jsonDataObj, templateDataObj)) {
 	// 			return false;
 	// 		}
-	
+
 	// 		boolean ret = true;
-	
+
 	// 		// Switch is used over if,else for slight compiler optimization
 	// 		// http://stackoverflow.com/questions/6705955/why-switch-is-faster-than-if
 	// 		//
@@ -412,15 +416,15 @@ public class CoreUtilPage extends CorePage {
 	// 			ret = doDeleteJSON(jsonDataObj, templateDataObj);
 	// 			break;
 	// 		}
-	
+
 	// 		if (ret) {
 	// 			outputJSON(jsonDataObj, templateDataObj, getWriter());
 	// 		}
-	
+
 	// 		return ret;
 	// 	} catch (Exception e) {
 	// 		return outputJSONException(jsonDataObj, templateDataObj, getWriter(), e);
 	// 	}
 	// }
-	
+
 }

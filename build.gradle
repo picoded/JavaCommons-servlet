@@ -37,7 +37,7 @@ repositories {
 //----------------------------------------------------------------
 
 // The Project version
-version = '4.1.0'
+version = '4.1.1'
 
 // Setup java compilation version
 sourceCompatibility = 1.8
@@ -74,23 +74,23 @@ compileJava.dependsOn buildJavaCommonsDStack
 
 // Dependencies used in the build
 dependencies {
-	
+
 	// JavaCommons dependencies
 	//---------------------------------------
 
 	// Get and compile against the -all.jar lib file from javacommons core + DStack
-	// note that compileOnly + testImplementation ensures this file is not included 
+	// note that compileOnly + testImplementation ensures this file is not included
 	// in any of the 3 jar builds, but still make it part of the test suite
-	compileOnly fileTree(dir: './JavaCommons-core/build/libs', include: ['*-all.jar']) 
-	testImplementation fileTree(dir: './JavaCommons-core/build/libs', include: ['*-all.jar']) 
+	compileOnly fileTree(dir: './JavaCommons-core/build/libs', include: ['*-all.jar'])
+	testImplementation fileTree(dir: './JavaCommons-core/build/libs', include: ['*-all.jar'])
 
-	compileOnly fileTree(dir: './JavaCommons-dstack/build/libs', include: ['*-all.jar']) 
-	testImplementation fileTree(dir: './JavaCommons-dstack/build/libs', include: ['*-all.jar']) 
+	compileOnly fileTree(dir: './JavaCommons-dstack/build/libs', include: ['*-all.jar'])
+	testImplementation fileTree(dir: './JavaCommons-dstack/build/libs', include: ['*-all.jar'])
 
 	// This dependencies is exported to consumers, that is to say found on their compile classpath.
 	//-------------------------------------------------------------------------------------------------------------------
 
-	// Embedded tomcat 
+	// Embedded tomcat
 	// @TODO upgrade 8.5.32 to 9.x (and fix whatever breaks it)
 	api "org.apache.tomcat.embed:tomcat-embed-core:8.5.32"
 	api "org.apache.tomcat.embed:tomcat-embed-jasper:8.5.32"
@@ -234,7 +234,7 @@ test {
 		// we will run more tests in parallels
 		maxParallelForks = (Runtime.runtime.availableProcessors() * 2) as int
 	}
-	
+
 	// Set up the number of tests per fork
 	if (project.hasProperty('forkEvery')) {
 		forkEvery = project.forkEvery as int
@@ -266,7 +266,7 @@ class TestWatcher extends Test {
 
 					// Strip off the folder path
 					def filename = pathSplit[ pathSplit.size() - 1 ]
-					
+
 					// Add the filename into the include pattern
 					this.filter.includePatterns += "*"+filename+"*"
 
@@ -299,7 +299,7 @@ task incrementalTest(type: TestWatcher) {
 		// we will run more tests in parallels
 		maxParallelForks = (Runtime.runtime.availableProcessors() * 2) as int
 	}
-	
+
 	// Set up the number of tests per fork
 	if (project.hasProperty('forkEvery')) {
 		forkEvery = project.forkEvery as int
@@ -325,12 +325,12 @@ task srcBeautify(type:Exec) {
 	workingDir '.'
 	commandLine './build-util/java-formatter/parallel_format.sh','./src'
 }
-task prettify(dependsOn: srcBeautify) 
+task prettify(dependsOn: srcBeautify)
 
 // Doing compile alias for java
-task src(dependsOn: compileJava) 
-task source(dependsOn: src) 
-task compile(dependsOn: src) 
+task src(dependsOn: compileJava)
+task source(dependsOn: src)
+task compile(dependsOn: src)
 
 // Forcing srcBeautify on src step
 src.dependsOn srcBeautify
