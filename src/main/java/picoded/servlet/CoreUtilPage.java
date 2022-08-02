@@ -9,15 +9,13 @@ import javax.servlet.*;
 import java.io.IOException;
 
 // Objects used
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Enumeration;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.OutputStream;
-import java.net.URLDecoder;
 import java.io.UnsupportedEncodingException;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
@@ -104,7 +102,7 @@ public class CoreUtilPage extends CorePage {
 	public void sendFile(File data) {
 		try {
 			outputFileServlet().processRequest(getHttpServletRequest(), getHttpServletResponse(),
-				false, data);
+					false, data);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -119,44 +117,44 @@ public class CoreUtilPage extends CorePage {
 	/**
 	 * Checks and forces a redirection with closing slash on index page requests.
 	 * If needed (returns false, on validation failure)
-	 *
+	 * <p>
 	 * For example : https://picoded.com/JavaCommons , will redirect to https://picoded.com/JavaCommons/
-	 *
+	 * <p>
 	 * This is a rather complicated topic. Regarding the ambiguity of the HTML
 	 * redirection handling (T605 on phabricator)
-	 *
+	 * <p>
 	 * But basically take the following as example. On how a redirect is handled
 	 * for a relative "./index.html" within a webpage.
-	 *
+	 * <p>
 	 * | Current URL              | Redirects to             |
 	 * |--------------------------|--------------------------|
 	 * | host/subpath             | host/index.html          |
 	 * | host/subpath/            | host/subpath/index.html  |
 	 * | host/subpath/index.html  | host/subpath/index.html  |
-	 *
+	 * <p>
 	 * As a result of the ambiguity in redirect for html index pages loaded
 	 * in "host/subpath". This function was created, so that the index page is
 	 * enforced to be loaded with proper file or "/" index page loading
-	 *
+	 * <p>
 	 * The reason for standardising to "host/subpath/" is that this will be consistent with
 	 * offline page loads (such as through cordova). Where the index.html will be loaded
 	 * in full file path instead.
-	 *
+	 * <p>
 	 * The redirection only triggers with the following conditions
-	 *
+	 * <p>
 	 * 1) Request is a GET request
-	 *
+	 * <p>
 	 * 2) A request path without the "/" ending
-	 *
+	 * <p>
 	 * 3) Is not a file request, a file request is assumed if there was a "." in the last name
-	 *    Example: host/subpath/file.js
-	 *
+	 * Example: host/subpath/file.js
+	 * <p>
 	 * This will also safely handle the forwarding of all GET request parameters.
 	 * For example: "host/subpath?abc=xyz" will be redirected to "host/subpath/?abc=xyz"
-	 *
+	 * <p>
 	 * Note: THIS will silently pass as true, if a _httpRequest is not found. This is to facilitate
-	 *       possible function calls done on servlet setup. Without breaking them
-	 *
+	 * possible function calls done on servlet setup. Without breaking them
+	 * <p>
 	 * Now that was ALOT of explaination for one simple function wasnt it >_>
 	 * Well its one of the lesser understood "gotchas" in the HTTP specifications.
 	 * Made more unknown by the JavaCommons user due to the common usage of ${PageRootURI}
@@ -239,7 +237,7 @@ public class CoreUtilPage extends CorePage {
 
 		// Check if CORS is already configured, if so skip
 		String existingCors = res.getHeader("Access-Control-Allow-Origin");
-		if( existingCors != null && existingCors.length() > 0 ) {
+		if (existingCors != null && existingCors.length() > 0) {
 			return;
 		}
 
@@ -250,32 +248,32 @@ public class CoreUtilPage extends CorePage {
 		}
 		if (originServer == null || originServer.isEmpty()) {
 			String protocall = req.getHeader("x-forwarded-proto");
-			if( protocall == null || protocall.isEmpty() ) {
+			if (protocall == null || protocall.isEmpty()) {
 				protocall = req.getScheme();
 			}
-			originServer = protocall+"://"+req.getServerName();
+			originServer = protocall + "://" + req.getServerName();
 		}
 
 		// Perform a warning if cors origin cannot be detirmined
 		if (originServer == null || originServer.isEmpty()) {
 			// Unable to process CORS as no referer was sent
 			res.setHeader("Access-Control-Warning",
-				"Missing Referer/Origin header, Unable to process CORS accurately");
+					"Missing Referer/Origin header, Unable to process CORS accurately");
 		}
 
 		// Normalize the origin server
-		if( originServer == null || originServer.isEmpty() ) {
+		if (originServer == null || originServer.isEmpty()) {
 			// Handle requests, which lacked the origin server source, and respond with "*"
 			originServer = "*";
 		} else {
+			// Sanatize origin server to be strictly
+			// http(s)://originServer.com, without additional "/" nor URI path
+			URI uri = null;
 			try {
-				// Sanatize origin server to be strictly
-				// http(s)://originServer.com, without additional "/" nor URI path
-				URL url = new URL(originServer);
-
-				originServer = url.getProtocol() + "//" + url.getAuthority();
-			} catch (MalformedURLException e) {
-				res.setHeader("Access-Control-Warning", "Unable to process CORS accurately because origin header is invalid");
+				uri = new URI(originServer);
+				originServer = uri.getScheme() + "://" + uri.getAuthority();
+			} catch (URISyntaxException e) {
+				res.setHeader("Access-Control-Warning", "Unable to process CORS accurately because origin header is invalid: " + e);
 			}
 		}
 
@@ -287,7 +285,7 @@ public class CoreUtilPage extends CorePage {
 		res.setHeader("Access-Control-Allow-Headers", "Accept, Accept-Language, Content-Language, Content-Type, Content-Encoding, Range");
 		res.setHeader("Access-Control-Allow-Credentials", "true");
 		res.setHeader("Access-Control-Allow-Methods",
-			"POST, GET, OPTIONS, PUT, DELETE, HEAD");
+				"POST, GET, OPTIONS, PUT, DELETE, HEAD");
 	}
 
 	///////////////////////////////////////////////////////
@@ -311,10 +309,10 @@ public class CoreUtilPage extends CorePage {
 			 * Does standard file output - if file exists
 			 **/
 			outputFileServlet().processRequest( //
-				getHttpServletRequest(), //
-				getHttpServletResponse(), //
-				requestType() == HttpRequestType.HEAD, //
-				requestWildcardUri());
+					getHttpServletRequest(), //
+					getHttpServletResponse(), //
+					requestType() == HttpRequestType.HEAD, //
+					requestWildcardUri());
 		}
 	}
 
