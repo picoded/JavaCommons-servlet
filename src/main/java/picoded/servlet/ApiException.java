@@ -17,14 +17,13 @@ public class ApiException extends RuntimeException {
 		this.errorType = errorType;
 		this.errorMessage = errorMessage;
 	}
-
+	
 	public ApiException(int httpStatus, String errorType, String errorMessage, Throwable e) {
 		super(errorMessage, e);
 		this.httpStatus = httpStatus;
 		this.errorType = errorType;
 		this.errorMessage = errorMessage;
 	}
-	
 	
 	public ApiException(int httpStatus, String errorType, Throwable e) {
 		super(e);
