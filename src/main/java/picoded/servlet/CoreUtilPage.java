@@ -15,6 +15,8 @@ import java.util.Enumeration;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.io.UnsupportedEncodingException;
 import java.io.ByteArrayOutputStream;
@@ -27,9 +29,12 @@ import org.apache.commons.io.FilenameUtils;
 
 // JavaCommons library used
 import picoded.core.conv.ConvertJSON;
+import picoded.core.conv.GenericConvert;
 import picoded.core.common.EmptyArray;
 import picoded.core.common.HttpRequestType;
 import picoded.core.struct.ArrayListMap;
+import picoded.core.struct.GenericConvertHashMap;
+import picoded.core.struct.GenericConvertMap;
 import picoded.servlet.util.FileServlet;
 
 import picoded.core.common.HttpRequestType;
@@ -221,39 +226,59 @@ public class CoreUtilPage extends CorePage {
 	
 	/**
 	 * Add the necessery headers to allow the current request to be processed with CORS
-	 */
+	 **/
 	protected void enableCORS() {
-		CoreUtilPage.enableCORS(this._httpRequest, this._httpResponse);
+		CoreUtilPage.enableCORS(this._httpRequest, this._httpResponse, null);
 	}
 	
 	/**
 	 * Add the necessery headers to allow the current request to be processed with CORS
-	 */
-	static public void enableCORS(HttpServletRequest req, HttpServletResponse res) {
+	 **/
+	protected void enableCORS(HttpServletRequest req, HttpServletResponse res) {
+		CoreUtilPage.enableCORS(this._httpRequest, this._httpResponse, null);
+	}
+	
+	/**
+	 * Add the necessery headers to allow the current request to be processed with CORS
+	 * 
+	 * @param  req HttpServletRequest to check against
+	 * @param  res HttpServletResponse to modify
+	 * @param  corsConfig  configuration to use, should be supplied as a map with "headers", "credentials", or "methods" respectively
+	 **/
+	static public void enableCORS(HttpServletRequest req, HttpServletResponse res,
+		Map<String, Object> corsConfig) {
 		// If _httpResponse isnt set, there is nothing to CORS
 		if (res == null) {
 			return;
 		}
 		
+		// Normalize the config
+		GenericConvertMap<String, Object> config = null;
+		if (corsConfig == null) {
+			config = new GenericConvertHashMap<>();
+		} else {
+			config = GenericConvert.toGenericConvertStringMap(corsConfig);
+		}
+		
 		// Check if CORS is already configured, if so skip
 		String existingCors = res.getHeader("Access-Control-Allow-Origin");
-		if( existingCors != null && existingCors.length() > 0 ) {
+		if (existingCors != null && existingCors.length() > 0) {
 			return;
 		}
-
+		
 		// Get origin server, from either the referer, or origin itself
-		String originServer = req.getHeader("Referer"); 
+		String originServer = req.getHeader("Referer");
 		if (originServer == null || originServer.isEmpty()) {
 			originServer = req.getHeader("Origin");
 		}
 		if (originServer == null || originServer.isEmpty()) {
 			String protocall = req.getHeader("x-forwarded-proto");
-			if( protocall == null || protocall.isEmpty() ) {
+			if (protocall == null || protocall.isEmpty()) {
 				protocall = req.getScheme();
 			}
-			originServer = protocall+"://"+req.getServerName();
+			originServer = protocall + "://" + req.getServerName();
 		}
-
+		
 		// Perform a warning if cors origin cannot be detirmined
 		if (originServer == null || originServer.isEmpty()) {
 			// Unable to process CORS as no referer was sent
@@ -262,28 +287,39 @@ public class CoreUtilPage extends CorePage {
 		}
 		
 		// Normalize the origin server
-		if( originServer == null || originServer.isEmpty() ) {
+		if (originServer == null || originServer.isEmpty()) {
 			// Handle requests, which lacked the origin server source, and respond with "*"
 			originServer = "*";
 		} else {
-			// Sanatize origin server to be strictly
-			// http(s)://originServer.com, without additional "/" nor URI path
-			if (originServer.startsWith("https://")) {
-				originServer = "https://" + originServer.substring("https://".length()).split("/")[0];
-			} else {
-				originServer = "http://" + originServer.substring("http://".length()).split("/")[0];
+			// Fix the origin server to be just the protocol and host
+			// http(s)://originServer.com, without additional "/"
+			try {
+				URI uri = new URI(originServer);
+				originServer = uri.getScheme() + "://" + uri.getAuthority();
+			} catch (URISyntaxException e) {
+				res.setHeader("Access-Control-Warning",
+					"Unable to process CORS accurately because origin header is invalid : "
+						+ originServer);
 			}
 		}
 		
+		// By default CORS is enabled for all API requests	
 		// @TODO : Validate originServer against accepted list?
 		
-		// By default CORS is enabled for all API requests
-		res.setHeader("Access-Control-Allow-Origin", originServer);
-
-		res.setHeader("Access-Control-Allow-Headers", "Accept, Accept-Language, Content-Language, Content-Type, Content-Encoding, Range");
-		res.setHeader("Access-Control-Allow-Credentials", "true");
-		res.setHeader("Access-Control-Allow-Methods",
-			"POST, GET, OPTIONS, PUT, DELETE, HEAD");
+		// Add configurable options for Origin, Headers, Credentials, and Methods
+		res.setHeader("Access-Control-Allow-Origin", //
+			config.getString("origin", originServer) //
+		); //
+		res.setHeader("Access-Control-Allow-Headers", //
+			config.getString("headers", //
+				"Accept, Accept-Language, Content-Language, Content-Type, Content-Encoding, Range") //
+		); //
+		res.setHeader("Access-Control-Allow-Credentials", //
+			config.getString("credentials", "true") //
+		); //
+		res.setHeader("Access-Control-Allow-Methods", //
+			config.getString("methods", "POST, GET, OPTIONS, PUT, DELETE, HEAD") //
+		); //
 	}
 	
 	///////////////////////////////////////////////////////
