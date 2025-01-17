@@ -563,7 +563,13 @@ public class BasePageClassMap {
 		routeClassMap.handleRequest(routeClassObj, reroutePathArr);
 		
 		// RequestAfter execution
-		executeMethodMap(afterMap, routeClassObj, requestPath);
+		// !!! Bugfix !!!
+		// The below line is commented out because it is causing the @RequestAfter interceptors to not work when there are nested routes
+		// because the inner route class (i.e. routeClassObj) is not the same as the class for the afterMap methods (i.e. page).
+		// I fixed this by changing it from `page` to `routeClassObj`.
+		// - Shi Ling (2025-01-17)
+		// executeMethodMap(afterMap, routeClassObj, requestPath); // Bug!
+		executeMethodMap(afterMap, page, requestPath); // Fixed!
 		
 		// Assume valid execution
 		return true;
