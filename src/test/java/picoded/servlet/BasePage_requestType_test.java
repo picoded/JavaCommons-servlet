@@ -66,6 +66,29 @@ public class BasePage_requestType_test {
 			getPrintWriter().println("world");
 		}
 		
+		@ApiPath("api/single")
+		@RequestType("POST")
+		public Map<String, Object> apiSingle() {
+			Map<String, Object> ret = new ApiResponseMap();
+			ret.put("result", "pong");
+			return ret;
+		}
+		
+		@ApiPath("api/multiple")
+		@RequestType({ "GET", "POST" })
+		public Map<String, Object> apiMultiple() {
+			Map<String, Object> ret = new ApiResponseMap();
+			ret.put("result", "pong");
+			return ret;
+		}
+		
+		@ApiPath("api/none")
+		public Map<String, Object> apiNone() {
+			Map<String, Object> ret = new ApiResponseMap();
+			ret.put("result", "pong");
+			return ret;
+		}
+		
 	}
 	
 	@Test
@@ -118,6 +141,52 @@ public class BasePage_requestType_test {
 		response = RequestHttp.delete(testUrl, null, null, null);
 		assertEquals("<h1>404 Error</h1>\n" + "The requested resource is not avaliable Q.Q\n" + "\n"
 			+ "Request URI : /type/single", response.toString().trim());
+	}
+	
+	@Test
+	public void test_api_none() throws Exception {
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
+		String testUrl = "http://127.0.0.1:" + testPort + "/api/none";
+		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		assertEquals("{\"result\":\"pong\"}", response.toString().replaceAll("\\s+", ""));
+		response = RequestHttp.post(testUrl, null, null, null);
+		assertEquals("{\"result\":\"pong\"}", response.toString().replaceAll("\\s+", ""));
+	}
+	
+	@Test
+	public void test_api_single() throws Exception {
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
+		String testUrl = "http://127.0.0.1:" + testPort + "/api/single";
+		ResponseHttp response = RequestHttp.post(testUrl, null, null, null);
+		assertEquals("{\"result\":\"pong\"}", response.toString().replaceAll("\\s+", ""));
+	}
+	
+	@Test
+	public void test_api_single_invalid() throws Exception {
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
+		String testUrl = "http://127.0.0.1:" + testPort + "/api/single";
+		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		assertEquals("<h1>404 Error</h1>\n" + "The requested resource is not avaliable Q.Q\n" + "\n"
+			+ "Request URI : /api/single", response.toString().trim());
+	}
+	
+	@Test
+	public void test_api_multiple() throws Exception {
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
+		String testUrl = "http://127.0.0.1:" + testPort + "/api/multiple";
+		ResponseHttp response = RequestHttp.get(testUrl, null, null, null);
+		assertEquals("{\"result\":\"pong\"}", response.toString().replaceAll("\\s+", ""));
+		response = RequestHttp.post(testUrl, null, null, null);
+		assertEquals("{\"result\":\"pong\"}", response.toString().replaceAll("\\s+", ""));
+	}
+	
+	@Test
+	public void test_api_multiple_invalid() throws Exception {
+		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
+		String testUrl = "http://127.0.0.1:" + testPort + "/api/multiple";
+		ResponseHttp response = RequestHttp.put(testUrl, null, null, null);
+		assertEquals("<h1>404 Error</h1>\n" + "The requested resource is not avaliable Q.Q\n" + "\n"
+			+ "Request URI : /api/multiple", response.toString().trim());
 	}
 	
 }

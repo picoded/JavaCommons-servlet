@@ -437,8 +437,8 @@ public class BasePageClassMap {
 	 */
 	protected boolean request_api(BasePage page, String[] requestPath) {
 		try {
-			// Get list of valid paths
-			List<String> pathList = apiMap.findValidKeys(requestPath);
+			// Get list of valid paths matching the request type verb
+			List<String> pathList = apiMap.findValidKeys(requestPath, page.requestType());
 			
 			// Return false (if no endpoint found)
 			if (pathList == null || pathList.size() <= 0) {

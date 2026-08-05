@@ -8,7 +8,7 @@ This guide explains the routing and interceptor mechanisms in `JavaCommons-servl
 
 | Annotation | Primary Use-Case | Target Scope | HTTP Method Verification | Multi-Match Execution | Exception Handling |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`@ApiPath`** | Programmatic JSON APIs consumed by client web apps. Generates client JS. | Methods only | **Ignored** (accepts all HTTP methods) | **No** (first exact match wins) | **Automated JSON wrap** (returns structured JSON maps) |
+| **`@ApiPath`** | Programmatic JSON APIs consumed by client web apps. Generates client JS. | Methods only | **Enforced** (filtered via `@RequestType`) | **No** (first exact match wins) | **Automated JSON wrap** (returns structured JSON maps) |
 | **`@RequestPath`** | Standard page-level & hierarchical sub-page routing. | Methods & Fields | **Enforced** (filtered via `@RequestType`) | **No** (first exact match wins) | **Raw propagation** (escapes to servlet container) |
 | **`@RequestType`** | HTTP method constraint (GET, POST, etc.) for a route. | Methods only | **N/A** (defines the allowed verbs) | **N/A** (declares allowed verbs list) | **N/A** |
 | **`@RequestBefore`** | Pre-request hook (runs before target endpoint). | Methods only | **Ignored** (accepts all HTTP methods) | **Yes** (runs **all** matches in specificity order) | Inherits behavior of matching parent route |
@@ -21,7 +21,7 @@ This guide explains the routing and interceptor mechanisms in `JavaCommons-servl
 ### `@ApiPath` (Client-Facing API Layer)
 Designed for backend programmatic JSON endpoints.
 * **Frontend Integration**: Automatically scanned by `AxiosApiBuilder` to generate client-side JS wrapper functions (`axiosApi.js`), allowing frontend devs to call APIs natively (e.g. `api.user.getProfile()`).
-* **HTTP Method Blind**: Ignores HTTP verbs (e.g. `@RequestType` constraints are ignored during `@ApiPath` routing).
+* **Enforced Verb Filtering**: Honors `@RequestType` filtering. If an incoming request's HTTP verb does not match the `@RequestType` constraints of the endpoint, it returns a `404 Error` instead of executing.
 * **Automated Exception Handling**: Any exception thrown is caught internally, wrapped into an `ApiException`, and returned as a standard JSON error:
   ```json
   {"ERROR": {"message": "Error details..."}}
@@ -50,11 +50,11 @@ public void saveProfile(PrintWriter writer) { ... }
 ```
 
 ### Critical Behaviors & Gotchas:
-1. **Requires `@RequestPath`**: `@RequestType` is **only enforced** when paired with `@RequestPath`. 
-2. **Ignored on `@ApiPath`**: The `@ApiPath` lookup pipeline executes without HTTP method context, meaning any `@RequestType` constraint on an `@ApiPath` endpoint is **ignored** on the server side (though it is used by the frontend Axios generator).
+1. **Fully Enforced on Route Handlers**: `@RequestType` is fully enforced when paired with either `@RequestPath` or `@ApiPath`. 
+2. **Server-Side API Enforcement**: If an incoming request to an `@ApiPath` endpoint does not match its `@RequestType` constraints (e.g., executing a POST-only endpoint using a GET request), the routing engine rejects the route and returns a `404 Error`.
 3. **Ignored on Interceptors**: `@RequestBefore` and `@RequestAfter` do not respect `@RequestType`. They execute on any matching request path regardless of the HTTP method used.
-4. **Default Behavior (Omitting `@RequestType`)**: If `@RequestType` is omitted from a `@RequestPath` method, it is **open to all HTTP methods** (GET, POST, PUT, DELETE, etc.).
-   * *Unit Test Verification*: This default behavior and its strict enforcement when `@RequestType` is provided are explicitly validated in the servlet library test suite under `BasePage_requestType_test.java`.
+4. **Default Behavior (Omitting `@RequestType`)**: If `@RequestType` is omitted from an endpoint, it is **open to all HTTP methods** (GET, POST, PUT, DELETE, etc.).
+   * *Unit Test Verification*: Both `@RequestPath` and `@ApiPath` verb verification behaviors (including single, multiple, and omitted constraints) are validated in the library test suite under `BasePage_requestType_test.java`.
 
 ---
 
