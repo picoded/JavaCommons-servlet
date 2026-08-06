@@ -237,6 +237,13 @@ test {
 	if (project.hasProperty('forkEvery')) {
 		forkEvery = project.forkEvery as int
 	}
+
+	// Logging settings to output test results clearly to console/CI
+	testLogging {
+		events "passed", "skipped", "failed"
+		showStandardStreams = true
+		exceptionFormat = "full"
+	}
 }
 
 // Custom incremental test running
