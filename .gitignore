@@ -35,3 +35,4 @@ test/tmp
 #
 !.gitignore
 !.travis.yml
+!.github/
