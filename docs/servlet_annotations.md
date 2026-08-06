@@ -56,6 +56,24 @@ public void saveProfile(PrintWriter writer) { ... }
 4. **Default Behavior (Omitting `@RequestType`)**: If `@RequestType` is omitted from an endpoint, it is **open to all HTTP methods** (GET, POST, PUT, DELETE, etc.).
    * *Unit Test Verification*: Both `@RequestPath` and `@ApiPath` verb verification behaviors (including single, multiple, and omitted constraints) are validated in the library test suite under `BasePage_requestType_test.java`.
 
+### Multi-Verb Same-Endpoint Routing
+
+You can map multiple distinct controller methods to the exact same route path by restricting each method with different HTTP verbs via `@RequestType`. This enables clean RESTful routing (e.g., mapping a `GET` request on `/users` to a list method, and a `POST` request on `/users` to a creation method).
+
+```java
+@RequestPath("users")
+@RequestType("GET")
+public void listUsers() { ... }
+
+@RequestPath("users")
+@RequestType("POST")
+public void createUser() { ... }
+```
+
+#### Key Rules & Constraints:
+1. **Duplicate Verbs Forbidden**: You cannot map overlapping HTTP verbs on the same route path (e.g. registering two `GET` handlers on `/users`, or a `GET` handler and a handler without any `@RequestType` constraints). Doing so will cause the scanner to fail with an `IllegalStateException: Duplicate endpoint registration` during class map initialization.
+2. **Interceptors Apply Universally**: Interceptors (`@RequestBefore` and `@RequestAfter`) registered on the endpoint path (e.g. `/users`) are mapped using the `::all` wildcard suffix. They are executed on all requests matching that route path, completely ignoring the HTTP verb used.
+
 ---
 
 ## 3. Lifecycle Interceptors: `@RequestBefore` and `@RequestAfter`

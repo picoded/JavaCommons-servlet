@@ -50,7 +50,7 @@ public class EndpointMap<V> extends ConcurrentHashMap<String, V> {
 	
 	/**
 	 * Local memoizer copy of `ServletStringUtil.splitUriString`.
-	 * USed this only internally within enpoint map class
+	 * Used this only internally within endpoint map class.
 	 */
 	public String[] splitUriString(String path) {
 		// Get and return the cached result
@@ -59,30 +59,25 @@ public class EndpointMap<V> extends ConcurrentHashMap<String, V> {
 			return res;
 		}
 		
+		// If path contains a verb suffix (e.g. "path/name::get"), strip the suffix
+		// to compute and cache segment-matching arrays on the raw path.
+		String cleanPath = path;
+		if (path != null && path.contains("::")) {
+			cleanPath = path.substring(0, path.indexOf("::"));
+		}
+		
 		// Process the path, and cache the result
-		res = ServletStringUtil.splitUriString(path);
+		res = ServletStringUtil.splitUriString(cleanPath);
 		_splitUriString.put(path, res);
 		
 		// And return it
 		return res;
 	}
 	
-	///////////////////////////////////////////////////////
-	//
-	// Path handling / lookup
-	//
-	///////////////////////////////////////////////////////
-	
-	/**
-	 * Register a method endpoint
-	 *
-	 * @param  path of the method endpoint
-	 * @param  obj  to register
-	 */
 	public void registerEndpointPath(String path, V obj) {
 		// And register the endpoint & cache its split path
 		splitUriString(path);
-		this.put(path, obj);
+		super.put(path, obj);
 	}
 	
 	/**
@@ -356,20 +351,27 @@ public class EndpointMap<V> extends ConcurrentHashMap<String, V> {
 	 * 
 	 */
 	private boolean validateRequestType(String endpointName, HttpRequestType requestType) {
-		
-		// No specific method is give, treat as allowed
+		// No specific method is given, treat as allowed
 		if (requestType == null) {
 			return true;
 		}
 		
-		// If the endpoint is not a method, treats as valid
+		// If key contains the unique verb suffix delimiter, perform a fast O(1) string check.
+		// This avoids doing slow reflection checks during request dispatch.
+		if (endpointName != null && endpointName.contains("::")) {
+			String suffix = endpointName.substring(endpointName.indexOf("::") + 2);
+			if (suffix.equalsIgnoreCase("all") || suffix.equalsIgnoreCase(requestType.toString())) {
+				return true;
+			}
+			return false;
+		}
+		
+		// Fallback for non-suffixed keys (legacy or third-party usage)
 		Object endpoint = this.get(endpointName);
 		if (!(endpoint instanceof Method)) {
 			return true;
 		}
 		
-		// Check through the RequestType annotation of the endpoint and validates if the requestType
-		// is contained in it. If the endpoint does not have any RequestType set, treat as allowed
 		Method endpointImplementation = (Method) endpoint;
 		RequestType[] endpointRequestTypes = endpointImplementation
 			.getAnnotationsByType(RequestType.class);
@@ -384,8 +386,6 @@ public class EndpointMap<V> extends ConcurrentHashMap<String, V> {
 			}
 		}
 		
-		// At this point, the method of the request does not match any of the endpoint's RequestType
-		// treat as false
 		return false;
 	}
 	

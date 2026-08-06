@@ -126,8 +126,16 @@ public class AxiosApiBuilder {
 		}
 		
 		BasePageClassMap classMap = BasePageClassMap.setupAndCache(corePage);
+		Map<String, Method> rawEndpoints = new HashMap<>();
+		classMap.getApiEndpointsFromClass("", corePage.getClass(), rawEndpoints);
+		
+		// Clean the keys from verb-based suffixes when building the scanned endpoints map
+		// so that the generated client-side JS and tests operate with clean, correct path keys.
 		scannedApiEndpoints = new HashMap<>();
-		classMap.getApiEndpointsFromClass("", corePage.getClass(), scannedApiEndpoints);
+		for (String key : rawEndpoints.keySet()) {
+			String cleanKey = BasePageClassMap.cleanEndpointPath(key);
+			scannedApiEndpoints.put(cleanKey, rawEndpoints.get(key));
+		}
 		
 		return scannedApiEndpoints;
 	}
