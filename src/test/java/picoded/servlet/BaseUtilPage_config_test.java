@@ -1,6 +1,7 @@
 package picoded.servlet;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.*;
 
 import java.io.*;
 import java.net.*;
@@ -8,8 +9,6 @@ import java.util.*;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
-
-import org.junit.*;
 
 import picoded.servlet.util.EmbeddedServlet;
 import picoded.core.conv.*;
@@ -31,13 +30,13 @@ public class BaseUtilPage_config_test {
 	//
 	// Standard setup and teardown
 	//
-	@Before
+	@BeforeEach
 	public void setUp() {
 		testPort = ServletTestConfig.issuePortNumber();
 		testServlet = null;
 	}
 	
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		if (testServlet != null) {
 			testServlet.close();
@@ -65,6 +64,7 @@ public class BaseUtilPage_config_test {
 	}
 	
 	@Test
+	@DisplayName("Checks dynamic resolution of system settings from configuration directories")
 	public void simpleHelloWorldTest() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new BaseUtilPageConfig()));
 		

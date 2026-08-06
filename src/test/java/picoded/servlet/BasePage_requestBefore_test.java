@@ -1,17 +1,18 @@
 package picoded.servlet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
 
 import picoded.servlet.util.EmbeddedServlet;
 import picoded.core.web.RequestHttp;
@@ -32,13 +33,13 @@ public class BasePage_requestBefore_test {
 	int testPort = 0;
 	EmbeddedServlet testServlet = null;
 	
-	@Before
+	@BeforeEach
 	public void setUp() {
 		testPort = ServletTestConfig.issuePortNumber();
 		testServlet = null;
 	}
 	
-	@After
+	@AfterEach
 	public void teardown() {
 		if (testServlet != null) {
 			testServlet.close();
@@ -95,6 +96,7 @@ public class BasePage_requestBefore_test {
 	}
 	
 	@Test
+	@DisplayName("Stops execution context when first layer interceptor throws HaltException")
 	public void test_firstLayerHaltException() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new LandingPage()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/account/verify/RANDOMID/info/get";
@@ -104,6 +106,7 @@ public class BasePage_requestBefore_test {
 	}
 	
 	@Test
+	@DisplayName("Stops execution context when nested second layer interceptor throws HaltException")
 	public void test_secondLayerHaltException() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new LandingPage()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/project/info/get";
@@ -113,6 +116,7 @@ public class BasePage_requestBefore_test {
 	}
 	
 	@Test
+	@DisplayName("Renders clean 404 response when nested route structures mismatch completely")
 	public void test_noRouteFound() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new LandingPage()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/project/info/unknown";

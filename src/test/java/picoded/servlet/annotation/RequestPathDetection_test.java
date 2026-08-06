@@ -1,12 +1,13 @@
 package picoded.servlet.annotation;
 
 // Junit includes
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
 
 // Base class to build on
 public class RequestPathDetection_test {
@@ -26,6 +27,7 @@ public class RequestPathDetection_test {
 	}
 	
 	@Test
+	@DisplayName("Reflective inspection of @RequestPath runtime method annotation")
 	public void hello() throws Exception {
 		//assertEquals("world", StaticExtendedClass.hello());
 		// Get the example class

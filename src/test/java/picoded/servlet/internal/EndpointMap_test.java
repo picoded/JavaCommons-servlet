@@ -2,18 +2,19 @@ package picoded.servlet.internal;
 
 // Junit includes
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
 
 import picoded.servlet.annotation.*;
 
@@ -22,12 +23,13 @@ public class EndpointMap_test {
 	
 	EndpointMap<String> endpoints = null;
 	
-	@Before
+	@BeforeEach
 	public void setUp() {
 		endpoints = new EndpointMap<>();
 	}
 	
 	@Test
+	@DisplayName("Precise full valid static path route matching")
 	public void fullValidPathMatch() {
 		assertEquals(0, endpoints.findValidKeys("hello/good/world").size());
 		endpoints.registerEndpointPath("hello/good/world", "Awesome world");
@@ -35,6 +37,7 @@ public class EndpointMap_test {
 	}
 	
 	@Test
+	@DisplayName("Rejects nested sub-paths exceeding registered static full path length")
 	public void invalidRegisteredFullPathMatch() {
 		assertEquals(0, endpoints.findValidKeys("hello/good/world/others").size());
 		endpoints.registerEndpointPath("hello/good/world", "Awesome world");
@@ -42,6 +45,7 @@ public class EndpointMap_test {
 	}
 	
 	@Test
+	@DisplayName("Rejects parent path calls lacking complete registered child path elements")
 	public void invalidRequestFullPathMatch() {
 		assertEquals(0, endpoints.findValidKeys("hello/good/world").size());
 		endpoints.registerEndpointPath("hello/good/world/others", "Awesome world");
@@ -49,6 +53,7 @@ public class EndpointMap_test {
 	}
 	
 	@Test
+	@DisplayName("Matches trailing wildcard routes and orders multiple matching keys")
 	public void wildCardPathMatch() {
 		assertEquals(0, endpoints.findValidKeys("hello/good/world").size());
 		endpoints.registerEndpointPath("hello/good/*", "Awesome world");
@@ -59,6 +64,7 @@ public class EndpointMap_test {
 	}
 	
 	@Test
+	@DisplayName("Rejects requests failing to match wildcard segments")
 	public void badRequestPath() {
 		assertEquals(0, endpoints.findValidKeys("hello/bad/world").size());
 		endpoints.registerEndpointPath("hello/good/*", "Awesome world");
@@ -66,6 +72,7 @@ public class EndpointMap_test {
 	}
 	
 	@Test
+	@DisplayName("Resolves root empty path routes and global wildcard matching")
 	public void emptyRequestPath() {
 		assertEquals(0, endpoints.findValidKeys("").size());
 		endpoints.registerEndpointPath("hello/good/*", "Awesome world");
@@ -75,6 +82,7 @@ public class EndpointMap_test {
 	}
 	
 	@Test
+	@DisplayName("Resolves dynamic path variables inside registered routes")
 	public void endpointPathVariableMatch() {
 		assertEquals(0, endpoints.findValidKeys("hello/test/world").size());
 		endpoints.registerEndpointPath("hello/:variable/world", "Awesome world");
@@ -83,6 +91,7 @@ public class EndpointMap_test {
 	}
 	
 	@Test
+	@DisplayName("Rejects dynamic path variables when adjacent static structures mismatch")
 	public void endpointPathVariableFailMatch() {
 		assertEquals(0, endpoints.findValidKeys("hello/test/notworld").size());
 		endpoints.registerEndpointPath("hello/:variable/world", "Awesome world");
@@ -91,6 +100,7 @@ public class EndpointMap_test {
 	}
 	
 	@Test
+	@DisplayName("Orders endpoints prioritising concrete configurations over wildcards")
 	public void sortEndpointListing() {
 		String[] sample = new String[] { "*", "session", "a/b" };
 		List<String> sampleList = new ArrayList<>(Arrays.asList(sample));

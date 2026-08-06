@@ -1,14 +1,15 @@
 package picoded.servlet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
 
 import picoded.servlet.util.EmbeddedServlet;
 import picoded.core.web.RequestHttp;
@@ -24,13 +25,13 @@ public class BasePage_reroute_test {
 	int testPort = 0;
 	EmbeddedServlet testServlet = null;
 	
-	@Before
+	@BeforeEach
 	public void setUp() {
 		testPort = ServletTestConfig.issuePortNumber();
 		testServlet = null;
 	}
 	
-	@After
+	@AfterEach
 	public void teardown() {
 		if (testServlet != null) {
 			testServlet.close();
@@ -58,6 +59,7 @@ public class BasePage_reroute_test {
 	}
 	
 	@Test
+	@DisplayName("Static nested page redirection matches target route cleanly")
 	public void test_withSimpleInterceptors() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new LandingPage()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/say/hello";
@@ -66,6 +68,7 @@ public class BasePage_reroute_test {
 	}
 	
 	@Test
+	@DisplayName("Renders clean 404 response when nested static page redirects to mismatched path")
 	public void test_existRedirectButInvalidPath() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new LandingPage()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/say/invalid";
@@ -75,6 +78,7 @@ public class BasePage_reroute_test {
 	}
 	
 	@Test
+	@DisplayName("Renders clean 404 response when requested base path has no registered page mapping")
 	public void test_nonExistenceRedirect() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new LandingPage()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/gone/invalid";
@@ -101,6 +105,7 @@ public class BasePage_reroute_test {
 	}
 	
 	@Test
+	@DisplayName("Dispatches requests dynamically to class instances instantiated via routing methods")
 	public void test_methodReroute() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new RerouteWithMethod()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/anything/last/moments";

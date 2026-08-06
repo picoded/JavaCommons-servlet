@@ -1,6 +1,7 @@
 package picoded.servlet;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.*;
 
 import java.io.*;
 import java.net.*;
@@ -8,8 +9,6 @@ import java.util.*;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
-
-import org.junit.*;
 
 import picoded.servlet.util.EmbeddedServlet;
 import picoded.core.conv.*;
@@ -28,13 +27,13 @@ public class CorePage_test {
 	//
 	// Standard setup and teardown
 	//
-	@Before
+	@BeforeEach
 	public void setUp() {
 		testPort = ServletTestConfig.issuePortNumber();
 		testServlet = null;
 	}
 	
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		if (testServlet != null) {
 			testServlet.close();
@@ -68,6 +67,7 @@ public class CorePage_test {
 	}
 	
 	@Test
+	@DisplayName("Sanity verification of low level CorePage servlet responses")
 	public void simpleHelloWorldTest() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new SimpleHelloWorld()));
 		helloWorldAssert("http://localhost:" + testPort + "/test/", null);
@@ -85,6 +85,7 @@ public class CorePage_test {
 	}
 	
 	@Test
+	@DisplayName("Verifies stream print methods handle special symbols without truncation")
 	public void outputPrintBugFixing() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new SpecialSymbolsTesting()));
 		helloWorldAssert("http://localhost:" + testPort + "/test/", "Test *>> This");
@@ -105,6 +106,7 @@ public class CorePage_test {
 	}
 	
 	@Test
+	@DisplayName("Verifies core page extracts accurate request verbs from client calls")
 	public void test_requestTypes() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new TestCorePage()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/type/single";
