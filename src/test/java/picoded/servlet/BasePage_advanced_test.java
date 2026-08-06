@@ -1,8 +1,8 @@
 package picoded.servlet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
@@ -11,14 +11,14 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
 
 import picoded.core.conv.ConvertJSON;
 import picoded.core.struct.GenericConvertMap;
 import picoded.core.struct.GenericConvertHashMap;
-import picoded.core.struct.GenericConvertMap;
 import picoded.servlet.util.EmbeddedServlet;
 import picoded.servlet.ServletRequestMap;
 import picoded.servlet.internal.*;
@@ -37,13 +37,13 @@ public class BasePage_advanced_test {
 	int testPort = 0;
 	EmbeddedServlet testServlet = null;
 	
-	@Before
+	@BeforeEach
 	public void setUp() {
 		testPort = ServletTestConfig.issuePortNumber();
 		testServlet = null;
 	}
 	
-	@After
+	@AfterEach
 	public void teardown() {
 		if (testServlet != null) {
 			testServlet.close();
@@ -119,9 +119,11 @@ public class BasePage_advanced_test {
 			return new StringBuilder("sb_new_after ");
 		}
 		
+		
 	}
 	
 	@Test
+	@DisplayName("Checks dynamic resolution of Map configurations in complex interceptor chain executions")
 	public void test_complexInterceptors_map() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort,
 			new HelloWorld_withComplexInterceptors()));
@@ -146,6 +148,7 @@ public class BasePage_advanced_test {
 	}
 	
 	@Test
+	@DisplayName("Checks dynamic resolution of StringBuilder buffers in complex interceptor chain executions")
 	public void test_complexInterceptors_sb() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort,
 			new HelloWorld_withComplexInterceptors()));

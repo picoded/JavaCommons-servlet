@@ -1,11 +1,12 @@
 package picoded.servlet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -32,13 +33,13 @@ public class DStackPage_basic_test {
 	int testPort = 0;
 	EmbeddedServlet testServlet = null;
 	
-	@Before
+	@BeforeEach
 	public void setUp() {
 		testPort = ServletTestConfig.issuePortNumber();
 		testServlet = null;
 	}
 	
-	@After
+	@AfterEach
 	public void teardown() {
 		if (testServlet != null) {
 			testServlet.close();
@@ -72,6 +73,7 @@ public class DStackPage_basic_test {
 	}
 	
 	@Test
+	@DisplayName("Validates basic context database initialization and transactional saves")
 	public void DStack_simple() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new SimplePage()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/dstack";

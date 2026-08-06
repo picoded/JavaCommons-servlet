@@ -1,22 +1,22 @@
 package picoded.servlet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
 
 import picoded.core.conv.ConvertJSON;
 import picoded.core.conv.GenericConvert;
 import picoded.core.struct.GenericConvertMap;
 import picoded.core.struct.GenericConvertHashMap;
-import picoded.core.struct.GenericConvertMap;
 import picoded.servlet.util.EmbeddedServlet;
 import picoded.servlet.ServletRequestMap;
 import picoded.servlet.internal.*;
@@ -35,13 +35,13 @@ public class BasePage_basic_test {
 	int testPort = 0;
 	EmbeddedServlet testServlet = null;
 	
-	@Before
+	@BeforeEach
 	public void setUp() {
 		testPort = ServletTestConfig.issuePortNumber();
 		testServlet = null;
 	}
 	
-	@After
+	@AfterEach
 	public void teardown() {
 		if (testServlet != null) {
 			testServlet.close();
@@ -61,6 +61,7 @@ public class BasePage_basic_test {
 	}
 	
 	@Test
+	@DisplayName("Basic page static hello route rendering")
 	public void testHelloPath() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/hello";
@@ -89,6 +90,7 @@ public class BasePage_basic_test {
 	}
 	
 	@Test
+	@DisplayName("Basic page standard before, path, and after interceptor chain rendering")
 	public void test_withSimpleInterceptors() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort,
 			new HelloWorld_withSimpleInterceptors()));
@@ -138,6 +140,7 @@ public class BasePage_basic_test {
 	}
 	
 	@Test
+	@DisplayName("Injects standard Printwriter as target method argument")
 	public void test_parameter() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort,
 			new HelloWorld_withMethodParameters()));
@@ -147,6 +150,7 @@ public class BasePage_basic_test {
 	}
 	
 	@Test
+	@DisplayName("Injects empty request Map representation as target method argument")
 	public void test_multipleParams() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort,
 			new HelloWorld_withMethodParameters()));
@@ -156,6 +160,7 @@ public class BasePage_basic_test {
 	}
 	
 	@Test
+	@DisplayName("Injects populated GenericConvertMap argument mapping")
 	public void test_subClass() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort,
 			new HelloWorld_withMethodParameters()));
@@ -172,6 +177,7 @@ public class BasePage_basic_test {
 	}
 	
 	@Test
+	@DisplayName("Fails cleanly when method injects unsupported argument types")
 	public void test_unknownDefaultParameters() {
 		try {
 			assertNotNull(testServlet = new EmbeddedServlet(testPort,
@@ -184,6 +190,7 @@ public class BasePage_basic_test {
 	}
 	
 	@Test
+	@DisplayName("Fails cleanly when method injects unsupported argument types alongside standard types")
 	public void test_parametersWithUnknownDefaultParameters() {
 		try {
 			assertNotNull(testServlet = new EmbeddedServlet(testPort,
@@ -232,6 +239,7 @@ public class BasePage_basic_test {
 	}
 	
 	@Test
+	@DisplayName("Resolves response when custom method returns alternative StringBuilder container")
 	public void test_differentResponseStringBuilder() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort,
 			new HelloWorld_withStringBuilderAndApiMap()));
@@ -241,6 +249,7 @@ public class BasePage_basic_test {
 	}
 	
 	@Test
+	@DisplayName("Resolves response when custom method returns alternative HashMap mapping")
 	public void test_differentResponseMap() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort,
 			new HelloWorld_withStringBuilderAndApiMap()));
@@ -250,6 +259,7 @@ public class BasePage_basic_test {
 	}
 	
 	@Test
+	@DisplayName("Resolves response when custom method appends to context StringBuilder container")
 	public void test_sameResponseStringBuilder() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort,
 			new HelloWorld_withStringBuilderAndApiMap()));
@@ -284,6 +294,7 @@ public class BasePage_basic_test {
 	}
 	
 	@Test
+	@DisplayName("Dynamic URL path parameter matching and routing resolution")
 	public void test_nameParameter() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new NameParametersServlet()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/name/testingUser";
@@ -292,6 +303,7 @@ public class BasePage_basic_test {
 	}
 	
 	@Test
+	@DisplayName("Dynamic URL path parameter matching across interceptors and target method")
 	public void test_nameParametersWithBeforeAndAfter() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new NameParametersServlet()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/name/testingUser/beforeValue/afterValue";
@@ -313,6 +325,7 @@ public class BasePage_basic_test {
 	}
 	
 	@Test
+	@DisplayName("Returns descriptive API JSON error response on unsupported argument signature exceptions")
 	public void test_apiException() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new ApiExceptionServlet()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/name/testing";

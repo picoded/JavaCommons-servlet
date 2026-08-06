@@ -1,16 +1,17 @@
 package picoded.servlet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
 
 import picoded.servlet.util.EmbeddedServlet;
 import picoded.core.web.RequestHttp;
@@ -30,13 +31,13 @@ public class BasePage_reroute_parameter_test {
 	int testPort = 0;
 	EmbeddedServlet testServlet = null;
 	
-	@Before
+	@BeforeEach
 	public void setUp() {
 		testPort = ServletTestConfig.issuePortNumber();
 		testServlet = null;
 	}
 	
-	@After
+	@AfterEach
 	public void teardown() {
 		if (testServlet != null) {
 			testServlet.close();
@@ -76,6 +77,7 @@ public class BasePage_reroute_parameter_test {
 	}
 	
 	@Test
+	@DisplayName("Preserves name path parameters through nested rerouting redirection")
 	public void test_withNameParams() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new LandingPage()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/pass/testing/internal/nested/param";
@@ -85,6 +87,7 @@ public class BasePage_reroute_parameter_test {
 	}
 	
 	@Test
+	@DisplayName("Preserves URL query parameters through nested rerouting redirection")
 	public void test_withGetParams() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new LandingPage()));
 		String testUrl = "http://127.0.0.1:" + testPort
@@ -94,6 +97,7 @@ public class BasePage_reroute_parameter_test {
 	}
 	
 	@Test
+	@DisplayName("Preserves HTTP POST payload maps through nested rerouting redirection")
 	public void test_withPostParams() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new LandingPage()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/pass/testing/internal/nested/param";

@@ -1,7 +1,7 @@
 package picoded.servlet.util;
 
-import static org.junit.Assert.*;
-import org.junit.*;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.*;
 
 import java.io.*;
 import java.net.*;
@@ -39,14 +39,14 @@ public class EmbeddedServlet_test {
 	//
 	// Standard setup and teardown
 	//
-	@Before
+	@BeforeEach
 	public void setUp() {
 		// Issue a possible port to use
 		testPort = ServletTestConfig.issuePortNumber();
 		testServlet = null;
 	}
 	
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		if (testServlet != null) {
 			testServlet.close();
@@ -56,6 +56,7 @@ public class EmbeddedServlet_test {
 	
 	// Sanity check
 	@Test
+	@DisplayName("Sanity verification of required mock workspace testing resources")
 	public void fileChecks() {
 		assertTrue(testCollection.isDirectory());
 		assertTrue(helloWorldHtml.isDirectory());
@@ -67,6 +68,7 @@ public class EmbeddedServlet_test {
 	// Testing various servlet packages deployment
 	//
 	@Test
+	@DisplayName("Deploys directory with static index.html and checks raw stream response")
 	public void helloWorldHtml() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, helloWorldHtml));
 		RequestHttpClient client = new RequestHttpClient();
@@ -81,6 +83,7 @@ public class EmbeddedServlet_test {
 	// }
 	
 	@Test
+	@DisplayName("Deploys nested directory with custom servlets, JSPs, and assets")
 	public void helloWorldJava() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, helloWorldJava));
 		assertEquals("<h1>Hello World</h1>",
@@ -92,6 +95,7 @@ public class EmbeddedServlet_test {
 	}
 	
 	@Test
+	@DisplayName("Deploys compiled WAR archive with direct endpoint resolution")
 	public void helloWorldJWar() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, helloWorldJWar));
 		assertEquals("<h1>Hello World</h1>",
@@ -103,6 +107,7 @@ public class EmbeddedServlet_test {
 	}
 	
 	@Test
+	@DisplayName("Deploys compiled WAR archive under non-root context names")
 	public void helloWorldJWar_contextName() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, "ctest", helloWorldJWar));
 		assertEquals("<h1>Hello World</h1>",
@@ -140,6 +145,7 @@ public class EmbeddedServlet_test {
 	}
 	
 	@Test
+	@DisplayName("Deploys dynamically instantiated HttpServlet class")
 	public void helloWorldServlet() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
 		assertEquals("<h1>Hello World</h1>", RequestHttp
@@ -147,6 +153,7 @@ public class EmbeddedServlet_test {
 	}
 	
 	@Test
+	@DisplayName("Deploys dynamically instantiated HttpServlet on fixed routes")
 	public void helloWorldServlet_fixedPath() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld(), "/fixed"));
 		assertEquals("<h1>Hello World</h1>",
@@ -156,6 +163,7 @@ public class EmbeddedServlet_test {
 	}
 	
 	@Test
+	@DisplayName("Deploys dynamically instantiated HttpServlet on fixed routes with custom contexts")
 	public void helloWorldServlet_contextName() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, "ctest", new HelloWorld(), null));
 		assertEquals("<h1>Hello World</h1>",

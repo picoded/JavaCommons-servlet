@@ -1,8 +1,8 @@
 package picoded.servlet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.*;
 import java.net.URI;
@@ -16,9 +16,10 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletRequest;
 import java.lang.reflect.Method;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
 
 import picoded.core.conv.ConvertJSON;
 import picoded.core.conv.GenericConvert;
@@ -40,13 +41,13 @@ public class AxiosApiBuilder_test {
 	int testPort = 0;
 	EmbeddedServlet testServlet = null;
 	
-	@Before
+	@BeforeEach
 	public void setUp() {
 		testPort = ServletTestConfig.issuePortNumber();
 		testServlet = null;
 	}
 	
-	@After
+	@AfterEach
 	public void teardown() {
 		if (testServlet != null) {
 			testServlet.close();
@@ -101,6 +102,10 @@ public class AxiosApiBuilder_test {
 		@RequestPath("to/*")
 		public static SmallWorld rerouteToSmallWorld;
 		
+		@Override
+		public void contextInitialized(ServletContextEvent sce) {
+			super.contextInitialized(sce);
+		}
 	}
 	
 	public static class RerouteWorld extends BasePage {
@@ -130,6 +135,7 @@ public class AxiosApiBuilder_test {
 	}
 	
 	@Test
+	@DisplayName("Checks dynamic resolution of static hello path")
 	public void testHelloPath() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/hello";
@@ -148,6 +154,7 @@ public class AxiosApiBuilder_test {
 	smallWorld -> smallWorld
 	 */
 	@Test
+	@DisplayName("Checks dynamic resolution of static endpoints behind nested page rerouting variables")
 	public void testRerouteWorld() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new RerouteWorld()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/reroute/hello";
@@ -156,6 +163,7 @@ public class AxiosApiBuilder_test {
 	}
 	
 	@Test
+	@DisplayName("Checks compilation and verification of complete scanned path endpoint configurations")
 	public void rerouteScannedApiPaths() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new RerouteWorld()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/paths/hello";
@@ -209,6 +217,7 @@ public class AxiosApiBuilder_test {
 	}
 	
 	@Test
+	@DisplayName("Checks serialization structure of endpoint configuration objects")
 	public void test_endpointMapGeneration() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new EndpointMapGenerator()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/endpoint";
@@ -217,6 +226,7 @@ public class AxiosApiBuilder_test {
 	}
 	
 	@Test
+	@DisplayName("Checks dynamic compilation of endpoints metadata maps as flat strings")
 	public void test_endpointMapInString() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new EndpointMapGenerator()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/endpoint/string";
@@ -250,6 +260,7 @@ public class AxiosApiBuilder_test {
 	}
 	
 	@Test
+	@DisplayName("Checks compilation and verification of generated Axios JS client templates")
 	public void test_loadingTemplate() {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new EndpointLoad()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/template/load";

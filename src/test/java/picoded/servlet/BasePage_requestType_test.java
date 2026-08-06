@@ -1,16 +1,17 @@
 package picoded.servlet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
 
 import picoded.core.conv.ConvertJSON;
 import picoded.core.struct.GenericConvertMap;
@@ -31,13 +32,13 @@ public class BasePage_requestType_test {
 	int testPort = 0;
 	EmbeddedServlet testServlet = null;
 	
-	@Before
+	@BeforeEach
 	public void setUp() {
 		testPort = ServletTestConfig.issuePortNumber();
 		testServlet = null;
 	}
 	
-	@After
+	@AfterEach
 	public void teardown() {
 		if (testServlet != null) {
 			testServlet.close();
@@ -155,6 +156,7 @@ public class BasePage_requestType_test {
 	}
 	
 	@Test
+	@DisplayName("Standard GET routing with restricted @RequestType(\"GET\")")
 	public void test_singleType() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/type/single";
@@ -163,6 +165,7 @@ public class BasePage_requestType_test {
 	}
 	
 	@Test
+	@DisplayName("Standard multi-verb routing with restricted @RequestType({\"GET\", \"POST\"})")
 	public void test_multipleType() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/type/multiple";
@@ -173,6 +176,7 @@ public class BasePage_requestType_test {
 	}
 	
 	@Test
+	@DisplayName("Standard routing with unrestricted @RequestType (omitted defaults to all verbs)")
 	public void test_noRequestType() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/type/multiple";
@@ -183,6 +187,7 @@ public class BasePage_requestType_test {
 	}
 	
 	@Test
+	@DisplayName("Standard routing correctly rejects non-matching verbs with 404 for multi-verb definitions")
 	public void test_invalidRequestType_multiple() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/type/multiple";
@@ -195,6 +200,7 @@ public class BasePage_requestType_test {
 	}
 	
 	@Test
+	@DisplayName("Standard routing correctly rejects non-matching verbs with 404 for single-verb definitions")
 	public void test_invalidRequestType_single() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/type/single";
@@ -207,6 +213,7 @@ public class BasePage_requestType_test {
 	}
 	
 	@Test
+	@DisplayName("API JSON routing with unrestricted @RequestType (omitted defaults to all verbs)")
 	public void test_api_none() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/api/none";
@@ -217,6 +224,7 @@ public class BasePage_requestType_test {
 	}
 	
 	@Test
+	@DisplayName("API JSON routing with restricted @RequestType(\"POST\")")
 	public void test_api_single() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/api/single";
@@ -225,6 +233,7 @@ public class BasePage_requestType_test {
 	}
 	
 	@Test
+	@DisplayName("API JSON routing correctly rejects non-matching verbs with 404 for single-verb definitions")
 	public void test_api_single_invalid() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/api/single";
@@ -234,6 +243,7 @@ public class BasePage_requestType_test {
 	}
 	
 	@Test
+	@DisplayName("API JSON routing with restricted @RequestType({\"GET\", \"POST\"})")
 	public void test_api_multiple() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/api/multiple";
@@ -244,6 +254,7 @@ public class BasePage_requestType_test {
 	}
 	
 	@Test
+	@DisplayName("API JSON routing correctly rejects non-matching verbs with 404 for multi-verb definitions")
 	public void test_api_multiple_invalid() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/api/multiple";
@@ -253,6 +264,7 @@ public class BasePage_requestType_test {
 	}
 	
 	@Test
+	@DisplayName("Same-route standard page matching across GET, POST, and DELETE with universal interceptors")
 	public void test_requestPath_multipleVerbs() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/multi/verb";
@@ -272,6 +284,7 @@ public class BasePage_requestType_test {
 	}
 
 	@Test
+	@DisplayName("Same-route API JSON matching across GET, POST, and DELETE with universal interceptors")
 	public void test_apiPath_multipleVerbs() throws Exception {
 		assertNotNull(testServlet = new EmbeddedServlet(testPort, new HelloWorld()));
 		String testUrl = "http://127.0.0.1:" + testPort + "/api/multi/verb";
