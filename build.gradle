@@ -241,7 +241,7 @@ test {
 	// Logging settings to output test results clearly to console/CI
 	testLogging {
 		events "passed", "skipped", "failed"
-		showStandardStreams = true
+		showStandardStreams = false
 		exceptionFormat = "full"
 	}
 }
