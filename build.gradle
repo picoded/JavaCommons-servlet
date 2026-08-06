@@ -35,7 +35,7 @@ repositories {
 //----------------------------------------------------------------
 
 // The Project version
-version = '4.1.10'
+version = '4.1.13'
 
 // Setup java compilation version
 sourceCompatibility = 1.8
@@ -236,6 +236,13 @@ test {
 	// Set up the number of tests per fork
 	if (project.hasProperty('forkEvery')) {
 		forkEvery = project.forkEvery as int
+	}
+
+	// Logging settings to output test results clearly to console/CI
+	testLogging {
+		events "passed", "skipped", "failed"
+		showStandardStreams = false
+		exceptionFormat = "full"
 	}
 }
 

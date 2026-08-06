@@ -152,6 +152,40 @@ public class BasePageClassMap {
 	}
 	
 	/**
+	 * Centralized registration helper that inspects annotations and generates 
+	 * the unique verb suffixes for routing keys.
+	 */
+	private <T> void registerEndpoint(EndpointMap<T> map, String[] paths, T obj) {
+		if (obj instanceof Method) {
+			Method method = (Method) obj;
+			RequestType[] requestTypes = method.getAnnotationsByType(RequestType.class);
+			if (requestTypes != null && requestTypes.length > 0) {
+				for (String path : paths) {
+					for (RequestType requestType : requestTypes) {
+						for (String verb : requestType.value()) {
+							String uniqueKey = path + "::" + verb.toLowerCase();
+							if (map.containsKey(uniqueKey)) {
+								throw new IllegalStateException("Duplicate endpoint registration for " + uniqueKey.toUpperCase());
+							}
+							map.registerEndpointPath(uniqueKey, obj);
+						}
+					}
+				}
+				return;
+			}
+		}
+		
+		// Fallback for non-restricted methods or fields (e.g. Field reroutes, interceptors)
+		for (String path : paths) {
+			String uniqueKey = path + "::all";
+			if (map.containsKey(uniqueKey)) {
+				throw new IllegalStateException("Duplicate endpoint registration for " + uniqueKey.toUpperCase());
+			}
+			map.registerEndpointPath(uniqueKey, obj);
+		}
+	}
+
+	/**
 	 * Scans a single method for valid enpoint registrations
 	 *
 	 * @param classObj
@@ -163,10 +197,10 @@ public class BasePageClassMap {
 		// Minor note : Because annotation is not extendable, we cant fully refactor
 		// the duplicative loop into a generic function, that is reusable.
 		for (RequestBefore pathObj : methodObj.getAnnotationsByType(RequestBefore.class)) {
-			beforeMap.registerEndpointPath(pathObj.value(), methodObj);
+			registerEndpoint(beforeMap, pathObj.value(), methodObj);
 		}
 		for (RequestAfter pathObj : methodObj.getAnnotationsByType(RequestAfter.class)) {
-			afterMap.registerEndpointPath(pathObj.value(), methodObj);
+			registerEndpoint(afterMap, pathObj.value(), methodObj);
 		}
 		
 		//
@@ -182,10 +216,10 @@ public class BasePageClassMap {
 		//
 		if (retMethod != null && BasePage.class.isAssignableFrom(retMethod)) {
 			for (RequestPath pathObj : methodObj.getAnnotationsByType(RequestPath.class)) {
-				rerouteMethodMap.registerEndpointPath(pathObj.value(), methodObj);
+				registerEndpoint(rerouteMethodMap, pathObj.value(), methodObj);
 			}
 			for (ApiPath pathObj : methodObj.getAnnotationsByType(ApiPath.class)) {
-				rerouteMethodMap.registerEndpointPath(pathObj.value(), methodObj);
+				registerEndpoint(rerouteMethodMap, pathObj.value(), methodObj);
 			}
 			return;
 		}
@@ -194,10 +228,10 @@ public class BasePageClassMap {
 		// Assumes its a standard request method from here onwards
 		//
 		for (RequestPath pathObj : methodObj.getAnnotationsByType(RequestPath.class)) {
-			pathMap.registerEndpointPath(pathObj.value(), methodObj);
+			registerEndpoint(pathMap, pathObj.value(), methodObj);
 		}
 		for (ApiPath pathObj : methodObj.getAnnotationsByType(ApiPath.class)) {
-			apiMap.registerEndpointPath(pathObj.value(), methodObj);
+			registerEndpoint(apiMap, pathObj.value(), methodObj);
 		}
 	}
 	
@@ -213,7 +247,7 @@ public class BasePageClassMap {
 		for (Field field : fieldList) {
 			// Get and process each type of annotation we currently support for fields
 			for (RequestPath path : field.getAnnotationsByType(RequestPath.class)) {
-				rerouteFieldMap.registerEndpointPath(path.value(), field);
+				registerEndpoint(rerouteFieldMap, path.value(), field);
 			}
 		}
 	}
@@ -253,8 +287,11 @@ public class BasePageClassMap {
 	 */
 	public void getApiEndpointsFromClass(String currentPath, Class<?> clazz,
 		Map<String, Method> endpoints) {
+		// Clean verb-based suffixes from the incoming currentPath so that string segmentation math works.
+		currentPath = cleanEndpointPath(currentPath);
+
 		// Remove the asterisk so that the path can be appended to the inner class's methods api endpoints
-		if (currentPath.endsWith("/*")) {
+		if (currentPath != null && currentPath.endsWith("/*")) {
 			currentPath = currentPath.replaceAll("\\*$", "");
 		}
 		
@@ -263,20 +300,25 @@ public class BasePageClassMap {
 		
 		EndpointMap<Method> apis = basePageClassMap.apiEndpoints();
 		for (String key : apis.keySet()) {
+			// Strip the unique verb suffix (e.g. ::post, ::all) to compile a clean, unsuffixed key
+			// for the frontend client-side API map.
+			String cleanKey = cleanEndpointPath(key);
 			// NOTE: The first implementation will be taken! Future implementation will be ignored
 			// This is so that only one endpoint exist at a time
 			// @TODO: Need to do a logic in cases where methods are extended
 			// Example: Account login method, and there is another class that extends this method
-			endpoints.putIfAbsent(currentPath + key, apis.get(key));
-			endpoints.putIfAbsent(key, apis.get(key));
+			endpoints.putIfAbsent(currentPath + cleanKey, apis.get(key));
+			endpoints.putIfAbsent(cleanKey, apis.get(key));
 		}
 		
 		// Recursively call through the reroute fields to retrieve the other api endpoints
 		EndpointMap<Field> reroutePaths = basePageClassMap.reroutePaths();
 		for (String key : reroutePaths.keySet()) {
-			getApiEndpointsFromClass(currentPath + key, getRerouteClass(reroutePaths.get(key)),
+			// Strip unique verb suffix from the field reroute paths (e.g. reroute/*::all)
+			String cleanKey = cleanEndpointPath(key);
+			getApiEndpointsFromClass(currentPath + cleanKey, getRerouteClass(reroutePaths.get(key)),
 				endpoints);
-			getApiEndpointsFromClass(key, getRerouteClass(reroutePaths.get(key)), endpoints);
+			getApiEndpointsFromClass(cleanKey, getRerouteClass(reroutePaths.get(key)), endpoints);
 		}
 	}
 	
@@ -352,7 +394,7 @@ public class BasePageClassMap {
 		int partsCount = splitRoutePath.length;
 		
 		// Remove the trailing '/*' in the parts count
-		if (routePath.endsWith("/*")) {
+		if (cleanEndpointPath(routePath).endsWith("/*")) {
 			--partsCount;
 		}
 		
@@ -437,8 +479,8 @@ public class BasePageClassMap {
 	 */
 	protected boolean request_api(BasePage page, String[] requestPath) {
 		try {
-			// Get list of valid paths
-			List<String> pathList = apiMap.findValidKeys(requestPath);
+			// Get list of valid paths matching the request type verb
+			List<String> pathList = apiMap.findValidKeys(requestPath, page.requestType());
 			
 			// Return false (if no endpoint found)
 			if (pathList == null || pathList.size() <= 0) {
@@ -533,7 +575,7 @@ public class BasePageClassMap {
 		String endpoint = pathList.get(0);
 		
 		// Validate reroute endpoint ends with /*
-		if (!endpoint.endsWith("/*")) {
+		if (!cleanEndpointPath(endpoint).endsWith("/*")) {
 			throw new RuntimeException("Reroute paths are suppose to end with '/*'");
 		}
 		
@@ -596,7 +638,7 @@ public class BasePageClassMap {
 		String endpoint = pathList.get(0);
 		
 		// Validate reroute endpoint ends with /*
-		if (!endpoint.endsWith("/*")) {
+		if (!cleanEndpointPath(endpoint).endsWith("/*")) {
 			throw new RuntimeException("Reroute paths are suppose to end with '/*'");
 		}
 		
@@ -914,6 +956,17 @@ public class BasePageClassMap {
 		}
 		
 		// @TODO - consider output failure for unknown non null value ??
+	}
+	
+	/**
+	 * Strips the unique verb suffix (e.g. "::get", "::all") from route path keys
+	 * so that string operations like endsWith("/*") work correctly on the path string.
+	 */
+	public static String cleanEndpointPath(String path) {
+		if (path != null && path.contains("::")) {
+			return path.substring(0, path.indexOf("::"));
+		}
+		return path;
 	}
 	
 }

@@ -29,9 +29,3 @@ build/*
 # Testing tmp folder
 #
 test/tmp
-
-#
-# Include back .gitignore
-#
-!.gitignore
-!.travis.yml
